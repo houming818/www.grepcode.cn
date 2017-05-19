@@ -3,16 +3,16 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
-subtitle:
+title: for me in range(Inception, Reality)
+subtitle: new_me = me 
 description:
-author: John Doe
-language:
-timezone:
+author: stduolc
+language: zh-CN
+timezone: Asia/Shanghai
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://yoursite.com
+url: http://www.grepcode.cn
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -37,11 +37,15 @@ render_drafts: false
 post_asset_folder: false
 relative_link: false
 future: true
+
 highlight:
-  enable: true
-  line_number: true
+  enable: false
+  line_number: frontend
+  trim_indent: backend
   auto_detect: false
-  tab_replace:
+  label:
+    left: Code
+    right: ':'
 
 # Category & Tag
 default_category: uncategorized
@@ -63,11 +67,16 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
+theme: aero-dual
+disqus_shortname: stduolc
+
+# Toc
+toc:
+  maxDepth: 4
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
     type: git
-    repo: git@github.com:stduolc/stduolc.github.io.git
+    repo: git@git.coding.net:studolc/stduolc.coding.me.git
     branch: master
