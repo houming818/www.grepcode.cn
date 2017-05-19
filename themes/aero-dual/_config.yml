@@ -1,0 +1,61 @@
+# Header Menu
+menu:
+  Home: /
+  Archives: /archives
+  # change github and email values to your own addresses
+  Github: https://github.com/stduolc
+  Email: mailto:stduolc@gmail.com
+rss: /atom.xml
+
+# Set to false to disable banner
+use_header_cover: true
+
+# URL of the banner image
+# Put your custom banner image under
+# the theme's img folder: your-blog/themes/minimal-dual/source/img/
+# and modify index_cover's value like so:
+# index_cover: /img/your-custom-banner.jpg
+# or
+# Put your custom banner image under
+# your blog's images folder: your-blog/source/images/
+# and modify index_cover's value like so:
+# index_cover: /images/your-custom-banner.jpg
+# or
+# Specify an online resource like so:
+# index_cover: http://somewhere.com/path/to/banner.jpg
+index_cover: /img/inception.jpg
+
+widgets:
+- category
+- tag
+- archive
+
+# widget behavior
+archive_type: 'monthly'
+show_count: false
+
+# favicon
+favicon: /img/favicon.ico
+
+# Google Analytics Tracking ID
+google_analytics: UA-99618050-1
+
+CDN:
+  jquery: //cdn.bootcss.com/jquery/2.2.4/jquery.min.js
+  require: //cdn.bootcss.com/require.js/2.2.0/require.min.js
+  fontawesome: //cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css
+  fancybox_js: //cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js
+  fancybox_css: //cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css
+  animate_css: //cdn.bootcss.com/animate.css/3.5.1/animate.min.css
+  jquery_ui_js: //cdn.bootcss.com/jqueryui/1.10.4/jquery-ui.min.js
+  jquery_ui_css: //cdn.bootcss.com/jqueryui/1.10.4/css/jquery-ui.min.css
+  pace_js: //cdn.bootcss.com/pace/1.0.2/pace.min.js
+  clipboard: //cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js
+  mathjax: //cdn.bootcss.com/mathjax/2.6.1/MathJax.js
+  scrollreveal: //cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js
+  mermaid_css: //cdn.bootcss.com/mermaid/7.0.0/mermaid.min.css
+  mermaid_js: //cdn.bootcss.com/mermaid/7.0.0/mermaid.min.js
+  highlight_js: //cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js
+  highlight_css: //cdn.bootcss.com/highlight.js/9.11.0/styles/darcula.min.css
+  echarts_js: //cdn.bootcss.com/echarts/3.5.4/echarts.js
+
