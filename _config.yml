@@ -14,7 +14,7 @@ timezone: Asia/Shanghai
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
 url: http://www.grepcode.cn
 root: /
-permalink: :year/:month/:day/:title/
+permalink: :year/:title/
 permalink_defaults:
 
 # Directory
@@ -78,5 +78,5 @@ toc:
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
     type: git
-    repo: git@git.coding.net:studolc/stduolc.coding.me.git
+    repo: https://github.com/stduolc/stduolc.github.io.git
     branch: master

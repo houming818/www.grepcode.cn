@@ -17,6 +17,8 @@
     <link rel="icon" href="<%- theme.favicon %>">
   <% } %>
 
+  <!-- baidu verify -->
+  <meta name="baidu-site-verification" content="LbIAzVLr6C" />
   <!-- Site Title -->
   <title><%- config.title %></title>
 
@@ -26,9 +28,6 @@
   <% var targetStyle = 'css/style.' + (config.theme_style || 'light') + '.css' %>
   <%- css(targetStyle) %>
 
-  <!-- Google Analytics -->
-  <%- partial('google-analytics') %>
-  
   <!-- mermaid support -->
   <link href="<%- theme.CDN.mermaid_css %>" rel="stylesheet">
   <script src="<%- theme.CDN.mermaid_js %>"></script>
@@ -36,7 +35,23 @@
   <!-- highlight support -->
   <!-- <link href="<%- theme.CDN.highlight_css %>" rel="stylesheet"> -->
   <!-- <script src="<%- theme.CDN.highlight_js %>"></script> -->
+
   <!-- echarts support -->
   <script src="<%- theme.CDN.echarts_js %>"></script>
+
+
+  <!-- Google Analytics -->
+  <%- partial('google-analytics') %>
+  
+  <!-- Baidu Analytics -->
+  <script>
+  var _hmt = _hmt || [];
+  (function() {
+   var hm = document.createElement("script");
+   hm.src = "https://hm.baidu.com/hm.js?6bf234a1bccd3985df2766fba5ba9277";
+   var s = document.getElementsByTagName("script")[0]; 
+   s.parentNode.insertBefore(hm, s);
+   })();
+  </script>
 
 </head>

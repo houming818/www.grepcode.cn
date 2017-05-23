@@ -1,8 +1,10 @@
 ---
-title: tornado,openresty性能测试
+title: tornado,aiohttp,openresty,golang性能测试
 date: 2017-05-19 19:54:39
 categories: "testing"
-tags: [tornado, openresty, 性能测试]
+description: "tornado,openresty,golang,aiohttp,sanic性能测试"
+tags: [性能测试, tornado, openresty, golang, aiohttp, sanic]
+toc: true
 ---
 # 测试结果
 {% echarts 400 '81%' %}
@@ -31,7 +33,7 @@ tags: [tornado, openresty, 性能测试]
         {
             type : 'category',
             axisTick : {show: false},
-            data : ['tornado', 'openresty']
+            data : ['tornado', 'openresty', 'golang', 'aiohttp', 'sanic']
         }
     ],
     series : [
@@ -43,7 +45,9 @@ tags: [tornado, openresty, 性能测试]
                     label: {show: true, position: 'inside'}
                 }
             },
-            data:[679, 7734]
+            data:[(40725/60).toFixed(2), (464042/60).toFixed(2), 
+                 (466540/60).toFixed(2), (55862/60).toFixed(2),
+                 (97142/60).toFixed(2)]
         },
         {
             name:'POST',
@@ -53,7 +57,9 @@ tags: [tornado, openresty, 性能测试]
                     label : {show: true}
                 }
             },
-            data:[679, 7735]
+            data:[(40730/60).toFixed(2), (464121/60).toFixed(2), 
+                 (466545/60).toFixed(2), (55863/60).toFixed(2),
+                 (97143/60).toFixed(2)]
         },
         {
             name:'SUM',
@@ -61,7 +67,9 @@ tags: [tornado, openresty, 性能测试]
             itemStyle: {normal: {
                 label : {show: true, position: 'left'}
             }},
-            data:[1538, 15469]
+            data:[((40730+40725)/60).toFixed(2), ((464042+464121)/60).toFixed(2), 
+                 ((466540+466545)/60).toFixed(2), ((55862+55863)/60).toFixed(2),
+                 ((97142+97143)/60).toFixed(2)]
         }
     ]
 };
@@ -69,17 +77,10 @@ tags: [tornado, openresty, 性能测试]
 <!-- more -->
 
 # 测试架构
-- tornado
 {% mermaid %}
 graph TD
-jmeter-->|10.116.22.119:10000|Tornado
-Tornado-->|127.0.0.1:6397|Redis
-{% endmermaid %}
-- openresty+lua
-{% mermaid %}
-graph TD
-jmeter-->|10.116.22.119:10000|openresty
-openresty-->|127.0.0.1:6397|Redis
+jmeter-->|10.116.22.119:10000|wsgi
+wsgi-->|127.0.0.1:6397|Redis
 {% endmermaid %}
 
 
@@ -231,3 +232,263 @@ server {
     }
 }
 ```
+
+## 测试结果截图
+- openresty系统消耗
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot007.jpg)
+- GET请求测试结果
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot008.jpg)
+- POST请求测试结果
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot009.jpg)
+
+
+# golang 测试
+## 测试代码
+```
+package main
+
+import (
+        "encoding/json"
+        "fmt"
+        "runtime"
+        //"github.com/mediocregopher/radix.v2"
+        "github.com/mediocregopher/radix.v2/pool"
+        "github.com/mediocregopher/radix.v2/redis"
+        //"io/ioutil"
+        //"flag"
+        "errors"
+        "log"
+        "net/http"
+        "time"
+)
+
+func newPool() (*pool.Pool, error) {
+        return pool.New("tcp", "127.0.0.1:6379", 10)
+}
+
+var (
+        p *pool.Pool
+)
+
+func Handler(w http.ResponseWriter, r *http.Request) {
+        var conn *redis.Client
+        var err error
+        err = errors.New("init")
+        delta := 10 * time.Millisecond
+        for err != nil {
+                log.Println(err)
+                if p.Avail() > 0 {
+                        conn, err = p.Get()
+                        continue
+                }
+                time.Sleep(delta)
+                delta = delta * 2
+        }
+        defer p.Put(conn)
+        if r.Method == "GET" {
+                resp := conn.Cmd("SPOP", "tokens")
+                if resp.Err != nil {
+                        log.Println("GET error ", resp.Err)
+                        fmt.Fprintf(w, "error")
+                        return
+                }
+                token, err := resp.Str()
+                if err != nil {
+                        log.Println("GET error ", err)
+                        fmt.Fprintf(w, "error")
+                        return
+                }
+                log.Println("GET ok ", token)
+                fmt.Fprintf(w, token)
+                return
+        }
+        if r.Method == "POST" {
+                var t []string
+                r.ParseForm()
+                for key, _ := range r.Form {
+                        //LOG: {"test": "that"}
+                        err := json.Unmarshal([]byte(key), &t)
+                        if err != nil {
+                                log.Println("json error ", err)
+                                fmt.Fprintf(w, "error")
+                                return
+                        }
+                }
+                for _, v := range t {
+                        resp := conn.Cmd("SADD", "tokens", v)
+                        if resp.Err != nil {
+                                log.Println("POST error ", resp.Err)
+                                fmt.Fprintf(w, "error")
+                                return
+                        }
+                        i, err := resp.Int()
+                        if err != nil {
+                                log.Println("POST error ", err)
+                                fmt.Fprintf(w, "error")
+                                return
+                        }
+                        log.Println("POST ok ", i)
+                }
+                fmt.Fprintf(w, "ok")
+        }
+}
+
+func main() {
+        runtime.GOMAXPROCS(1)
+        p, _ = pool.New("tcp", "127.0.0.1:6379", 10)
+        http.HandleFunc("/tokens", Handler)
+        s := &http.Server{
+                Addr:           ":10000",
+                ReadTimeout:    30 * time.Second,
+                WriteTimeout:   30 * time.Second,
+                MaxHeaderBytes: 1 << 20,
+        }
+        log.Fatal(s.ListenAndServe())
+}
+```
+
+
+## 测试结果截图
+- golang系统消耗
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot010.jpg)
+- GET请求测试结果
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/golang_get.jpg)
+- POST请求测试结果
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/golang_post.jpg)
+
+# aiohttp+aioredis 测试
+## 测试代码
+```
+from aiohttp import web
+import asyncio
+import aioredis
+
+loop = asyncio.get_event_loop()
+
+pool = None
+
+async def get_pool():
+    global pool
+    if pool is None:
+        pool = await aioredis.create_pool(
+            ('127.0.0.1', 6379),
+            minsize=1, maxsize=10)
+    return pool
+
+async def get_handler(request):
+    pool = await get_pool()
+    with await pool as conn:
+        token = await conn.execute('spop', 'tokens')
+    return web.Response(text='ok {0}'.format(token))
+
+async def post_handler(request):
+    pool = await get_pool()
+    body = await request.json()
+    with await pool as conn:
+        for x in body:
+            await conn.execute('sadd', 'tokens', x)
+    print("POST {0}".format(body))
+    return web.Response(text=body[0])
+
+
+async def get_app():
+    app = web.Application()
+    app.router.add_get('/tokens', get_handler)
+    app.router.add_post('/tokens', post_handler)
+    return app
+
+
+if __name__ == '__main__':
+    app = loop.run_until_complete(get_app())
+    web.run_app(app, host='0.0.0.0', port=10000)
+```
+
+## 测试结果截图
+- aio系统消耗
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/aio_cpu.jpg)
+- GET请求测试结果
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/aio_get.jpg)
+- POST请求测试结果
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/aio_post.jpg)
+
+
+# sanic测试
+## 测试代码
+```
+import sanic
+from sanic import Sanic
+import logging
+import aioredis
+
+logger = logging.getLogger(__name__)
+
+async def setup(sanic, loop):
+    sanic.conn = []
+    sanic.redis = []
+    for n in range(10):
+        connection = await aioredis.Connection.create(host='127.0.0.1',
+                                                           port=6379)
+        sanic.redis.append(connection)
+
+app = Sanic(name=__name__)
+
+
+@app.listener('before_server_start')
+async def before_server_start(app, loop):
+    logger.info('Starting redis pool')
+    app.redis_pool = await aioredis.create_pool(
+        ('127.0.0.1', 6379),
+        minsize=10,
+        maxsize=10)
+
+
+@app.listener('after_server_stop')
+async def after_server_stop(app, loop):
+    logger.info('Closing redis pool')
+    app.redis_pool.close()
+    await app.redis_pool.wait_closed()
+
+
+@app.middleware('request')
+async def attach_db_connectors(request):
+    # Just put the db objects in the request for easier access
+    logger.info('Passing redis pool to request object')
+    request['redis'] = request.app.redis_pool
+
+
+@app.route('/tokens', methods=['GET'])
+async def get_tokens(request):
+    '''Check to see if the value is in cache, if so lets return that'''
+    try:
+        with await request['redis'] as redis_conn:
+            token = await redis_conn.execute('spop', 'tokens')
+        return sanic.response.HTTPResponse(token, status=200)
+    except aioredis.ProtocolError:
+        logger.critical('Unable to connect to state cache')
+        return sanic.response.HTTPResponse('error', status=500)
+
+
+@app.route('/tokens', methods=['POST'])
+async def post_tokens(request):
+    tokens = request.json
+    try:
+        with await request['redis'] as redis_conn:
+            for x in tokens:
+                await redis_conn.execute('sadd', 'tokens', x)
+        return sanic.response.HTTPResponse('ok', status=200)
+    except aioredis.ProtocolError:
+        logger.critical('Unable to connect to state cache')
+        return sanic.response.HTTPResponse('error', status=500)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
+```
+
+## 测试结果截图
+- sanic系统消耗
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/sanic_cpu.jpg)
+- GET请求测试结果
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/sanic_get.jpg)
+- POST请求测试结果
+![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/sanic_post.jpg)

@@ -6,6 +6,7 @@ menu:
   Github: https://github.com/stduolc
   Email: mailto:stduolc@gmail.com
 rss: /atom.xml
+url: http://www.grepcode.cn
 
 # Set to false to disable banner
 use_header_cover: true
@@ -40,6 +41,11 @@ favicon: /img/favicon.ico
 # Google Analytics Tracking ID
 google_analytics: UA-99618050-1
 
+sitemap:
+    path: sitemap.xml
+baidusitemap:
+    path: baidusitemap.xml
+
 CDN:
   jquery: //cdn.bootcss.com/jquery/2.2.4/jquery.min.js
   require: //cdn.bootcss.com/require.js/2.2.0/require.min.js
@@ -57,5 +63,4 @@ CDN:
   mermaid_js: //cdn.bootcss.com/mermaid/7.0.0/mermaid.min.js
   highlight_js: //cdn.bootcss.com/highlight.js/9.11.0/highlight.min.js
   highlight_css: //cdn.bootcss.com/highlight.js/9.11.0/styles/darcula.min.css
-  echarts_js: //cdn.bootcss.com/echarts/3.5.4/echarts.js
-
+  echarts_js: //cdn.bootcss.com/echarts/3.5.4/echarts.min.js
