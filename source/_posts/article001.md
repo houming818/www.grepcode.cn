@@ -142,17 +142,17 @@ if __name__ == "__main__":
 
 ## 测试结果截图
 - GET请求配置
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot001.jpg)
+![img](screenshot001.jpg)
 - POST请求配置
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot002.jpg)
+![img](screenshot002.jpg)
 - jmeter线程数配置
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot003.jpg)
+![img](screenshot003.jpg)
 - tornado系统消耗
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot004.jpg)
+![img](screenshot004.jpg)
 - GET请求测试结果
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot005.jpg)
+![img](screenshot005.jpg)
 - POST请求测试结果
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot006.jpg)
+![img](screenshot006.jpg)
 
 # openresty+lua测试 
 ## 测试代码
@@ -235,11 +235,11 @@ server {
 
 ## 测试结果截图
 - openresty系统消耗
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot007.jpg)
+![img](screenshot007.jpg)
 - GET请求测试结果
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot008.jpg)
+![img](screenshot008.jpg)
 - POST请求测试结果
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot009.jpg)
+![img](screenshot009.jpg)
 
 
 # golang 测试
@@ -350,11 +350,11 @@ func main() {
 
 ## 测试结果截图
 - golang系统消耗
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/screenshot010.jpg)
+![img](screenshot010.jpg)
 - GET请求测试结果
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/golang_get.jpg)
+![img](golang_get.jpg)
 - POST请求测试结果
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/golang_post.jpg)
+![img](golang_post.jpg)
 
 # aiohttp+aioredis 测试
 ## 测试代码
@@ -405,11 +405,11 @@ if __name__ == '__main__':
 
 ## 测试结果截图
 - aio系统消耗
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/aio_cpu.jpg)
+![img](aio_cpu.jpg)
 - GET请求测试结果
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/aio_get.jpg)
+![img](aio_get.jpg)
 - POST请求测试结果
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/aio_post.jpg)
+![img](aio_post.jpg)
 
 
 # sanic测试
@@ -487,8 +487,8 @@ if __name__ == '__main__':
 
 ## 测试结果截图
 - sanic系统消耗
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/sanic_cpu.jpg)
+![img](sanic_cpu.jpg)
 - GET请求测试结果
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/sanic_get.jpg)
+![img](sanic_get.jpg)
 - POST请求测试结果
-![img](http://stduolc-1251158187.cosgz.myqcloud.com/img/sanic_post.jpg)
+![img](sanic_post.jpg)
