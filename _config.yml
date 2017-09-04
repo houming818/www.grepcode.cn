@@ -80,3 +80,8 @@ deploy:
     type: git
     repo: https://github.com/stduolc/stduolc.github.io.git
     branch: master
+
+#deploy:
+#    type: rsync
+#    repo: stduolc@qcloud.grepcode.cn:/home/workspace/blog
+#    branch: master
