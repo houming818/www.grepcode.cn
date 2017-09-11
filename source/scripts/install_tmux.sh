@@ -28,7 +28,7 @@ init_env() {
     if [ "$DISTRO" == "centos" ]; then
         echo "install deps from yum"
         yum groupinstall "Development Tools" -y
-        yum install gcc kernel-devel libevent-devel make ncurses-devel cmake -y
+        yum install gcc kernel-devel libevent-devel libevent2-devel make ncurses-devel cmake -y
         install_tmux_git
     else
         echo 'only support centos now'
