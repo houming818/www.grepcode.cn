@@ -3,8 +3,8 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: for me in range(Inception, Reality)
-subtitle: new_me = me 
+title: stduolc
+subtitle: coding and eating
 description:
 author: stduolc
 language: zh-CN
@@ -78,7 +78,7 @@ toc:
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
     type: git
-    repo: https://github.com/stduolc/stduolc.github.io.git
+    repo: git@github.com:stduolc/stduolc.github.io.git
     branch: master
 
 #deploy:
