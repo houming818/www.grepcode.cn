@@ -1,5 +1,6 @@
 ---
-title: out_of_inodes
+title: 记录一次inodes用光
+link_title: out_of_inodes
 date: 2017-09-07 15:57:29
 tags: inodes out
 ---
