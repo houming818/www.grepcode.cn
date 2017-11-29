@@ -76,7 +76,8 @@ toc: true
     ]
 };
 {% endecharts %}
-<!-- more -->
+
+==============
 
 # 测试架构
 {% mermaid %}
