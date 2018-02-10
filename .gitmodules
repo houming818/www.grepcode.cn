@@ -1,3 +1,3 @@
-[submodule "source/rc_in_one"]
-	path = source/rc_in_one
-	url = https://git.coding.net/stduolc/rc_in_one.git
+[submodule "source/stdrc"]
+	path = source/stdrc
+	url = git@github.com:stduolc/stdrc.git

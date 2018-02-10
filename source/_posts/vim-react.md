@@ -11,10 +11,12 @@ tags:
 ```
 Bundle 'mxw/vim-jsx'
 ```
+
 ## 1.2 配置vim插件
 ```
 let g:syntastic_javascript_checkers = ['eslint']
 ```
+
 ## 1.3 配置eslintrc
 ```json
 {
@@ -101,4 +103,3 @@ Done.
 ```
 使用了腾讯云的npm源,这个源很坑,删掉,就好了.
 ```
-
