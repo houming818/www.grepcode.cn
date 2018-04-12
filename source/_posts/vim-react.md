@@ -4,8 +4,9 @@ link_title: vim_react
 date: 2017-09-15 16:37:43
 tags:
 ---
-# 1. 配置vim编辑器
+[TOC]
 
+# 1. 配置vim编辑器
 ## 1.1 装vim插件
 ```
 Bundle 'mxw/vim-jsx'
@@ -15,8 +16,6 @@ Bundle 'mxw/vim-jsx'
 ```
 let g:syntastic_javascript_checkers = ['eslint']
 ```
-
-==============
 
 ## 1.3 配置eslintrc
 ```json
