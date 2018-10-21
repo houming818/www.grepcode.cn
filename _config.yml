@@ -77,9 +77,12 @@ toc:
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-    type: git
+  - type: git
     repo: git@github.com:stduolc/stduolc.github.io.git
     branch: master
+#  - type: rsync
+#    repo: stduolc@qcloud.grepcode.cn:/home/workspace/static.grepcode.cn/
+#    branch: master
 
 #deploy:
 #    type: rsync
