@@ -1,6 +1,6 @@
 ---
-title: openstack最小环境搭建记录
-link_title: setup_openstack_standalone
+title: openstack-最小环境搭建记录
+link_title: openstack_standalone_setup
 date: 2017-09-18 14:08:56
 tags:
 ---
