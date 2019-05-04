@@ -255,7 +255,7 @@ stdinit() {
     fi
         
     echo -e "download $SUM_FILE file ...\n"
-    wget http://$STATIC_HOST/stdrc/$SUM_FILE -O $HOME/.std/$SUM_FILE >/dev/null 2>&1
+    wget https://$STATIC_HOST/stdrc/$SUM_FILE -O $HOME/.std/$SUM_FILE >/dev/null 2>&1
 
     local rcfiles=$(cat $HOME/.std/$SUM_FILE | grep 'txt' | awk '{print $2}')
     if [ "$1" == 'clean' ]; then
@@ -289,7 +289,7 @@ stdinit() {
         fi
         # curl the txt files from cdn
         echo -e "download ${i%.txt} ...\n"
-        wget http://$STATIC_HOST/stdrc/$i -O $HOME/.${i%.txt}
+        wget https://$STATIC_HOST/stdrc/$i -O $HOME/.${i%.txt}
     done
 
     local cur_md5_vim=$(cat $HOME/.std/$SUM_FILE | grep 'gz' | awk '{print $1}')
@@ -300,7 +300,7 @@ stdinit() {
         return 0
     else
         echo -e "download vim.tar.gz ...\n"
-        wget http://$STATIC_HOST/stdrc/vim.tar.gz -O $HOME/.std/vim.tar.gz
+        wget https://$STATIC_HOST/stdrc/vim.tar.gz -O $HOME/.std/vim.tar.gz
         echo -e "rm -rf $HOME/.vim\n"
         rm "$HOME/.vim" -rf
     fi
