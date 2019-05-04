@@ -65,7 +65,7 @@ if [ -x /usr/lib/command-not-found -o -x /usr/share/command-not-found/command-no
 fi
 
 STATIC_HOST="www.grepcode.cn"
-SUM_FILE="md5sum.sum"
+SUM_FILE="md5sum.txt"
 
 shopt -s checkwinsize
 

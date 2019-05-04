@@ -402,6 +402,7 @@ func! InitPythonEnv()
   let g:pydiction_menu_height = 20
   let g:syntastic_python_checkers=['flake8', 'pylint']
   let g:syntastic_python_pylint_args='--disable=C0111,R0903,C0301,F0401'
+  let g:syntastic_python_flake8_args='--ignore=E501'
   let g:syntastic_python_python_exec = 'python'
 
   set foldmethod=indent
