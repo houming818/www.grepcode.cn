@@ -1,0 +1,6 @@
+[ELK]
+name=ELK repo
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/elasticstack/yum/elastic-5.x
+enabled=1
+gpgcheck=1
+gpgkey=http://packages.elastic.co/GPG-KEY-elasticsearch

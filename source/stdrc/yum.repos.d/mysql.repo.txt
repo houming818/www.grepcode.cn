@@ -1,0 +1,20 @@
+[mysql-community]
+name=MySQL community 5.7
+baseurl=https://repo.mysql.com/yum/mysql-5.7-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.mysql.com/RPM-GPG-KEY-mysql  
+
+[mysql-tools-community]
+name=MySQL Tools Community 5.7
+baseurl=https://repo.mysql.com/yum/mysql-tools-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.mysql.com/RPM-GPG-KEY-mysql  
+
+[mysql-connectors-community]
+name=MySQL Connectors Community 5.7
+baseurl=https://repo.mysql.com/yum/mysql-connectors-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.mysql.com/RPM-GPG-KEY-mysql  

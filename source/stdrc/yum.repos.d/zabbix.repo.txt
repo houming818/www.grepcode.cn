@@ -1,0 +1,6 @@
+[zabbix-repo]
+name=zabbix repo for Red Hat Enterprise Linux $releasever
+baseurl=http://mirrors.aliyun.com/zabbix/zabbix/3.2/rhel/$releasever/$basearch
+enabled=1
+gpgcheck=1
+gpgkey=http://mirrors.aliyun.com/zabbix/zabbix-official-repo.key

@@ -1,0 +1,5 @@
+--ignore-dir=.venv
+--smart-case
+--sort-files
+--type-add=md=.md
+--type-set=md=.mkd

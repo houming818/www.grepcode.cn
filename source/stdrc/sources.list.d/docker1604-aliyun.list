@@ -1,0 +1,2 @@
+deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu/ xenial stable
+# deb-src [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
