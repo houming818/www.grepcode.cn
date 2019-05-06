@@ -64,7 +64,7 @@ if [ -x /usr/lib/command-not-found -o -x /usr/share/command-not-found/command-no
 	}
 fi
 
-STATIC_HOST="www.grepcode.cn"
+STATIC_HOST="https://stduolc.github.io/"
 SUM_FILE="md5sum.txt"
 
 shopt -s checkwinsize
@@ -189,11 +189,6 @@ themestyle(){
 	fi
 }
 
-
-install_tmux(){
-    curl -s http://$STATIC_HOST/stdrc/install_tmux.sh | bash -s
-}
-
 grepcode() {
     find . -type f -regex "$1" -exec grep -EIHn "$2" {} \;
 }
@@ -255,7 +250,7 @@ stdinit() {
     fi
         
     echo -e "download $SUM_FILE file ...\n"
-    wget https://$STATIC_HOST/stdrc/$SUM_FILE -O $HOME/.std/$SUM_FILE >/dev/null 2>&1
+    wget $STATIC_HOST/stdrc/$SUM_FILE -O $HOME/.std/$SUM_FILE >/dev/null 2>&1
 
     local rcfiles=$(cat $HOME/.std/$SUM_FILE | grep 'txt' | awk '{print $2}')
     if [ "$1" == 'clean' ]; then
@@ -289,7 +284,7 @@ stdinit() {
         fi
         # curl the txt files from cdn
         echo -e "download ${i%.txt} ...\n"
-        wget https://$STATIC_HOST/stdrc/$i -O $HOME/.${i%.txt}
+        wget $STATIC_HOST/stdrc/$i -O $HOME/.${i%.txt}
     done
 
     local cur_md5_vim=$(cat $HOME/.std/$SUM_FILE | grep 'gz' | awk '{print $1}')
@@ -300,7 +295,7 @@ stdinit() {
         return 0
     else
         echo -e "download vim.tar.gz ...\n"
-        wget https://$STATIC_HOST/stdrc/vim.tar.gz -O $HOME/.std/vim.tar.gz
+        wget $STATIC_HOST/stdrc/vim.tar.gz -O $HOME/.std/vim.tar.gz
         echo -e "rm -rf $HOME/.vim\n"
         rm "$HOME/.vim" -rf
     fi
@@ -315,7 +310,7 @@ stdinit() {
 
 stdspeed() {
   if [ $1 == 'net' ]; then
-    curl -s http://$STATIC_HOST/stdrc/stdnet.py | python -
+    curl -s $STATIC_HOST/stdrc/stdnet.py | python -
     return 0
   fi
   if [ $1 == 'stdout']; then
