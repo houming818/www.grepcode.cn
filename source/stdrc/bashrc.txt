@@ -241,6 +241,10 @@ INET_ATON ()
 # alias for stdrc update
 alias stdupdate='>md5sum.txt ; for i in *.txt vim.tar.gz; do [ -f $i  ] && md5sum $i >> md5sum.txt ; done'
 
+f_init_etcd() {
+  curl $STATIC_HOST/scripts/make-ssl-etcd.sh > ~/bin/make-ssl-etcd.sh && chmod 755 ~/bin/make-ssl-etcd.ssh
+}
+
 # std* functions
 stdinit() {
     if [ ! -d $HOME/.std ];
@@ -248,7 +252,19 @@ stdinit() {
         echo -e "mkdir $HOME/.std directory ...\n"
         mkdir -p $HOME/.std > /dev/null 2>&1
     fi
-        
+
+    if [ ! -d $HOME/bin ];
+    then
+        echo -e "mkdir $HOME/bin directory ...\n"
+        mkdir -p $HOME/bin > /dev/null 2>&1
+    fi
+
+    if [ "$1" == "init_etcd" ]
+    then
+        f_init_etcd
+        return 0
+    fi
+       
     echo -e "download $SUM_FILE file ...\n"
     wget $STATIC_HOST/stdrc/$SUM_FILE -O $HOME/.std/$SUM_FILE >/dev/null 2>&1
 
@@ -354,7 +370,7 @@ stdssconf() {
 alias pgit="git -c http.proxy=socks5://hm.grepcode.cn:5080 -c http.sslVerify=False "
 
 stdcrt() {
-  sudo sh -c "curl static.grepcode.cn/certs/StdCA.pem > /etc/ssl/certs/StdCA.pem"
+  sudo sh -c "curl $STATIC_HOST/certs/StdCA.pem > /etc/ssl/certs/StdCA.pem"
 }
 
 dockertags() {
@@ -383,3 +399,5 @@ dockertags() {
 
     echo "${tags}"
 }
+
+PATH=$PATH:~/bin
