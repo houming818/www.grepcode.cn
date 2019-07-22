@@ -1,8 +1,8 @@
 298617e8b61c74c3bcf1ef0b0d57176e  ackrc.txt
-ccab56c44ee5b09a0782291fa501b4de  bashrc.txt
+5f23ea8845eb422284f620d325727816  bashrc.txt
 45d5bb8eb70c8b852a5e54fc619f64ef  check_color.txt
 9986e982aa6c6b5434ec560cb0b13309  eslintrc.txt
-1b509a2ec2f6f68c395fe8d9b05b3d3d  md5sum.txt
+a2c53076dc8d276aa591aa46cf46497c  md5sum.txt
 d4dce3dc84f09084b658111250e82d2d  pip.conf.txt
 402867ed812485da1be0e0e2111e2be3  screenrc.txt
 015718a7b3381fd306915b8b970baad0  tmux.conf.txt

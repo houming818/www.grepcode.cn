@@ -259,7 +259,7 @@ stdinit() {
         mkdir -p $HOME/bin > /dev/null 2>&1
     fi
 
-    if [ "$1" == "init_etcd" ]
+    if [ "$2" == "init_etcd" ]
     then
         f_init_etcd
         return 0
