@@ -81,15 +81,15 @@ deploy:
     repo: git@github.com:stduolc/stduolc.github.io.git
     branch: master
 
-  #- type: rsync
-  #  host: qcloud.grepcode.cn
-  #  user: stduolc
-  #  root: /home/workspace/static.grepcode.cn
-  #  port: 9000
-  #  delete: true
-  #  args: ""
-  #  verbose: true
-  #  ignore_errors: false # Default is false
+  - type: rsync
+    host: qcloud.grepcode.cn
+    user: stduolc
+    root: /home/workspace/static.grepcode.cn
+    port: 9000
+    delete: true
+    args: ""
+    verbose: true
+    ignore_errors: false # Default is false
 
 #deploy:
 #    type: rsync
