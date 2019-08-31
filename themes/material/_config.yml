@@ -192,7 +192,7 @@ materialcdn:
 # Available value of "use":
 #     disqus | disqus_click | changyan | 163gentie
 comment:
-    use: gitment
+    use: 
     shortname: # duoshuo or disqus shortname
     changyan_appid:
     changyan_conf:
