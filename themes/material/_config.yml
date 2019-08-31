@@ -192,12 +192,19 @@ materialcdn:
 # Available value of "use":
 #     disqus | disqus_click | changyan | 163gentie
 comment:
-    use:
+    use: gitment
     shortname: # duoshuo or disqus shortname
     changyan_appid:
     changyan_conf:
     changyan_thread_key_type: path
     gentie_productKey: 
+    gitment_appid: 1126682
+    gitment_uid: stduolc
+    gitment_repo: stduolc.github.io
+    gitment_clientid: 02982f20f8c464363c4f
+    gitment_clientsecret: 84b0d11104ef4d9951175a751f7f5fd59685e32a
+
+
 
 # Search Systems
 # Available value:
