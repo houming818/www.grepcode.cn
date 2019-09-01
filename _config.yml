@@ -12,7 +12,7 @@ timezone: Asia/Shanghai
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://www.grepcode.cn
+url: https://www.grepcode.cn
 root: /
 permalink: :year/:link_title/
 permalink_defaults:

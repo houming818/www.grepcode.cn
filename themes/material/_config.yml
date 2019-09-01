@@ -120,7 +120,7 @@ toc:
 
 # SNS Menu
 sns:
-    email: stduolc@gmail.com
+    email: stduolc@grepcode.cn
     facebook:
     twitter:
     googleplus:
@@ -147,7 +147,7 @@ sns_share:
 sidebar:
     dropdown:
         Email Me:
-            link: "mailto:stduolc@gmail.com"
+            link: "mailto:stduolc@grepcode.cn"
             icon: email
     homepage:
         use: true

@@ -4,7 +4,6 @@ link_title: vim_react
 date: 2017-09-15 16:37:43
 tags:
 ---
-[TOC]
 
 # 1. 配置vim编辑器
 ## 1.1 装vim插件

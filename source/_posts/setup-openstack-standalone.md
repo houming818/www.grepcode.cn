@@ -4,7 +4,6 @@ link_title: openstack_standalone_setup
 date: 2017-09-18 14:08:56
 tags:
 ---
-[TOC]
 
 > 参考资料
 >
