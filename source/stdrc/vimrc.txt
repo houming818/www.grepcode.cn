@@ -17,10 +17,10 @@ if !filereadable(vundle_readme)
     echo ""
     silent !mkdir -p ~/.vim
     silent !curl www.grepcode.cn/stdrc/vim.tar.gz > /tmp/vim.tar.gz
-    silent !tar xfz /tmp/vim.tar.gz -C ~/.vim
+    silent !tar xfz /tmp/vim.tar.gz -C ~/.std/.vim
 endif
 
-set rtp+=~/.vim/bundle/vundle/
+set rtp+=~/.std/.vim/bundle/vundle/
 call vundle#rc()
 "}}}
 

@@ -266,21 +266,21 @@ stdinit() {
     fi
        
     echo -e "download $SUM_FILE file ...\n"
-    wget $STATIC_HOST/stdrc/$SUM_FILE -O $HOME/.std/$SUM_FILE >/dev/null 2>&1
+    curl $STATIC_HOST/stdrc/$SUM_FILE > $HOME/.std/$SUM_FILE 2>/dev/null
 
     local rcfiles=$(cat $HOME/.std/$SUM_FILE | grep 'txt' | awk '{print $2}')
     if [ "$1" == 'clean' ]; then
         for i in ${rcfiles[@]}; 
         do
             # remove current files
-            rm -rf $HOME/.${i%.txt}
-            rm -rf $HOME/.vim 
+            rm -rf $HOME/.std/.${i%.txt}
+            rm -rf $HOME/.std/.vim 
             rm -rf $HOME/.std/vim.tar.gz
 
             # recover the backup
-            if [ -f $HOME/.${i%.txt}.xbak ]; then
-                mv -f $HOME/.${i%.txt}.xbak $HOME/.${i%.txt}
-            fi
+            #if [ -f $HOME/.${i%.txt}.xbak ]; then
+            #    mv -f $HOME/.${i%.txt}.xbak $HOME/.${i%.txt}
+            #fi
         done
         return 0
     fi
@@ -288,19 +288,19 @@ stdinit() {
     for i in ${rcfiles[@]}; do
         # check the rc file and mv to backup
         local cur_file_md5sum=$(cat $HOME/.std/$SUM_FILE | grep $i | awk '{print $1}')
-        local old_file_md5sum=$(md5sum $HOME/.${i%.txt} | awk '{print $1}')
+        local old_file_md5sum=$(md5sum $HOME/.std/.${i%.txt} | awk '{print $1}')
         if [ "$cur_file_md5sum" == "$old_file_md5sum" ];
         then
             echo -e "skip download ${i%.txt} \n"
             continue
         fi
-        if [ -f $HOME/.${i%.txt} ]; then
-            echo -e "backup .${i%.txt} \n"
-            mv -f $HOME/.${i%.txt} $HOME/.${i%.txt}.xbak
+        if [ -f $HOME/.std/.${i%.txt} ]; then
+            echo -e "rm .std/.${i%.txt} \n"
+            rm -f $HOME/.std/.${i%.txt}
         fi
         # curl the txt files from cdn
         echo -e "download ${i%.txt} ...\n"
-        wget $STATIC_HOST/stdrc/$i -O $HOME/.${i%.txt}
+        curl $STATIC_HOST/stdrc/$i > $HOME/.std/.${i%.txt}
     done
 
     local cur_md5_vim=$(cat $HOME/.std/$SUM_FILE | grep 'gz' | awk '{print $1}')
@@ -312,15 +312,24 @@ stdinit() {
     else
         echo -e "download vim.tar.gz ...\n"
         wget $STATIC_HOST/stdrc/vim.tar.gz -O $HOME/.std/vim.tar.gz
-        echo -e "rm -rf $HOME/.vim\n"
+        echo -e "rm -rf $HOME/.std/.vim\n"
         rm "$HOME/.vim" -rf
     fi
 
-    if [ ! -d "$HOME/.vim" ];
+    if [ ! -d "$HOME/.std/.vim" ];
     then
-        mkdir $HOME/.vim -p
-        tar xfz $HOME/.std/vim.tar.gz -C $HOME/
+        mkdir $HOME/.std/.vim -p
+        tar xfz $HOME/.std/vim.tar.gz -C $HOME/.std/.vim
     fi
+
+    if [ ! - "$HOME/.vimrc" ];
+    then
+        mkdir $HOME/.std/.vim -p
+        tar xfz $HOME/.std/vim.tar.gz -C $HOME/.std/.vim
+    fi
+
+    ln $HOME/.vimrc $HOME/.std/.vimrc -sf
+
     return 0
 }
 
