@@ -87,7 +87,7 @@ fi
 [ "$DISTRO" == "" ] && export DISTRO=$UNAME
 unset UNAME
 
-export BASH_THEME=$HOME/.bash.theme
+export BASH_THEME=$HOME/.std/.zcolor.sh
 if [[ -f $BASH_THEME  ]]; then
     export DEFAULT_USER=`whoami`
     source $BASH_THEME
