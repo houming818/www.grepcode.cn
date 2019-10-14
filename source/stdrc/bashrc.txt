@@ -328,7 +328,8 @@ stdinit() {
         tar xfz $HOME/.std/vim.tar.gz -C $HOME/.std/.vim
     fi
 
-    ln $HOME/.vimrc $HOME/.std/.vimrc -sf
+    ln $HOME/.std/.vimrc $HOME/.vimrc -sf
+    ln $HOME/.std/.bashrc $HOME/.bashrc -sf
 
     return 0
 }
