@@ -308,7 +308,6 @@ stdinit() {
     if [ "$cur_md5_vim" == "$old_md5_vim" ];
     then
         echo -e "skip vim.tar.gz\n"
-        return 0
     else
         echo -e "download vim.tar.gz ...\n"
         wget $STATIC_HOST/stdrc/vim.tar.gz -O $HOME/.std/vim.tar.gz
