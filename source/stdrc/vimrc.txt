@@ -20,8 +20,9 @@ if !filereadable(vundle_readme)
     silent !tar xfz /tmp/vim.tar.gz -C ~/.std/
 endif
 
-set rtp+=~/.std/.vim/bundle/vundle/
-call vundle#rc(expand('~/.std/.vim/bundle'))
+"set rtp+=~/.std/.vim/bundle/Vundle.vim
+set rtp+=~/.std/.vim/bundle/vundle
+"call vundle#rc('$HOME/.std/.vim/bundle')
 "}}}
 
 
@@ -95,9 +96,11 @@ let b:easytags_auto_highlight = 1
 """""""""""""""""""""""""""""""""
 "{{{
 
+call vundle#begin('~/.std/.vim/bundle')
+
 """  required! 
 """  let Vundle manage Vundle
-Bundle 'gmarik/vundle'          
+Bundle 'gmarik/vundle'
 
 """  Themes Bundles
 Bundle 'flazz/vim-colorschemes'
@@ -251,6 +254,7 @@ set rtp+=$GOPATH/src/github.com/golang/lint/misc/vim
 
 autocmd! FileType go call InitGolangEnv()
 
+call vundle#end()
 
 "}}}
 
