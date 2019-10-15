@@ -315,11 +315,8 @@ stdinit() {
         rm "$HOME/.std/.vim" -rf
     fi
 
-    if [ ! -d "$HOME/.std/.vim" ];
-    then
-        mkdir $HOME/.std/ -p
-        tar xfz $HOME/.std/vim.tar.gz -C $HOME/.std/
-    fi
+    mkdir $HOME/.std/ -p
+    tar xfz $HOME/.std/vim.tar.gz -C $HOME/.std/
 
     ln $HOME/.std/.vimrc $HOME/.vimrc -sf
     ln $HOME/.std/.bashrc $HOME/.bashrc -sf
