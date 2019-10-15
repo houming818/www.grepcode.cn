@@ -253,7 +253,7 @@ prompt_git() {
 
 # Dir: current working directory
 prompt_dir() {
-    prompt_segment default blue '$(pwd)'
+    prompt_segment default magenta '$(pwd)'
 }
 
 # Status:
