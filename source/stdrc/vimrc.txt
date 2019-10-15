@@ -597,7 +597,7 @@ nmap <silent> <leader>ps <Plug>(pydocstring)
 """""""""""""""""""""""""""""""""
 "{{{
 """  choose the default colorscheme
-colorscheme 256-grayvim
+colorscheme Light
 let g:molokai_original = 1
 """  settings for cursor 光标相关设置
 """  highlight for cursor
