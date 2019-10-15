@@ -310,9 +310,9 @@ stdinit() {
         echo -e "skip vim.tar.gz\n"
     else
         echo -e "download vim.tar.gz ...\n"
-        wget $STATIC_HOST/stdrc/vim.tar.gz -O $HOME/.std/vim.tar.gz
+        curl $STATIC_HOST/stdrc/vim.tar.gz > $HOME/.std/vim.tar.gz
         echo -e "rm -rf $HOME/.std/.vim\n"
-        rm "$HOME/.vim" -rf
+        rm "$HOME/.std/.vim" -rf
     fi
 
     if [ ! -d "$HOME/.std/.vim" ];
