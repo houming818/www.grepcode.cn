@@ -317,8 +317,8 @@ stdinit() {
 
     if [ ! -d "$HOME/.std/.vim" ];
     then
-        mkdir $HOME/.std/.vim -p
-        tar xfz $HOME/.std/vim.tar.gz -C $HOME/.std/.vim
+        mkdir $HOME/.std/ -p
+        tar xfz $HOME/.std/vim.tar.gz -C $HOME/.std/
     fi
 
     ln $HOME/.std/.vimrc $HOME/.vimrc -sf
