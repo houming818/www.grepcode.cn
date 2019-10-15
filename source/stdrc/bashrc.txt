@@ -105,14 +105,13 @@ alias ll="ls --time-style=iso --color -al"
 alias grep='grep --color=auto'
 alias grepconf='grep -P "^[^#].+"'
 
-# fix tmux theme
-alias tmux="TERM=screen-256color tmux"
-
 alias ipy="python -c 'import IPython; IPython.terminal.ipapp.launch_new_instance()'"
 
 # alias for repos 
-alias cnpm="npm --registry=https://registry.npm.taobao.org --cache=$HOME/.npm/.cache/cnpm --disturl=https://npm.taobao.org/dist --userconfig=$HOME/.cnpmrc"
-alias dpip="pip -i https://pypi.douban.com/simple"
+alias stmux="TERM=screen-256color tmux -f $HOME/.std/.tmux.conf"
+alias svim="vim -u $HOME/.std/.vimrc"
+alias snpm="npm --registry=https://registry.npm.taobao.org --cache=$HOME/.npm/.cache/cnpm --disturl=https://npm.taobao.org/dist --userconfig=$HOME/.cnpmrc"
+alias spip="pip -i https://pypi.douban.com/simple"
 alias ..="cd .."
 alias ...="cd ../.."
 
@@ -318,7 +317,6 @@ stdinit() {
     mkdir $HOME/.std/ -p
     tar xfz $HOME/.std/vim.tar.gz -C $HOME/.std/
 
-    ln $HOME/.std/.vimrc $HOME/.vimrc -sf
     ln $HOME/.std/.bashrc $HOME/.bashrc -sf
 
     return 0
