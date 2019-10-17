@@ -15,13 +15,14 @@ let vundle_readme=expand('~/.std/.vim/bundle/vundle/README.md')
 if !filereadable(vundle_readme)
     echo "Installing Vundle..."
     echo ""
-    silent !mkdir -p ~/.std/.vim
+    silent !mkdir -p ~/.std
     silent !curl www.grepcode.cn/stdrc/vim.tar.gz > /tmp/vim.tar.gz
     silent !tar xfz /tmp/vim.tar.gz -C ~/.std/
 endif
 
 "set rtp+=~/.std/.vim/bundle/Vundle.vim
 set rtp+=~/.std/.vim/bundle/vundle
+
 "call vundle#rc('$HOME/.std/.vim/bundle')
 "}}}
 
@@ -31,7 +32,8 @@ set rtp+=~/.std/.vim/bundle/vundle
 "   不知道怎么归类的设置        "
 """""""""""""""""""""""""""""""""
 "{{{
-set viminfo+=!                  "  保存全局变量
+
+"set viminfo+=!                  "  保存全局变量
 set lbr
 set fo+=mB
 set sm
@@ -245,9 +247,13 @@ autocmd! FileType typescript :set makeprg=tsc
 """  Golang Support
 "{{{
 
-Bundle 'fatih/vim-go'
-Bundle 'Blackrush/vim-gocode'
-Bundle 'nsf/gocode'
+let go_bin_file=system('which go')
+if filereadable(go_bin_file)
+    echo 'init bundle for go'
+    Bundle 'fatih/vim-go'
+    Bundle 'Blackrush/vim-gocode'
+    Bundle 'nsf/gocode'
+endif
 
 " golint
 set rtp+=$GOPATH/src/github.com/golang/lint/misc/vim
@@ -597,7 +603,7 @@ nmap <silent> <leader>ps <Plug>(pydocstring)
 """""""""""""""""""""""""""""""""
 "{{{
 """  choose the default colorscheme
-colorscheme adventurous
+colorscheme molokai_dark
 let g:molokai_original = 1
 """  settings for cursor 光标相关设置
 """  highlight for cursor
