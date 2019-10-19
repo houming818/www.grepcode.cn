@@ -252,7 +252,7 @@ stdinit() {
     IPINFO_CC=$(echo "$IPINFO"|grep -oP '(?<="cc":")\w*')
 
     if [ "$IPINFO_CC" == "CN" ]; then
-        STATIC_HOST="https://static.grepcode.cn"
+        STATIC_HOST="https://www.grepcode.cn"
     else
         STATIC_HOST="https://stduolc.github.io/"
     fi
