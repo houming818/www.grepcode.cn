@@ -279,7 +279,7 @@ stdinit() {
 
     if [ "$2" == "init_ca" ]
     then
-        sudo sh -c "curl $STATIC_HOST/certs/StdCA.pem > /etc/ssl/certs/StdCA.pem"
+        sudo sh -c "curl $STATIC_HOST/certs/StdCA.crt > /etc/ssl/certs/StdCA.crt"
         return 0
     fi
       
