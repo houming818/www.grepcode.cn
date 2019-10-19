@@ -65,9 +65,9 @@ if [ -x /usr/lib/command-not-found -o -x /usr/share/command-not-found/command-no
 fi
 
 
-IPINFO=$(timeout 1.5 curl https://api.myip.com 2>/dev/null)
-IPINFO_IP=$(echo $IPINFO|grep -oP '\d+\.\d+\.\d+\.\d+')
-IPINFO_CC=$(echo $IPINFO|grep -oP '(?<="cc":")\w*''")')
+IPINFO=$(curl https://api.myip.com 2>/dev/null)
+IPINFO_IP=$(echo "$IPINFO"|grep -oP '\d+\.\d+\.\d+\.\d+')
+IPINFO_CC=$(echo "$IPINFO"|grep -oP '(?<="cc":")\w*''")')
 
 if [ "$IPINFO_CC" == "CN" ]; then
     STATIC_HOST="https://static.grepcode.cn"
