@@ -64,7 +64,17 @@ if [ -x /usr/lib/command-not-found -o -x /usr/share/command-not-found/command-no
 	}
 fi
 
-STATIC_HOST="https://stduolc.github.io/"
+
+IPINFO=$(timeout 1.5 curl https://api.myip.com 2>/dev/null)
+IPINFO_IP=$(echo $IPINFO|grep -oP '\d+\.\d+\.\d+\.\d+')
+IPINFO_CC=$(echo $IPINFO|grep -oP '(?<="cc":")\w*''")')
+
+if [ "$IPINFO_CC" == "CN" ]; then
+    STATIC_HOST="https://static.grepcode.cn"
+else
+    STATIC_HOST="https://stduolc.github.io/"
+fi
+
 SUM_FILE="md5sum.txt"
 
 shopt -s checkwinsize
@@ -75,7 +85,7 @@ UNAME=$(uname | tr "[:upper:]" "[:lower:]")
 if [ "$UNAME" == "linux" ]; then
     # If available, use LSB to identify distribution
     if [ -f /etc/lsb-release -o -d /etc/lsb-release.d  ]; then
-        export DISTRO=$(cat /etc/os-release |grep -Po '(CentOS|Ubuntu|Debian)'|head -n 1)
+        export DISTRO=$(cat /etc/os-release /etc/os-release |grep -Po '(CentOS|Ubuntu|Debian)'|head -n 1)
         # Otherwise, use release info file
     else
         export DISTRO=$(cat /etc/system-release | cut -d\  -f 1)
@@ -119,7 +129,7 @@ alias ...="cd ../.."
 # alias for grepcode.cn
 
 shopt -s histappend
-HISTSIZE=10000
+HISTSIZE=65535
 HISTTIMEFORMAT=`echo -e ${red}[%F %T] ${normal}`
 
 
@@ -134,7 +144,7 @@ colorlog() {
 }
 
 
-themestyle(){
+stdtheme(){
     if [ $1 == "bg" ]; then
         iter=16
         while [ $iter -lt 52 ]
