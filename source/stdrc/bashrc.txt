@@ -75,7 +75,7 @@ UNAME=$(uname | tr "[:upper:]" "[:lower:]")
 if [ "$UNAME" == "linux" ]; then
     # If available, use LSB to identify distribution
     if [ -f /etc/lsb-release -o -d /etc/lsb-release.d  ]; then
-        export DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)
+        export DISTRO=$(cat /etc/os-release |grep -Po '(CentOS|Ubuntu|Debian)'|head -n 1)
         # Otherwise, use release info file
     else
         export DISTRO=$(cat /etc/system-release | cut -d\  -f 1)

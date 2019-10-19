@@ -604,7 +604,7 @@ nmap <silent> <leader>ps <Plug>(pydocstring)
 "{{{
 """  choose the default colorscheme
 colorscheme molokai_dark
-let g:molokai_original = 1
+"let g:molokai_original = 1
 """  settings for cursor 光标相关设置
 """  highlight for cursor
 hi CursorColumn term=bold cterm=bold ctermbg=None
@@ -618,7 +618,7 @@ autocmd InsertLeave * set cursorcolumn
 autocmd InsertEnter * set nocursorcolumn
 
 """  settings for colors
-set t_Co=128                    "  set the color bits
+set t_Co=256                    "  set the color bits
 set go=                         "  I don't know what is this
 set ruler                       "  show the ruler but not effective
 "set showcmd                    "  show the command, set to off if the terminal is slow
