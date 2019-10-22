@@ -605,13 +605,17 @@ nmap <silent> <leader>ps <Plug>(pydocstring)
 """  choose the default colorscheme
 
 "colorscheme molokai_dark
-colorscheme darkZ
+colorscheme Atelier_HeathDark
 
-let g:molokai_original = 0
+"let g:molokai_original = 0
+
 """  settings for cursor 光标相关设置
 """  highlight for cursor
 hi CursorColumn term=bold cterm=bold ctermbg=None
+hi clear CursorLine
 hi CursorLine term=bold cterm=bold ctermbg=None
+"hi CursorLine ctermbg=LightBlue
+"hi CursorLine term=none cterm=none ctermfg=none ctermbg=255
 
 set cursorline
 autocmd InsertLeave * set cursorline
