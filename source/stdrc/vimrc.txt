@@ -603,8 +603,11 @@ nmap <silent> <leader>ps <Plug>(pydocstring)
 """""""""""""""""""""""""""""""""
 "{{{
 """  choose the default colorscheme
-colorscheme molokai_dark
-"let g:molokai_original = 1
+
+"colorscheme molokai_dark
+colorscheme darkZ
+
+let g:molokai_original = 0
 """  settings for cursor 光标相关设置
 """  highlight for cursor
 hi CursorColumn term=bold cterm=bold ctermbg=None

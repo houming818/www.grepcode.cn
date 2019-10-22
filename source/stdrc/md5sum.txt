@@ -1,13 +1,13 @@
 298617e8b61c74c3bcf1ef0b0d57176e  ackrc.txt
-7e471bfde68d362657015fe58c1ed20d  bashrc.txt
+38c511eeea2e454385031236f497e4c0  bashrc.txt
 45d5bb8eb70c8b852a5e54fc619f64ef  check_color.txt
 9986e982aa6c6b5434ec560cb0b13309  eslintrc.txt
-486f79fcacb74ad196b4c476f4cdaac6  md5sum.txt
+84fc191b522401d0f819010d0902d998  md5sum.txt
 d4dce3dc84f09084b658111250e82d2d  pip.conf.txt
 402867ed812485da1be0e0e2111e2be3  screenrc.txt
 efe39ea21fc3c868126f0f8d9576e0e1  tmux.conf.txt
 82d4fb5df5b5953b98b79f1456946996  tmux.theme.txt
 ea9c550205c12a2df1d4d36419e42bdf  toprc.txt
-ed27908a98feb70c02963bdaac2dd6bd  vimrc.txt
+8dae7c4aca09ddf8bf6e502e4b392c24  vimrc.txt
 64f382fb563477a5d8eb37aa6fd93a9f  zcolor.sh.txt
 2befba6b1f56ef063acdc5b6f3cd1436  vim.tar.gz
