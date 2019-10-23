@@ -605,7 +605,8 @@ nmap <silent> <leader>ps <Plug>(pydocstring)
 """  choose the default colorscheme
 
 "colorscheme molokai_dark
-colorscheme Atelier_HeathDark
+"colorscheme Atelier_HeathDark
+colorscheme peaksea
 
 "let g:molokai_original = 0
 
