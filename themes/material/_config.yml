@@ -95,7 +95,7 @@ card_elevation: 2
 # Copyright
 # Specify the date when the site was setup.
 #   For example, if you set it as 2015, then footer will show '© 2015 - 2017'
-copyright_since:  '© 2017 - '
+copyright_since:  '鄂ICP证17024089号 ©2017-'
 
 # Qrcode for redirect at other device
 #   use: choose which method to generate the qrcode for each posts.
