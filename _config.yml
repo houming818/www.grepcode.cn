@@ -6,7 +6,7 @@
 title: stduolc
 subtitle: coding and thinking
 description:
-author: 鄂ICP证17024089号 stduolc
+author: stduolc
 language: zh-CN
 timezone: Asia/Shanghai
 
@@ -67,7 +67,9 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: material
+#theme: material
+theme: Paradox
+theme.busuanzi.enable: true
 disqus_shortname: stduolc
 
 # Toc
