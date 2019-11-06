@@ -93,6 +93,9 @@ deploy:
     verbose: true
     ignore_errors: false # Default is false
 
+  - type: shell
+    command: rsync -av ./public/ /home/workspace/static.grepcode.cn
+
 #deploy:
 #    type: rsync
 #    repo: stduolc@qcloud.grepcode.cn:/home/workspace/blog
