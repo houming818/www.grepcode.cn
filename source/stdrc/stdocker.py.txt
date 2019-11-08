@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+author: stduolc
+email: stduolc@gmail.com
+date: 2019-11-08 18:20:05
+filename: stdocker.py.txt
+"""
+
+import argparse
+
+def s_tags(args):
+    pass
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("cmds", metavar="N", type=str, nargs="+" store="module", help="no specification")
+    args = parser.parse_args()
+    pass

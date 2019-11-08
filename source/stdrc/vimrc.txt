@@ -21,6 +21,7 @@ if !filereadable(vundle_readme)
 endif
 
 "set rtp+=~/.std/.vim/bundle/Vundle.vim
+set rtp+=~/.std/.vim
 set rtp+=~/.std/.vim/bundle/vundle
 
 "call vundle#rc('$HOME/.std/.vim/bundle')
@@ -159,6 +160,7 @@ Bundle 'SirVer/ultisnips'
 
 """ Snippets 
 Bundle 'honza/vim-snippets'
+"let g:UltiSnipsSnippetDirectories="~/.std/.vim/UltiSnips"
 
 """ Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
 "let g:UltiSnipsExpandTrigger="<c-i>"
