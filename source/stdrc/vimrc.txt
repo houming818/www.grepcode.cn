@@ -481,6 +481,7 @@ func! InitVueEnv()
   let g:jsx_ext_required = 0
 
   set tabstop=2
+  set shiftwidth=2
   augroup SaveVue
     autocmd!
     autocmd BufWritePre *.vue silent! execute ':%s/\s\+$//g'
