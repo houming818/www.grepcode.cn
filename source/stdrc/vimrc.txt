@@ -187,6 +187,7 @@ set completeopt=menu
 "Bundle 'python-mode/python-mode'
 Bundle 'heavenshell/vim-pydocstring'
 Bundle 'Vimjas/vim-python-pep8-indent'
+Bundle 'davidhalter/jedi-vim'
 
 autocmd! FileType python call InitPythonEnv()
 
@@ -293,7 +294,13 @@ filetype plugin indent on
 """  settings for python-mode 
 
 let g:jedi#smart_auto_mappings = 0
-
+let g:jedi#goto_command = "<leader>d"
+let g:jedi#goto_assignments_command = "<leader>g"
+let g:jedi#goto_definitions_command = ""
+let g:jedi#documentation_command = "K"
+let g:jedi#usages_command = "<leader>n"
+let g:jedi#completions_command = "<C-Space>"
+let g:jedi#rename_command = "<leader>r"
 
 """  settings of ctags Ctags的设定
 """  设置tags
@@ -403,6 +410,7 @@ func! InitGolangEnv()
 
 endfunc
 
+
 func! InitPythonEnv()
   let g:SuperTabDefaultCompletionType = "<c-p>"
   set completefunc=pythoncomplete#Complete
@@ -416,6 +424,7 @@ func! InitPythonEnv()
   let g:syntastic_python_pylint_args='--disable=C0111,R0903,C0301,F0401'
   let g:syntastic_python_flake8_args='--ignore=E501'
   let g:syntastic_python_python_exec = 'python'
+  let g:jedi#auto_initialization = 1
 
   set foldmethod=indent
   set foldlevel=99
@@ -671,3 +680,4 @@ set statusline+=%0*\|%m%r%w                            "Modified? Readonly? Top/
 """""""""""""""""""""""""""""""""
 "        END OF VIMRC           "
 """""""""""""""""""""""""""""""""
+    
