@@ -353,7 +353,7 @@ stdspeed() {
     fi
 
     if [ $1 == 'net' ]; then
-        curl -s $STATIC_HOST/stdrc/stdnet.py.txt | python -
+        curl -L -s $STATIC_HOST/stdrc/stdnet.py.txt | python -
         return 0
     fi
     if [ $1 == 'stdout']; then
