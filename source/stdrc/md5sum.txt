@@ -5,7 +5,7 @@
 e7aecc12ef496ab2c6c37b5a1e585f02  md5sum.txt
 d4dce3dc84f09084b658111250e82d2d  pip.conf.txt
 402867ed812485da1be0e0e2111e2be3  screenrc.txt
-d5ba8933437c070d387a8385dfc28c7f  stdnet.py.txt
+322eb3ec52f028e6b1df6bd0a9f6cb52  stdnet.py.txt
 b0c2b043923a5a6426b36516974a7707  stdocker.py.txt
 efe39ea21fc3c868126f0f8d9576e0e1  tmux.conf.txt
 82d4fb5df5b5953b98b79f1456946996  tmux.theme.txt
