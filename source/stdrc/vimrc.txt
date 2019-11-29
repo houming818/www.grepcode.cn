@@ -360,27 +360,6 @@ set fileencodings=utf8,ucs-bom,gbk,cp936,gb2312,gb18030
 """""""""""""""""""""""""""""""""
 "{{{
 
-func! IgnoreCurrentLine()
-    if &filetype == 'py'||&filetype == 'python'
-        let trace = expand("# #gitignore")
-        execute "normal A ".trace
-    elseif &filetype == 'javascript' || &filetype == 'js' || &filetype == 'javascript.jsx'
-        let trace = expand("// #gitignore")
-        execute "normal A ".trace
-        return
-    elseif &filetype == 'vue'
-        let trace = expand("// #gitignore")
-        execute "normal A ".trace
-        return
-    elseif &filetype == 'jsp'
-        return
-    elseif &filetype == 'xml'
-        return
-   else
-        return
-    endif
-endfunc
-
 func! InsertBreakPoint()
     if &filetype == 'py'||&filetype == 'python'
         let trace = expand("import pudb; pudb.set_trace()  # NOQA, BreakPoint XXX")
@@ -560,7 +539,6 @@ let mapleader=","
 """  Toggle for NERDComment | 快速注释
 :nmap <Leader>c  <plug>NERDCommenterToggle
 :nmap <Leader>b :call InsertBreakPoint()<CR>
-:nmap <Leader>i :call IgnoreCurrentLine()<CR>
 """  toggle for show line numbers
 """  行号显示开关
 nmap <Leader>N :set invnumber<CR>
