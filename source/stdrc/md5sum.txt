@@ -3,7 +3,7 @@
 45d5bb8eb70c8b852a5e54fc619f64ef  check_color.txt
 9986e982aa6c6b5434ec560cb0b13309  eslintrc.txt
 e7aecc12ef496ab2c6c37b5a1e585f02  md5sum.txt
-d4dce3dc84f09084b658111250e82d2d  pip.conf.txt
+b8be1b0207463f215bad1d3e6d8879e2  pip.conf.txt
 402867ed812485da1be0e0e2111e2be3  screenrc.txt
 322eb3ec52f028e6b1df6bd0a9f6cb52  stdnet.py.txt
 b0c2b043923a5a6426b36516974a7707  stdocker.py.txt
