@@ -10,6 +10,6 @@ b0c2b043923a5a6426b36516974a7707  stdocker.py.txt
 efe39ea21fc3c868126f0f8d9576e0e1  tmux.conf.txt
 82d4fb5df5b5953b98b79f1456946996  tmux.theme.txt
 ea9c550205c12a2df1d4d36419e42bdf  toprc.txt
-bd8888ea905b390b2fa096a995294c8a  vimrc.txt
+4914b5bd77195c6f57c04f86f9cc6d83  vimrc.txt
 64f382fb563477a5d8eb37aa6fd93a9f  zcolor.sh.txt
-2524446a803de0a8f7bb8378f69c7da9  vim.tar.gz
+6df80bd0a6856ed6bccfe087e012d04a  vim.tar.gz

@@ -80,7 +80,7 @@ set autoread
 """  自动保存
 set autowrite
 """  代码补全
-set completeopt=menu
+"set completeopt=menu
 """  don't cover the edit buffer 粘贴不覆盖缓冲区
 xnoremap p pgvy
 """   settings for searching 搜索相关设置
@@ -141,7 +141,7 @@ let g:tagbar_sort = 0
 
 """  OptimizeCodeSpeed Bundles
 """  Autocomplete with tab
-Bundle 'vim-scripts/SyntaxComplete'
+"Bundle 'vim-scripts/SyntaxComplete'
 Bundle 'ervandew/supertab'      
 
 """  Autocomplete characters with pair
@@ -179,12 +179,13 @@ Bundle 'vim-syntastic/syntastic'
 
 let g:syntastic_check_on_wq = 1
 
-set completeopt=menu
+"set completeopt=menu
 
 """  Python Support
 "{{{
 
 "Bundle 'python-mode/python-mode'
+Bundle 'davidhalter/jedi-vim'
 Bundle 'heavenshell/vim-pydocstring'
 Bundle 'Vimjas/vim-python-pep8-indent'
 
@@ -262,7 +263,6 @@ set rtp+=$GOPATH/src/github.com/golang/lint/misc/vim
 
 autocmd! FileType go call InitGolangEnv()
 
-call vundle#end()
 
 "}}}
 
@@ -286,6 +286,8 @@ Bundle 'synmark.vim'
 "Bundle 'ctrlp.vim'
 "Bundle 'ctrlp-modified.vim'
 "Bundle 'tacahiroy/ctrlp-funky'
+
+call vundle#end()
 
 """  required!
 filetype plugin indent on       
