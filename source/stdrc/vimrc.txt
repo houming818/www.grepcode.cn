@@ -134,7 +134,7 @@ Bundle 'taglist.vim'
 
 """  Ctags support
 Bundle 'tagbar'                 
-Bundle 'easymotion/vim-easymotion'
+"Bundle 'easymotion/vim-easymotion'
 let g:tagbar_sort = 0
 
 "Bundle 'Valloric/YouCompleteMe'
@@ -185,8 +185,8 @@ let g:syntastic_check_on_wq = 1
 "{{{
 
 "Bundle 'python-mode/python-mode'
-Bundle 'davidhalter/jedi-vim'
-Bundle 'heavenshell/vim-pydocstring'
+"Bundle 'davidhalter/jedi-vim'
+"Bundle 'heavenshell/vim-pydocstring'
 Bundle 'Vimjas/vim-python-pep8-indent'
 
 autocmd! FileType python call InitPythonEnv()
@@ -250,13 +250,17 @@ autocmd! FileType typescript :set makeprg=tsc
 """  Golang Support
 "{{{
 
-let go_bin_file=system('which go')
-if filereadable(go_bin_file)
-    echo 'init bundle for go'
-    Bundle 'fatih/vim-go'
-    Bundle 'Blackrush/vim-gocode'
-    Bundle 'nsf/gocode'
-endif
+"let go_bin_file=system('which go')
+"if filereadable(go_bin_file)
+"    echo 'init bundle for go'
+"    Bundle 'fatih/vim-go'
+"    Bundle 'Blackrush/vim-gocode'
+"    Bundle 'nsf/gocode'
+"endif
+
+Bundle 'fatih/vim-go'
+Bundle 'Blackrush/vim-gocode'
+Bundle 'nsf/gocode'
 
 " golint
 set rtp+=$GOPATH/src/github.com/golang/lint/misc/vim
@@ -283,9 +287,9 @@ Bundle 'last_edit_marker.vim'
 Bundle 'synmark.vim'
 
 """  Ctrlp 
-"Bundle 'ctrlp.vim'
-"Bundle 'ctrlp-modified.vim'
-"Bundle 'tacahiroy/ctrlp-funky'
+Bundle 'ctrlp.vim'
+Bundle 'ctrlp-modified.vim'
+Bundle 'tacahiroy/ctrlp-funky'
 
 call vundle#end()
 
@@ -384,17 +388,17 @@ func! InsertBreakPoint()
 endfunc
 
 func! InitGolangEnv()
-	set completeopt-=preview
-	let g:SuperTabDefaultCompletionType = "<C-x><C-o>"
-	set completefunc=go#complete#Complete
-	let g:go_highlight_functions = 1
-	let g:go_highlight_methods = 1
-	let g:go_highlight_structs = 1
-	let g:go_highlight_operators = 1
-	let g:go_highlight_build_constraints = 1
-	let g:go_fmt_command = "goimports"
-	let g:go_fmt_fail_silently = 1
-	let g:jedi#show_documentation_command = 0
+    set completeopt-=preview
+    let g:SuperTabDefaultCompletionType = "<C-x><C-o>"
+    set completefunc=go#complete#Complete
+    let g:go_highlight_functions = 1
+    let g:go_highlight_methods = 1
+    let g:go_highlight_structs = 1
+    let g:go_highlight_operators = 1
+    let g:go_highlight_build_constraints = 1
+    let g:go_fmt_command = "goimports"
+    let g:go_fmt_fail_silently = 1
+    let g:jedi#show_documentation_command = 0
 
     nmap <F5> :GoRun<CR>
 
