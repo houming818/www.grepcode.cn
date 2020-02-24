@@ -93,15 +93,15 @@ deploy:
     verbose: true
     ignore_errors: false # Default is false
 
-  - type: rsync
-    host: 192.168.1.102
-    user: tunnel
-    root: /home/workspace/static.grepcode.cn
-    port: 22
-    delete: true
-    args: ""
-    verbose: true
-    ignore_errors: false # Default is false
+#  - type: rsync
+#    host: 192.168.1.102
+#    user: tunnel
+#    root: /home/workspace/static.grepcode.cn
+#    port: 22
+#    delete: true
+#    args: ""
+#    verbose: true
+#    ignore_errors: false # Default is false
 
 #deploy:
 #    type: rsync
