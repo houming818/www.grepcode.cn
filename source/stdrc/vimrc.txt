@@ -29,71 +29,6 @@ set rtp+=~/.std/.vim/bundle/vundle
 
 
 """""""""""""""""""""""""""""""""
-"   SETTINGS FOR UNKNOWN        "
-"   不知道怎么归类的设置        "
-"""""""""""""""""""""""""""""""""
-"{{{
-
-"set viminfo+=!                  "  保存全局变量
-set lbr
-set fo+=mB
-set sm
-set undofile
-silent !mkdir ~/.undodir > /dev/null 2>&1
-set undodir=~/.undodir
-"""  允许插件
-filetype plugin on
-"""  共享剪贴板
-"set clipboard+=unnamed
-set ruler                       "  打开状态栏标尺
-set guioptions-=T               "  隐藏工具栏
-set guioptions-=m               "  隐藏菜单栏
-set nocompatible                "  不要使用vi的键盘模式，而是vim自己的
-set noeb                        "  去掉输入错误的提示声音
-set confirm                     "  在处理未保存或只读文件的时候，弹出确认
-set nobackup                    "  禁止生成临时文件
-set noswapfile                  "  禁止生成临时文件
-set linespace=0
-set wildmenu                    "  增强模式中的命令行自动完成操作
-set backspace=2                 "  使回格键（backspace）正常处理indent, eol, start等
-"set mouse=a                    "  enable mouse
-set selection=exclusive
-set selectmode=key
-set report=0                    "  通过使用: commands命令，告诉我们文件的哪一行被改变过
-"""  在被分割的窗口间显示空白，便于阅读
-set fillchars=vert:\ ,stl:\ ,stlnc:\
-set showmatch                   "  高亮显示匹配的括号
-set matchtime=1                 "  匹配括号高亮的时间（单位是十分之一秒）
-set scrolloff=3                 "  光标移动到buffer的顶部和底部时保持3行距离
-
-"""  Settings for editor
-set foldenable                  "  allow foldenable 允许折叠
-set foldmethod=syntax
-set foldcolumn=0
-set foldminlines=2
-set foldlevel=5
-"set foldmethod=manual   " set foldenable to menual 手动折叠
-set wildignore+=*.so,*.swp,*.zip,*.pyc,*.png,*.jpg,*.gif     
- 
-"""  自动载入
-set autoread
-"""  自动保存
-set autowrite
-"""  代码补全
-"set completeopt=menu
-"""  don't cover the edit buffer 粘贴不覆盖缓冲区
-xnoremap p pgvy
-"""   settings for searching 搜索相关设置
-"""  关闭环绕式搜索
-set nowrapscan
-"""  搜索忽略大小写
-"set ignorecase
-"  设置正则引擎,提高vim性能
-set regexpengine=0
-let b:easytags_auto_highlight = 1
-"}}}
-
-"""""""""""""""""""""""""""""""""
 "    BUNDLES SETTINGS           "
 "    插件设置                   "
 """""""""""""""""""""""""""""""""
@@ -250,20 +185,20 @@ autocmd! FileType typescript :set makeprg=tsc
 """  Golang Support
 "{{{
 
-"let go_bin_file=system('which go')
-"if filereadable(go_bin_file)
-"    echo 'init bundle for go'
-"    Bundle 'fatih/vim-go'
-"    Bundle 'Blackrush/vim-gocode'
-"    Bundle 'nsf/gocode'
-"endif
+let go_bin_file=system('which go')
+if filereadable(go_bin_file)
+    echo 'init bundle for go'
+    Bundle 'fatih/vim-go'
+    Bundle 'Blackrush/vim-gocode'
+    Bundle 'nsf/gocode'
+    set rtp+=$GOPATH/src/github.com/golang/lint/misc/vim
+endif
 
-Bundle 'fatih/vim-go'
-Bundle 'Blackrush/vim-gocode'
-Bundle 'nsf/gocode'
+"Bundle 'fatih/vim-go'
+"Bundle 'Blackrush/vim-gocode'
+"Bundle 'nsf/gocode'
 
 " golint
-set rtp+=$GOPATH/src/github.com/golang/lint/misc/vim
 
 autocmd! FileType go call InitGolangEnv()
 
@@ -324,6 +259,71 @@ set tags+=$VIM/tags
 nmap <Leader>w <Plug>(easymotion-overwin-w)
 
 ""}}}
+
+"""""""""""""""""""""""""""""""""
+"   SETTINGS FOR UNKNOWN        "
+"   不知道怎么归类的设置        "
+"""""""""""""""""""""""""""""""""
+"{{{
+
+"set viminfo+=!                  "  保存全局变量
+set lbr
+set fo+=mB
+set sm
+set undofile
+silent !mkdir ~/.undodir > /dev/null 2>&1
+set undodir=~/.undodir
+"""  允许插件
+filetype plugin on
+"""  共享剪贴板
+"set clipboard+=unnamed
+set ruler                       "  打开状态栏标尺
+set guioptions-=T               "  隐藏工具栏
+set guioptions-=m               "  隐藏菜单栏
+set nocompatible                "  不要使用vi的键盘模式，而是vim自己的
+set noeb                        "  去掉输入错误的提示声音
+set confirm                     "  在处理未保存或只读文件的时候，弹出确认
+set nobackup                    "  禁止生成临时文件
+set noswapfile                  "  禁止生成临时文件
+set linespace=0
+set wildmenu                    "  增强模式中的命令行自动完成操作
+set backspace=2                 "  使回格键（backspace）正常处理indent, eol, start等
+"set mouse=a                    "  enable mouse
+set selection=exclusive
+set selectmode=key
+set report=0                    "  通过使用: commands命令，告诉我们文件的哪一行被改变过
+"""  在被分割的窗口间显示空白，便于阅读
+set fillchars=vert:\ ,stl:\ ,stlnc:\
+set showmatch                   "  高亮显示匹配的括号
+set matchtime=1                 "  匹配括号高亮的时间（单位是十分之一秒）
+set scrolloff=3                 "  光标移动到buffer的顶部和底部时保持3行距离
+
+"""  Settings for editor
+set foldenable                  "  allow foldenable 允许折叠
+set foldmethod=syntax
+set foldcolumn=0
+set foldminlines=2
+set foldlevel=5
+"set foldmethod=manual   " set foldenable to menual 手动折叠
+set wildignore+=*.so,*.swp,*.zip,*.pyc,*.png,*.jpg,*.gif     
+ 
+"""  自动载入
+set autoread
+"""  自动保存
+set autowrite
+"""  代码补全
+"set completeopt=menu
+"""  don't cover the edit buffer 粘贴不覆盖缓冲区
+xnoremap p pgvy
+"""   settings for searching 搜索相关设置
+"""  关闭环绕式搜索
+set nowrapscan
+"""  搜索忽略大小写
+"set ignorecase
+"  设置正则引擎,提高vim性能
+set regexpengine=0
+let b:easytags_auto_highlight = 1
+"}}}
 
 """""""""""""""""""""""""""""""""
 "   SETTINGS FOR FILETYPE       "
@@ -614,9 +614,9 @@ nmap <silent> <leader>ps <Plug>(pydocstring)
 "{{{
 """  choose the default colorscheme
 
-"colorscheme molokai_dark
+colorscheme molokai_dark
 "colorscheme Atelier_HeathDark
-colorscheme peaksea
+"colorscheme peaksea
 
 "let g:molokai_original = 0
 
