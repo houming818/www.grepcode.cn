@@ -78,20 +78,20 @@ toc:
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
-deploy:
-  - type: git
-    repo: git@github.com:stduolc/stduolc.github.io.git
-    branch: master
+#deploy:
+#  - type: git
+#    repo: git@github.com:stduolc/stduolc.github.io.git
+#    branch: master
 
-  - type: rsync
-    host: qcloud.grepcode.cn
-    user: stduolc
-    root: /home/workspace/static.grepcode.cn
-    port: 9000
-    delete: true
-    args: ""
-    verbose: true
-    ignore_errors: false # Default is false
+#  - type: rsync
+#    host: qcloud.grepcode.cn
+#    user: stduolc
+#    root: /home/workspace/static.grepcode.cn
+#    port: 9000
+#    delete: true
+#    args: ""
+#    verbose: true
+#    ignore_errors: false # Default is false
 
 #  - type: rsync
 #    host: 192.168.1.102
@@ -107,3 +107,10 @@ deploy:
 #    type: rsync
 #    repo: stduolc@qcloud.grepcode.cn:/home/workspace/blog
 #    branch: master
+deploy:
+  type: cos
+  appId: 1251320938
+  secretId: AKID84kDRPtapoX0FEGQedNIyPZU9Y1Lxfja
+  secretKey: nMhplSyHMDpCKDq45tSmW6SZTAgy1o59
+  bucket: www-1251320938
+  region: ap-guangzhou
