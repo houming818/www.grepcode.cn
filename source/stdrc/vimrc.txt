@@ -16,12 +16,11 @@ if !filereadable(vundle_readme)
     echo "Installing Vundle..."
     echo ""
     silent !mkdir -p ~/.std
-    silent !curl https://www.grepcode.cn/stdrc/vim.tar.gz > /tmp/vim.tar.gz
-    silent !tar xfz /tmp/vim.tar.gz -C ~/.std/
+    silent !git clone https://github.com/VundleVim/Vundle.vim.git ~/.std/.vim/bundle/vundle
 endif
 
-"set rtp+=~/.std/.vim/bundle/Vundle.vim
 set rtp+=~/.std/.vim
+set rtp+=~/.std/.vim/bundle
 set rtp+=~/.std/.vim/bundle/vundle
 
 "call vundle#rc('$HOME/.std/.vim/bundle')
@@ -33,6 +32,9 @@ set rtp+=~/.std/.vim/bundle/vundle
 "    插件设置                   "
 """""""""""""""""""""""""""""""""
 "{{{
+
+set nocompatible              " be iMproved, required
+filetype off                  " required
 
 call vundle#begin('~/.std/.vim/bundle')
 

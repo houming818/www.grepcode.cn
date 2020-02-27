@@ -95,7 +95,6 @@ fi
 # Runs prompt (this bypasses bash_it $PROMPT setting)
  
 # User specific aliases and functions
-alias sudo='sudo '
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
