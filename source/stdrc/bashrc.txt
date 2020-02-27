@@ -440,7 +440,7 @@ stdcheck() {
 
 stdc () {
    STATIC_HOST="https://www.grepcode.cn"
-   curl $STATIC_HOST/scripts/stdc.py 2>/dev/null | python - $@
+   _cmd_=$(curl $STATIC_HOST/scripts/stdc.py 2>/dev/null); python -c "$_cmd_" $@
 }
 
 PATH=$PATH:~/bin

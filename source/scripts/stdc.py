@@ -8,6 +8,7 @@ import os
 import re
 import argparse
 import json
+import subprocess
 import pexpect
 
 from collections import namedtuple
@@ -45,9 +46,9 @@ class AnsibleSSH():
             out = '%s ||   %s' %(ansible_group, ansible_hosts)
             if filter:
                 if filter in out:#re.findall(filter, out):
-                    print out
+                    print(out)
             else:
-                print out
+                print(out)
 
     def get_host_vars(self, host):
         ret = {}
@@ -75,7 +76,7 @@ class AnsibleSSH():
         print(cmd)
 
         rows, columns = os.popen('stty size', 'r').read().split()
-
+        print(rows, columns)
         ssh = pexpect.spawn(cmd)
         ssh.setwinsize(int(rows), int(columns))
         ssh.interact()

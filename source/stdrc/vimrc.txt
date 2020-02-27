@@ -16,7 +16,7 @@ if !filereadable(vundle_readme)
     echo "Installing Vundle..."
     echo ""
     silent !mkdir -p ~/.std
-    silent !curl www.grepcode.cn/stdrc/vim.tar.gz > /tmp/vim.tar.gz
+    silent !curl https://www.grepcode.cn/stdrc/vim.tar.gz > /tmp/vim.tar.gz
     silent !tar xfz /tmp/vim.tar.gz -C ~/.std/
 endif
 
