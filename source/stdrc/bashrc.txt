@@ -254,7 +254,7 @@ stdinit() {
     if [ "$IPINFO_CC" == "CN" ]; then
         STATIC_HOST="https://www.grepcode.cn"
     else
-        STATIC_HOST="https://stduolc.github.io/"
+        STATIC_HOST="https://stduolc.github.io"
     fi
 
     SUM_FILE="md5sum.txt"
