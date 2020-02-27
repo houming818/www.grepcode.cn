@@ -68,9 +68,11 @@ class AnsibleSSH():
 
         keyfile = host_vars.get('ansible_ssh_private_key_file', '~/.ssh/id_rsa')
         user = host_vars.get('ansible_user', 'ansible')
-        ansible_host = host_vars.get('ansible_ssh_host', host.address)
+        ansible_host = host_vars.get('ansible_host', host.address)
+        ansible_port = host_vars.get('ansible_port', '22')
 
-	cmd = 'ssh -o StrictHostKeyChecking=no -i {0} {1}@{2}'.format(keyfile, user, ansible_host)
+	cmd = 'ssh -o StrictHostKeyChecking=no -p {0} -i {1} {2}@{3}'.format(ansible_port, keyfile, user, ansible_host)
+        print(cmd)
 
         rows, columns = os.popen('stty size', 'r').read().split()
 
