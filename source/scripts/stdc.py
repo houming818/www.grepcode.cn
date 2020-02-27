@@ -1,0 +1,134 @@
+#!/usr/bin/env /usr/bin/python
+#coding:utf8
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+import os
+import re
+import argparse
+import json
+import pexpect
+
+from collections import namedtuple
+import ansible
+from ansible.parsing.dataloader import DataLoader
+from ansible.vars.manager import VariableManager
+from ansible.inventory.manager import InventoryManager
+from ansible.playbook.play import Play
+from ansible.executor.task_queue_manager import TaskQueueManager
+from ansible.plugins.callback import CallbackBase
+
+class ResultCallback(CallbackBase):
+    def v2_runner_on_ok(self, result, **kwargs):
+        host = result._host
+        print(json.dumps({host.name: result._result}, indent=4))
+
+
+class AnsibleSSH():
+    def __init__(self, inventory='/etc/ansible/hosts'):
+        loader = DataLoader()
+	self.loader = loader
+        self.inventory = InventoryManager(loader=loader, sources=[inventory])
+        self.variable_manager = VariableManager(loader=loader, inventory=self.inventory)
+
+    def list_group(self, filter='', verbose=False):
+        g = self.inventory.groups
+        for k, v in [(k, g[k]) for k in sorted(g)]:
+            h = v.hosts
+            if len(h) == 0:
+                continue
+            ansible_group = '%-10s\t' %k
+            ansible_hosts = ', '.join([ '%s%s' %(host, ':%s'%(host.vars.get("mark", '')) if host.vars.get("mark", '') else '') for host in h] )
+            if not verbose:
+                ansible_hosts = ', '.join([str(host) for host in h])
+            out = '%s ||   %s' %(ansible_group, ansible_hosts)
+            if filter:
+                if filter in out:#re.findall(filter, out):
+                    print out
+            else:
+                print out
+
+    def get_host_vars(self, host):
+        ret = {}
+        for i in host.groups:
+            ret.update(i.get_vars())
+        ret.update(host.vars)
+        return ret
+
+
+    def ssh(self, pattern, user):
+        hosts = self.inventory.get_hosts(pattern=pattern)
+        if hosts:
+            host = hosts[0]
+        else:
+            assert False, '{0} not match any host'.format(pattern)
+        #cmd = 'ssh -o StrictHostKeyChecking=no -i /home/ansible/.ssh/id_rsa ansible@%s' %(hosts[0].vars.get('ansible_host', hosts[0].address))
+	host_vars = self.get_host_vars(host)
+
+        keyfile = host_vars.get('ansible_ssh_private_key_file', '~/.ssh/id_rsa')
+        user = host_vars.get('ansible_user', 'ansible')
+        ansible_host = host_vars.get('ansible_ssh_host', host.address)
+
+	cmd = 'ssh -o StrictHostKeyChecking=no -i {0} {1}@{2}'.format(keyfile, user, ansible_host)
+
+        rows, columns = os.popen('stty size', 'r').read().split()
+
+        ssh = pexpect.spawn(cmd)
+        ssh.setwinsize(int(rows), int(columns))
+        ssh.interact()
+
+    def shell(self, pattern, user, shell):
+        hosts = self.inventory.get_hosts(pattern=pattern)
+        if not hosts:
+            assert False, '%s not match any host'.format(pattern)
+        #cmd = 'ssh -o StrictHostKeyChecking=no -i /home/ansible/.ssh/id_rsa ansible@%s' %(hosts[0].vars.get('ansible_host', hosts[0].address))
+        for host in hosts:
+            host_vars = self.get_host_vars(host)
+
+            keyfile = host_vars.get('ansible_ssh_private_key_file', '~/.ssh/id_rsa')
+            user = host_vars.get('ansible_user', 'ansible')
+            ansible_host = host_vars.get('ansible_host', host.address)
+
+	    cmd = 'ssh -o StrictHostKeyChecking=no -i {0} {1}@{2} "{3}"'.format(keyfile, user, ansible_host, shell)
+
+            rows, columns = os.popen('stty size', 'r').read().split()
+            ssh = pexpect.spawn(cmd)
+            ssh.setwinsize(int(rows), int(columns))
+            ssh.expect("$")
+            ssh.setwinsize(int(rows), int(columns))
+            ssh.sendline(cmd)
+            print(ssh.read())
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("host", metavar="HOST", type=str, nargs="?", default='', help="ansible host[s]")
+    parser.add_argument("-v", "--verbose", help="verbose", action="store_true")
+    parser.add_argument("-g", "--group", help="show groups", action="store_true")
+    parser.add_argument("-f", "--filter", help="filter groups")
+    parser.add_argument("-s", "--shell", help="shell command")
+    parser.add_argument("-u", "--user", help="connect user", default="stduolc", action="store")
+    parser.add_argument("-i", "--inventory", default="/etc/ansible/hosts", help="inventory path", action="store")
+    args = parser.parse_args()
+
+    assh = AnsibleSSH(args.inventory)
+    if len(sys.argv) == 1:
+        #print parser.print_help()
+        assh.list_group()
+        os._exit(0)
+
+    if args.group:
+        assh.list_group()
+        os._exit(0)
+    if args.filter:
+        assh.list_group(filter=args.filter)
+        os._exit(0)
+    if args.verbose:
+        assh.list_group(verbose=args.verbose)
+        os._exit(0)
+    if args.host and args.shell:
+        assh.shell(args.host, args.user, args.shell)
+        os._exit(0)
+    if args.host:
+        assh.ssh(args.host, args.user)
+        os._exit(0)

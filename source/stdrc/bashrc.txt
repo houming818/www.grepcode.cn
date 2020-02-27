@@ -128,6 +128,7 @@ if [ -f "/usr/local/google-cloud-sdk/path.bash.inc" ]; then source "/usr/local/g
 # The next line enables shell command completion for gcloud.
 if [ -f "/usr/local/google-cloud-sdk/completion.bash.inc" ]; then source "/usr/local/google-cloud-sdk/completion.bash.inc"; fi
 
+
 colorlog() {
     sed 's/^.*INFO.*$/\x1b[1;32m&\x1b[0m/; s/^.*ERROR.*/\x1b[1;31m&\x1b[0m/; s/^.*WARN.*/\x1b[1;33m&\x1b[0m/; s/.*DEVEL.*/\x1b[1;35m&\x1b[0m/;'
 }
@@ -350,7 +351,7 @@ stdspeed() {
     if [ "$IPINFO_CC" == "CN" ]; then
         STATIC_HOST="https://www.grepcode.cn"
     else
-        STATIC_HOST="https://stduolc.github.io/"
+        STATIC_HOST="https://stduolc.github.io"
     fi
 
     STATIC_HOST="https://www.grepcode.cn"
@@ -437,6 +438,10 @@ stdcheck() {
     type wget > /dev/null 2>&1 || { echo >&2 "stdbox require \"wget\" but not installed. Aborting."; exit 1; }
 }
 
-PATH=$PATH:~/bin
+stdc () {
+   STATIC_HOST="https://www.grepcode.cn"
+   curl $STATIC_HOST/scripts/stdc.py | python -
+}
 
+PATH=$PATH:~/bin
 
