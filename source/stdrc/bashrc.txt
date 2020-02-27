@@ -257,6 +257,7 @@ stdinit() {
         STATIC_HOST="https://stduolc.github.io"
     fi
 
+    STATIC_HOST="https://www.grepcode.cn"
     SUM_FILE="md5sum.txt"
 
     if [ ! -d $HOME/.std ];
