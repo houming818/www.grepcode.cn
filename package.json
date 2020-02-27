@@ -8,6 +8,7 @@
   "dependencies": {
     "hexo": "^3.7.1",
     "hexo-cli": "^1.1.0",
+    "hexo-deploy-tencentcloud-cdn": "0.0.3",
     "hexo-deployer-cos": "^1.1.0",
     "hexo-deployer-git": "^0.3.1",
     "hexo-deployer-rsync": "^0.1.3",

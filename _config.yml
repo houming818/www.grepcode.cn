@@ -108,9 +108,15 @@ toc:
 #    repo: stduolc@qcloud.grepcode.cn:/home/workspace/blog
 #    branch: master
 deploy:
-  type: cos
+- type: cos
   appId: 1251320938
-  secretId: AKID84kDRPtapoX0FEGQedNIyPZU9Y1Lxfja
-  secretKey: nMhplSyHMDpCKDq45tSmW6SZTAgy1o59
+  secretId: AKIDvTrzrXjKNCWgaEb5F9maDbjDVbP6nLcd 
+  secretKey: w53lCct43qTwDrlUzJeo001pTs5NUSJw 
   bucket: www-1251320938
   region: ap-guangzhou
+
+- type: tencent_cdn
+
+tencentcdn:
+  secretId: AKIDvTrzrXjKNCWgaEb5F9maDbjDVbP6nLcd 
+  secretKey: w53lCct43qTwDrlUzJeo001pTs5NUSJw 
