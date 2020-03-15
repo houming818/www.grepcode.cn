@@ -1,8 +1,8 @@
 298617e8b61c74c3bcf1ef0b0d57176e  ackrc.txt
-ec6bdbb7ac094e6d8db7f6af831670cc  bashrc.txt
+17f081ba53431b7d315af18a8a0804ac  bashrc.txt
 45d5bb8eb70c8b852a5e54fc619f64ef  check_color.txt
 9986e982aa6c6b5434ec560cb0b13309  eslintrc.txt
-63b9c571edeed16bda75c7900045f2d2  md5sum.txt
+29a6e96376aa9df4a1196b4515d95028  md5sum.txt
 b8be1b0207463f215bad1d3e6d8879e2  pip.conf.txt
 402867ed812485da1be0e0e2111e2be3  screenrc.txt
 322eb3ec52f028e6b1df6bd0a9f6cb52  stdnet.py.txt

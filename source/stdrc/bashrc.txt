@@ -117,6 +117,7 @@ alias ...="cd ../.."
 # alias for grepcode.cn
 
 shopt -s histappend
+PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
 HISTSIZE=65535
 HISTTIMEFORMAT=`echo -e ${red}[%F %T] ${normal}`
 
