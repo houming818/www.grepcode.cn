@@ -614,11 +614,7 @@ nmap <silent> <leader>ps <Plug>(pydocstring)
 "   样式设置                    "
 """""""""""""""""""""""""""""""""
 "{{{
-"""  choose the default colorscheme
 
-colorscheme molokai_dark
-"colorscheme Atelier_HeathDark
-"colorscheme peaksea
 
 "let g:molokai_original = 0
 
@@ -674,6 +670,14 @@ set statusline+=%1*\|%<%F                                "File+path
 set statusline+=%8*\|%=\(%03p%%)%l/%L                    "Rownumber/total (%)
 set statusline+=%9*\|%03c                              "Colnr
 set statusline+=%0*\|%m%r%w                            "Modified? Readonly? Top/bot.
+
+"""  choose the default colorscheme
+
+colorscheme github
+"colorscheme molokai_dark
+"colorscheme Atelier_HeathDark
+"colorscheme peaksea
+
 "}}}
 
 """""""""""""""""""""""""""""""""
