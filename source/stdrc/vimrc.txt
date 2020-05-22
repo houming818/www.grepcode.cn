@@ -189,7 +189,7 @@ autocmd! FileType typescript :set makeprg=tsc
 
 let go_bin_file=system('which go')
 if v:shell_error == 0
-    echo 'init bundle for go'
+    "echo 'init bundle for go'
     Bundle 'fatih/vim-go'
     Bundle 'Blackrush/vim-gocode'
     Bundle 'nsf/gocode'
