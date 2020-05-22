@@ -673,7 +673,8 @@ set statusline+=%0*\|%m%r%w                            "Modified? Readonly? Top/
 
 """  choose the default colorscheme
 
-colorscheme github
+colorscheme google
+"colorscheme github
 "colorscheme molokai_dark
 "colorscheme Atelier_HeathDark
 "colorscheme peaksea
