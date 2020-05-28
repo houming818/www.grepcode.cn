@@ -1,4 +1,4 @@
-#!/usr/bin/env /usr/bin/python
+#!/usr/bin/env /usr/bin/python2
 #coding:utf8
 import sys
 reload(sys)
