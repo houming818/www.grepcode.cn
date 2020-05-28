@@ -239,7 +239,7 @@ INET_ATON ()
 
 
 # alias for stdrc update
-alias stdupdate='>md5sum.txt ; for i in *.txt vim.tar.gz; do [ -f $i  ] && md5sum $i >> md5sum.txt ; done'
+alias stdupdate='>md5sum.txt ; for i in *; do [ -f $i  ] && md5sum $i >> md5sum.txt ; done'
 
 f_init_etcd() {
   curl $STATIC_HOST/scripts/make-ssl-etcd.sh > ~/bin/make-ssl-etcd.sh && chmod 755 ~/bin/make-ssl-etcd.ssh
