@@ -267,10 +267,10 @@ stdinit() {
         mkdir -p $HOME/.std > /dev/null 2>&1
     fi
 
-    if [ ! -d $HOME/bin ];
+    if [ ! -d $HOME/.std/bin ];
     then
-        echo -e "mkdir $HOME/bin directory ...\n"
-        mkdir -p $HOME/bin > /dev/null 2>&1
+        echo -e "mkdir $HOME/.std/bin directory ...\n"
+        mkdir -p $HOME/.std/bin > /dev/null 2>&1
     fi
 
     if [ "$2" == "init_etcd" ]
@@ -295,6 +295,7 @@ stdinit() {
             # remove current files
             rm -rf $HOME/.std/.${i%.txt}
             rm -rf $HOME/.std/.vim 
+            rm -rf $HOME/.std/bin
             rm -rf $HOME/.std/vim.tar.gz
 
             # recover the backup
@@ -339,6 +340,31 @@ stdinit() {
     tar xfz $HOME/.std/vim.tar.gz -C $HOME/.std/
 
     ln $HOME/.std/.bashrc $HOME/.bashrc -sf
+
+    echo -e "download bin files ...\n"
+    curl $STATIC_HOST/scripts/md5sum.txt > $HOME/.std/bin/md5sum.txt 2>/dev/null
+
+    local binfiles=$(cat $HOME/.std/bin/md5sum.txt | awk '{print $2}')
+
+    for i in ${binfiles[@]}; do
+        # check the rc file and mv to backup
+        local cur_file_md5sum=$(cat $HOME/.std/bin/md5sum.txt | grep $i | awk '{print $1}')
+        local old_file_md5sum=$(md5sum $HOME/.std/bin/$i | awk '{print $1}')
+        if [ "$cur_file_md5sum" == "$old_file_md5sum" ];
+        then
+            echo -e "skip download ${i} \n"
+            continue
+        fi
+        if [ -f $HOME/.std/bin/$i ]; then
+            echo -e "rm $HOME/.std/bin/$i \n"
+            rm -f $HOME/.std/bin/$i
+        fi
+        # curl the txt files from cdn
+        echo -e "download $i ...\n"
+        curl $STATIC_HOST/scripts/$i > $HOME/.std/bin/$i
+    done
+
+    chmod +x $HOME/.std/bin/*
 
     return 0
 }
@@ -438,14 +464,9 @@ stdcheck() {
     type wget > /dev/null 2>&1 || { echo >&2 "stdbox require \"wget\" but not installed. Aborting."; exit 1; }
 }
 
-stdc () {
-    STATIC_HOST="https://www.grepcode.cn"
-    _cmd_=$(curl $STATIC_HOST/scripts/stdc.py 2>/dev/null); python -c "$_cmd_" $@
-}
-
 stdwait () {
     echo -e "\e[1;40m" ; clear ; while :; do echo $LINES $COLUMNS $(( $RANDOM % $COLUMNS)) $(( $RANDOM % 72 )) ;sleep 0.05; done|awk '{ letters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()"; c=$4; letter=substr(letters,c,1);a[$3]=0;for (x in a) {o=a[x];a[x]=a[x]+1; printf "\033[%s;%sH\033[2;32m%s",o,x,letter; printf "\033[%s;%sH\033[1;37m%s\033[0;0H",a[x],x,letter;if (a[x] >= $1) { a[x]=0; } }}'
 }
 
-PATH=$PATH:~/bin
+PATH=$PATH:~/.std/bin
 
