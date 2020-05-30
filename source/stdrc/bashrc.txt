@@ -117,7 +117,7 @@ alias ...="cd ../.."
 # alias for grepcode.cn
 
 shopt -s histappend
-PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
+#PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
 HISTSIZE=65535
 HISTTIMEFORMAT=`echo -e ${red}[%F %T] ${normal}`
 
@@ -187,28 +187,6 @@ stdtheme(){
 			done
 		done
 	fi
-}
-
-grepcode() {
-    find . -type f -regex "$1" -exec grep -EIHn "$2" {} \;
-}
-
-greplog() {
-    if [ $# -eq 0 ];
-    then
-        echo "usage:
-    grepcode MODE
-    MODE in 'salt-minion'"
-        return 1
-    fi
-    if [ "$1" == "jobs.list" ]; then
-        grep ".*command $2.*"| awk '{printf "%s\n", $0}'
-        return 0
-    elif [ "$1" == "jobs.hist" ]; then
-        buf_stdin=$(python -c "import sys; print sys.stdin.read()") 
-        jobsid=$(grep ".*command $2.*" <<< "$buf_stdin" | awk '{print $NF}')
-        \grep "$jobsid" <<< "$buf_stdin" | awk '{print $1" "$2}' |xargs -I {} date -d {} +%s%N | python -c 'import sys; times=sys.stdin.readlines(); times=map(lambda x: float(x)/1000000000, times); delta=zip(times[0::2], times[1::2]); delta=map(lambda x: str(x[1]-x[0]), delta); sys.stdout.write("\n".join(delta))' | hist
-    fi
 }
 
 INET_NTOA() { 
@@ -382,10 +360,6 @@ stdspeed() {
 
     STATIC_HOST="https://www.grepcode.cn"
 
-    if [ $1 == 'net' ]; then
-        curl -L -s $STATIC_HOST/stdrc/stdnet.py.txt | python -
-        return 0
-    fi
     if [ $1 == 'stdout']; then
         perl -e 'while (<>) {$l++;if (time > $e) {$e=time;print "$l\n";$l=0}}'
         return 0
