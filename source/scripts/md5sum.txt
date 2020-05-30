@@ -1,1 +1,6 @@
-d41d8cd98f00b204e9800998ecf8427e  md5sum.txt
+783e1b0442acf7a4091f72ce6b9bdc21  make-ssl-etcd.sh
+be01e1801e750bcf18110572da1123a1  md5sum.txt
+349dc4d829ec73dc115c81ec2cbddd76  nodesource-setup_8.x
+38c983f74b459c7c8aafe05f3d740918  stdc
+60d7e562d23788b764247696029b6442  stdmatrix
+322eb3ec52f028e6b1df6bd0a9f6cb52  stdnet
