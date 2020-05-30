@@ -133,62 +133,6 @@ colorlog() {
     sed 's/^.*INFO.*$/\x1b[1;32m&\x1b[0m/; s/^.*ERROR.*/\x1b[1;31m&\x1b[0m/; s/^.*WARN.*/\x1b[1;33m&\x1b[0m/; s/.*DEVEL.*/\x1b[1;35m&\x1b[0m/;'
 }
 
-
-stdtheme(){
-    if [ $1 == "bg" ]; then
-        iter=16
-        while [ $iter -lt 52 ]
-        do
-            second=$[$iter+36]
-            third=$[$second+36]
-            four=$[$third+36]
-            five=$[$four+36]
-            six=$[$five+36]
-            seven=$[$six+36]
-            if [ $seven -gt 250 ];then seven=$[$seven-251]; fi
-
-            echo -en "\e[38;5;$(echo $iter)m█ "
-            printf "%03d" $iter
-            echo -en "   \e[38;5;$(echo $second)m█ "
-            printf "%03d" $second
-            echo -en "   \e[38;5;$(echo $third)m█ "
-            printf "%03d" $third
-            echo -en "   \e[38;5;$(echo $four)m█ "
-            printf "%03d" $four
-            echo -en "   \e[38;5;$(echo $five)m█ "
-            printf "%03d" $five
-            echo -en "   \e[38;5;$(echo $six)m█ "
-            printf "%03d" $six
-            echo -en "   \e[38;5;$(echo $seven)m█ "
-            printf "%03d" $seven
-
-            iter=$[$iter+1]
-            printf '\r\n'
-        done
-    fi
-    if [ $1 == "bold" ]; then
-        echo bold
-        array=(0 1 4 5)
-        for iter in "${array[@]}";
-        do
-            echo -en "\e[$iter;31;49m$iter text\e[0m\r\n"
-        done
-	fi
-	if [ $1 == "16" ]; then
-		for clbg in {40..47} {100..107} 49 ; do
-			#Foreground
-			for clfg in {30..37} {90..97} 39 ; do
-				#Formatting
-				for attr in 0 1 2 4 5 7 ; do
-					#Print the result
-					echo -en "\e[${attr};${clbg};${clfg}m ^[${attr};${clbg};${clfg}m \e[0m"
-				done
-				echo #Newline
-			done
-		done
-	fi
-}
-
 INET_NTOA() { 
     local IFS=. num quad ip e
     num=$1
@@ -219,10 +163,6 @@ INET_ATON ()
 # alias for stdrc update
 alias stdupdate='>md5sum.txt ; for i in *; do [ -f $i  ] && md5sum $i >> md5sum.txt ; done'
 
-f_init_etcd() {
-  curl $STATIC_HOST/scripts/make-ssl-etcd.sh > ~/bin/make-ssl-etcd.sh && chmod 755 ~/bin/make-ssl-etcd.ssh
-}
-
 # std* functions
 stdinit() {
 
@@ -233,7 +173,8 @@ stdinit() {
     if [ "$IPINFO_CC" == "CN" ]; then
         STATIC_HOST="https://www.grepcode.cn"
     else
-        STATIC_HOST="https://stduolc.github.io"
+        STATIC_HOST="https://www.grepcode.cn"
+        #STATIC_HOST="https://stduolc.github.io"
     fi
 
     STATIC_HOST="https://www.grepcode.cn"
@@ -364,7 +305,7 @@ stdspeed() {
         perl -e 'while (<>) {$l++;if (time > $e) {$e=time;print "$l\n";$l=0}}'
         return 0
     fi
-    echo 'usage: stdspeed [net|stdout]'
+    echo 'usage: stdspeed [stdout]'
     return 0
 
 }
@@ -434,13 +375,4 @@ stdd () {
     echo "usage: stdd [login|tags]"
 }
 
-stdcheck() {
-    type wget > /dev/null 2>&1 || { echo >&2 "stdbox require \"wget\" but not installed. Aborting."; exit 1; }
-}
-
-stdwait () {
-    echo -e "\e[1;40m" ; clear ; while :; do echo $LINES $COLUMNS $(( $RANDOM % $COLUMNS)) $(( $RANDOM % 72 )) ;sleep 0.05; done|awk '{ letters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()"; c=$4; letter=substr(letters,c,1);a[$3]=0;for (x in a) {o=a[x];a[x]=a[x]+1; printf "\033[%s;%sH\033[2;32m%s",o,x,letter; printf "\033[%s;%sH\033[1;37m%s\033[0;0H",a[x],x,letter;if (a[x] >= $1) { a[x]=0; } }}'
-}
-
 PATH=$PATH:~/.std/bin
-

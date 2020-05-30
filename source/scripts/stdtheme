@@ -1,0 +1,54 @@
+#! /usr/bin/env bash
+
+if [ $1 == "bg" ]; then
+    iter=16
+    while [ $iter -lt 52 ]
+    do
+        second=$[$iter+36]
+        third=$[$second+36]
+        four=$[$third+36]
+        five=$[$four+36]
+        six=$[$five+36]
+        seven=$[$six+36]
+        if [ $seven -gt 250 ];then seven=$[$seven-251]; fi
+
+        echo -en "\e[38;5;$(echo $iter)m█ "
+        printf "%03d" $iter
+        echo -en "   \e[38;5;$(echo $second)m█ "
+        printf "%03d" $second
+        echo -en "   \e[38;5;$(echo $third)m█ "
+        printf "%03d" $third
+        echo -en "   \e[38;5;$(echo $four)m█ "
+        printf "%03d" $four
+        echo -en "   \e[38;5;$(echo $five)m█ "
+        printf "%03d" $five
+        echo -en "   \e[38;5;$(echo $six)m█ "
+        printf "%03d" $six
+        echo -en "   \e[38;5;$(echo $seven)m█ "
+        printf "%03d" $seven
+
+        iter=$[$iter+1]
+        printf '\r\n'
+    done
+fi
+if [ $1 == "bold" ]; then
+    echo bold
+    array=(0 1 4 5)
+    for iter in "${array[@]}";
+    do
+        echo -en "\e[$iter;31;49m$iter text\e[0m\r\n"
+    done
+fi
+if [ $1 == "16" ]; then
+    for clbg in {40..47} {100..107} 49 ; do
+        #Foreground
+        for clfg in {30..37} {90..97} 39 ; do
+            #Formatting
+            for attr in 0 1 2 4 5 7 ; do
+                #Print the result
+                echo -en "\e[${attr};${clbg};${clfg}m ^[${attr};${clbg};${clfg}m \e[0m"
+            done
+            echo #Newline
+        done
+    done
+fi
