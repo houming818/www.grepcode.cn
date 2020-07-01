@@ -180,6 +180,7 @@ parser.add_argument('-h', '--help',
                     action='store_true')
 parser.add_argument('-l', '--character-list',
                     help='character set. See details below',
+                    default='nz',
                     type=str)
 parser.add_argument('-n', '--no-bold',
                     action='store_true',
