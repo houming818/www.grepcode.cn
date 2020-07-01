@@ -229,6 +229,7 @@ char_set = {
     'R': 'MCCLLLXXXXVVVVVIIIIII',
     's': '-=*_+|:<>"',
     'S': '`-=~!@#$%^&*()_+[]{}|\;\':",./<>?"',
+    'z': '一二三四五六七八九〇壹贰叁肆伍陆柒捌久零',
     'u': args.custom_characters}
 
 colors_str = {
