@@ -99,6 +99,11 @@ Bundle 'SirVer/ultisnips'
 Bundle 'honza/vim-snippets'
 "let g:UltiSnipsSnippetDirectories="~/.std/.vim/UltiSnips"
 
+" Set ultisnips triggers
+let g:UltiSnipsExpandTrigger="<tab>"                                            
+let g:UltiSnipsJumpForwardTrigger="<tab>"                                       
+let g:UltiSnipsJumpBackwardTrigger="<s-tab>"  
+
 """ Trigger configuration. Do not use <tab> if you use https://github.com/Valloric/YouCompleteMe.
 "let g:UltiSnipsExpandTrigger="<c-i>"
 "let g:UltiSnipsJumpForwardTrigger="<c-b>"
