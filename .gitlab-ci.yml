@@ -1,0 +1,4 @@
+image: "icoty1/ubuntu-hexo-blog:latest"
+
+before_script:
+  - hexo g -d
