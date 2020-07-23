@@ -603,6 +603,7 @@ vmap <S-s> :sort<CR>
 "nmap tl :Tlist<cr>
 "
 let NERDTreeRespectWildIgnore=1
+let NERDTreeShowHidden=1
 
 """  FOLD 
 """ init fold settings for different filetype
