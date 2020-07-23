@@ -1,4 +1,32 @@
 image: "icoty1/ubuntu-hexo-blog:latest"
 
-before_script:
-  - hexo g -d
+cache:
+  paths:
+    - node_modules # 缓存 node_modules
+
+stages:
+  - install
+  - build
+
+install:
+  stage: install
+  only:
+    - master # 只对 master 的改动做处理
+  script:
+    - echo '安装依赖阶段'
+    # - yarn config set registry https://registry.npm.taobao.org
+    # - yarn config set sass-binary-site https://npm.taobao.org/mirrors/node-sass
+    - npm install --save
+  tags:
+    - test # 安装 gitlab-runner 时加的 tag
+
+build:
+  stage: build
+  script:
+    - echo '构建阶段'
+    - hexo g -d 
+  artifacts:
+    paths:
+      - dist
+  tags:
+    - test
