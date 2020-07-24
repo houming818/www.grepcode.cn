@@ -29,7 +29,7 @@ class ResultCallback(CallbackBase):
 class AnsibleSSH():
     def __init__(self, inventory='/etc/ansible/hosts'):
         loader = DataLoader()
-	self.loader = loader
+        self.loader = loader
         self.inventory = InventoryManager(loader=loader, sources=[inventory])
         self.variable_manager = VariableManager(loader=loader, inventory=self.inventory)
 
@@ -65,14 +65,14 @@ class AnsibleSSH():
         else:
             assert False, '{0} not match any host'.format(pattern)
         #cmd = 'ssh -o StrictHostKeyChecking=no -i /home/ansible/.ssh/id_rsa ansible@%s' %(hosts[0].vars.get('ansible_host', hosts[0].address))
-	host_vars = self.get_host_vars(host)
+        host_vars = self.get_host_vars(host)
 
         keyfile = host_vars.get('ansible_ssh_private_key_file', '~/.ssh/id_rsa')
         user = host_vars.get('ansible_user', 'ansible')
         ansible_host = host_vars.get('ansible_host', host.address)
         ansible_port = host_vars.get('ansible_port', '22')
 
-	cmd = 'ssh -o StrictHostKeyChecking=no -p {0} -i {1} {2}@{3}'.format(ansible_port, keyfile, user, ansible_host)
+        cmd = 'ssh -o StrictHostKeyChecking=no -p {0} -i {1} {2}@{3}'.format(ansible_port, keyfile, user, ansible_host)
         print(cmd)
 
         rows, columns = os.popen('stty size', 'r').read().split()
@@ -93,7 +93,7 @@ class AnsibleSSH():
             user = host_vars.get('ansible_user', 'ansible')
             ansible_host = host_vars.get('ansible_host', host.address)
 
-	    cmd = 'ssh -o StrictHostKeyChecking=no -i {0} {1}@{2} "{3}"'.format(keyfile, user, ansible_host, shell)
+            cmd = 'ssh -o StrictHostKeyChecking=no -i {0} {1}@{2} "{3}"'.format(keyfile, user, ansible_host, shell)
 
             rows, columns = os.popen('stty size', 'r').read().split()
             ssh = pexpect.spawn(cmd)
