@@ -258,10 +258,16 @@ stdinit() {
 }
 
 sdig() {
-    if [ -n "$1" ] && [ -n "$2" ]; then
-        curl "https://t.grepcode.cn/dig?domain=$1&dns=$2" 2>/dev/null
+    if [ "$1" == "info" ]; then
+        curl "https://t.grepcode.cn/dig_info" 2>/dev/null
+        return
+    fi
+    if [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]; then
+        curl "https://t.grepcode.cn/dig?domain=$1&dns=$2&_fmt=$3" 2>/dev/null
+    elif [ -n "$1" ] && [ -n "$2" ] ; then
+        curl "https://t.grepcode.cn/dig?domain=$1&dns=$2&_fmt=text" 2>/dev/null
     elif [ -n "$1" ] ; then
-        curl "https://t.grepcode.cn/dig?domain=$1" 2>/dev/null
+        curl "https://t.grepcode.cn/dig?domain=$1&dns=CN.1&_fmt=text" 2>/dev/null
     fi
 }
 

@@ -1,9 +1,9 @@
 298617e8b61c74c3bcf1ef0b0d57176e  ackrc.txt
-af400bcdb63e928919c6041c0d338440  bashrc.txt
+8938216445be40133fcc6c53e9850c36  bashrc.txt
 45d5bb8eb70c8b852a5e54fc619f64ef  check_color.txt
 9986e982aa6c6b5434ec560cb0b13309  eslintrc.txt
 84dcc94da3adb52b53ae4fa38fe49e5d  LICENSE
-5d234b3c9c008b7abbce71bdcf1d045e  md5sum.txt
+ff54539058a8be91ff34c8a5be4097ea  md5sum.txt
 b8be1b0207463f215bad1d3e6d8879e2  pip.conf.txt
 402867ed812485da1be0e0e2111e2be3  screenrc.txt
 b0c2b043923a5a6426b36516974a7707  stdocker.py.txt
