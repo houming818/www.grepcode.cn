@@ -215,11 +215,11 @@ prompt_context() {
     local user=`whoami`
 
     if [[ "$user" != "root" ]]; then
-	    prompt_segment default default "$user"
-	    prompt_segment default magenta "@\h"
+	    prompt_segment white green "$user"
+	    prompt_segment default default "@\h"
     else
-	    prompt_segment default red "$user"
-	    prompt_segment default magenta "@\h"
+	    prompt_segment red white "$user"
+	    prompt_segment default default "@\h"
     fi
 }
 
@@ -253,7 +253,7 @@ prompt_git() {
 
 # Dir: current working directory
 prompt_dir() {
-    prompt_segment default magenta '$(pwd)'
+    prompt_segment default white '$(pwd)'
 }
 
 # Status:
