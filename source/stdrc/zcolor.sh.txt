@@ -198,9 +198,10 @@ prompt_segment() {
 # End the prompt, closing any open segments
 prompt_end() {
     if [[ -n $CURRENT_BG ]]; then
-	declare -a codes=($(text_effect reset) $(fg_color $CURRENT_BG))
+	#declare -a codes=($(text_effect reset) $(fg_color $CURRENT_BG))
+	declare -a codes=($(text_effect reset) $(fg_color red))
   #PR="$PR$(ansi codes[@])$SEGMENT_SEPARATOR"
-  PR="$PR$(ansi codes[@])$"
+  PR="$PR$(ansi codes[@])$ "
     fi
     declare -a reset=($(text_effect reset))
     PR="$PR$(ansi reset[@])"

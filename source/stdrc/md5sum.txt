@@ -12,4 +12,4 @@ efe39ea21fc3c868126f0f8d9576e0e1  tmux.conf.txt
 ea9c550205c12a2df1d4d36419e42bdf  toprc.txt
 6049771de4813348a0588ad23db38dfa  vimrc.txt
 ca30eb18594de9c7897de7b5835e5618  vim.tar.gz
-1265ad62dae63a737df722182252600e  zcolor.sh.txt
+299f6bbf3b66191b1e49422793ba22fb  zcolor.sh.txt
