@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if [ $2 == "k8s" ];
+then
+    sudo kubectl run --rm -it sbox --image=hm.grepcode.cn:55582/basic/sbox:0.1 --restart=Never
+fi
+
+if [ $2 == "docker" ];
+then
+   sudo docker run --rm -it hm.grepcode.cn:55582/basic/sbox:0.1
+fi
