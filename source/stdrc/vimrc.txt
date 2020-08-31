@@ -192,14 +192,14 @@ autocmd! FileType typescript :set makeprg=tsc
 """  Golang Support
 "{{{
 
-let go_bin_file=system('which go')
-if v:shell_error == 0
+"let go_bin_file=system('which go')
+"if v:shell_error == 0
     "echo 'init bundle for go'
     Bundle 'fatih/vim-go'
     Bundle 'Blackrush/vim-gocode'
     Bundle 'nsf/gocode'
     set rtp+=$GOPATH/src/github.com/golang/lint/misc/vim
-endif
+"endif
 
 "Bundle 'fatih/vim-go'
 "Bundle 'Blackrush/vim-gocode'
@@ -396,6 +396,8 @@ endfunc
 
 func! InitGolangEnv()
     set completeopt-=preview
+    set tabstop=4
+    set softtabstop=4
     let g:SuperTabDefaultCompletionType = "<C-x><C-o>"
     set completefunc=go#complete#Complete
     let g:go_highlight_functions = 1
