@@ -33,7 +33,7 @@ scheme: Paradox
 
 # UI & UX: slogan, color, effect
 uiux:
-    slogan: "stduolc"
+    slogan: "stdhi"
     theme_color: "#0097A7"
     theme_sub_color: "#00838F"
     hyperlink_color: "#00838F"
@@ -120,14 +120,14 @@ toc:
 
 # SNS Menu
 sns:
-    email: stduolc@grepcode.cn
+    email: stdhi@grepcode.cn
     facebook:
     twitter:
     googleplus:
     weibo:
     instagram:
     tumblr:
-    github: "https://github.com/stduolc"
+    github: "https://github.com/stdhi"
     linkedin:
     zhihu:
     bilibili:
@@ -147,7 +147,7 @@ sns_share:
 sidebar:
     dropdown:
         Email Me:
-            link: "mailto:stduolc@grepcode.cn"
+            link: "mailto:stdhi@grepcode.cn"
             icon: email
     homepage:
         use: true
@@ -199,7 +199,7 @@ comment:
     changyan_thread_key_type: path
     gentie_productKey: 
     gitment_appid: 1126682
-    gitment_uid: stduolc
+    gitment_uid: stdhi
     gitment_repo: mygitments
     gitment_clientid: 02982f20f8c464363c4f
     gitment_clientsecret: 84b0d11104ef4d9951175a751f7f5fd59685e32a

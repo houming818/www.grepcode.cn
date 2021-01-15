@@ -41,9 +41,9 @@ let g:syntastic_javascript_checkers = ['eslint']
 }
 ```
 
-> [vimrc参考](https://coding.net/u/stduolc/p/rc_in_one/git/raw/master/vimrc)
+> [vimrc参考](https://coding.net/u/stdhi/p/rc_in_one/git/raw/master/vimrc)
 > 
-> [eslintrc参考](https://coding.net/u/stduolc/p/rc_in_one/git/raw/master/eslintrc)
+> [eslintrc参考](https://coding.net/u/stdhi/p/rc_in_one/git/raw/master/eslintrc)
 >
 
 # 2. 装工具
@@ -89,7 +89,7 @@ npm ERR! notarget It was specified as a dependency of 'babel-plugin-transform-re
 npm ERR! notarget
 
 npm ERR! A complete log of this run can be found in:
-npm ERR!     /home/stduolc/.npm/_logs/xxx-debug.log
+npm ERR!     /home/stdhi/.npm/_logs/xxx-debug.log
 
 Aborting installation.
   npm install --save --save-exact react react-dom react-scripts has failed.

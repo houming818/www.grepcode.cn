@@ -70,7 +70,7 @@ pagination_dir: page
 theme: material
 #theme: Paradox
 theme.busuanzi.enable: true
-disqus_shortname: stduolc
+disqus_shortname: stdhi
 
 # Toc
 toc:
@@ -80,12 +80,12 @@ toc:
 ## Docs: https://hexo.io/docs/deployment.html
 #deploy:
 #  - type: git
-#    repo: git@github.com:stduolc/stduolc.github.io.git
+#    repo: git@github.com:stdhi/stdhi.github.io.git
 #    branch: master
 
 #  - type: rsync
 #    host: qcloud.grepcode.cn
-#    user: stduolc
+#    user: stdhi
 #    root: /home/workspace/static.grepcode.cn
 #    port: 9000
 #    delete: true
@@ -105,10 +105,10 @@ toc:
 
 #deploy:
 #    type: rsync
-#    repo: stduolc@qcloud.grepcode.cn:/home/workspace/blog
+#    repo: stdhi@qcloud.grepcode.cn:/home/workspace/blog
 #    branch: master
 deploy:
-  type: cos
+- type: cos
   bucket: www-1251320938
   region: ap-guangzhou
   secretId: AKIDvTrzrXjKNCWgaEb5F9maDbjDVbP6nLcd 
@@ -121,6 +121,9 @@ deploy:
     folder: www-1251320938
     secretId: AKIDvTrzrXjKNCWgaEb5F9maDbjDVbP6nLcd 
     secretKey: w53lCct43qTwDrlUzJeo001pTs5NUSJw 
+- type: git
+  repo: git@github.com:stdhi/stdhi.github.io.git
+  branch: master
 
 #appId: 1251320938
 

@@ -1,7 +1,7 @@
 """""""""""""""""""""""""""""""""
 "  BEGIN OF VIMRC               "
-"  Author: stduolc              "
-"  Email: stduolc@gmail.com     "
+"  Author: stdhi              "
+"  Email: stdhi@gmail.com     "
 "  Version: 1.0                 "
 """""""""""""""""""""""""""""""""
 

@@ -108,7 +108,7 @@ if __name__ == '__main__':
     parser.add_argument("-g", "--group", help="show groups", action="store_true")
     parser.add_argument("-f", "--filter", help="filter groups")
     parser.add_argument("-s", "--shell", help="shell command")
-    parser.add_argument("-u", "--user", help="connect user", default="stduolc", action="store")
+    parser.add_argument("-u", "--user", help="connect user", default="stdhi", action="store")
     parser.add_argument("-i", "--inventory", default="/etc/ansible/hosts", help="inventory path", action="store")
     args = parser.parse_args()
 

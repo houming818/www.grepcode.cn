@@ -1,7 +1,7 @@
 # Filename: $HOME/.screenrc
 # Purpose:  Setup file for program "(GNU) screen"
 # Last Update: 2017-02-25
-# Current Author: stduolc / <56071912@qq.com> / www.grepcode.cn 
+# Current Author: stdhi / <56071912@qq.com> / www.grepcode.cn 
 # Original Author: Michael Prokop / <online@michael-prokop.at> / www.michael-prokop.at
 # ===============================================================
 #
@@ -878,7 +878,7 @@ bind X
 bind Y
 bind Z reset
 
-# create by stduolc 2017-02-25
+# create by stdhi 2017-02-25
 # Summary: the shortcut keys for lower case
 #    keys: abcdefghijklmnopqrstuvwxyz
 #   bound: a-cd---hijkl-nopqr---v-x-z
@@ -891,7 +891,7 @@ bind Z reset
 
 #
 # Welcome the user:
-echo "welcome stduolc"
+echo "welcome stdhi"
 #
 ################
 #

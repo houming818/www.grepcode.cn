@@ -392,7 +392,7 @@ $ openstack project create --domain $DOMAIN --description "Main Project" main
 | name        | main                             |
 | parent_id   | 54c57ce57f7c4182b32764e17d332097 |
 +-------------+----------------------------------+
-$ openstack user create --domain $DOMAIN --password-prompt stduolc
+$ openstack user create --domain $DOMAIN --password-prompt stdhi
 User Password:
 Repeat User Password:
 +-----------+----------------------------------+
@@ -401,7 +401,7 @@ Repeat User Password:
 | domain_id | 54c57ce57f7c4182b32764e17d332097 |
 | enabled   | True                             |
 | id        | 0f599ddbc7224449b058408379a73eff |
-| name      | stduolc                          |
+| name      | stdhi                          |
 +-----------+----------------------------------+
 $ openstack role create user
 +-----------+----------------------------------+
@@ -411,7 +411,7 @@ $ openstack role create user
 | id        | 7a7bc93c5f444deab89b460f0ea1fee1 |
 | name      | user                             |
 +-----------+----------------------------------+
-$ openstack role add --project main --user stduolc user #增加stduolc用户到main项目的user角色
+$ openstack role add --project main --user stdhi user #增加stdhi用户到main项目的user角色
 ```
 
 ### 6.4 验证
@@ -446,7 +446,7 @@ Password:
 #### 6.4.4 以普通用户生成授权token
 
 ```
-$ openstack --os-auth-url http://127.0.0.1:5000/v3 --os-project-domain-name $DOMAIN --os-user-domain-name $DOMAIN --os-project-name main --os-username stduolc --os-auth-type password token issue
+$ openstack --os-auth-url http://127.0.0.1:5000/v3 --os-project-domain-name $DOMAIN --os-user-domain-name $DOMAIN --os-project-name main --os-username stdhi --os-auth-type password token issue
 +------------+----------------------------------+
 | Field      | Value                            |
 +------------+----------------------------------+
@@ -479,7 +479,7 @@ export OS_PROJECT_DOMAIN_NAME=grepcode.cn
 export OS_USER_DOMAIN_NAME=grepcode.cn
 export OS_PROJECT_NAME=main
 export OS_TENANT_NAME=main
-export OS_USERNAME=stduolc
+export OS_USERNAME=stdhi
 export OS_PASSWORD=********
 export OS_AUTH_URL=http://127.0.0.1:5000/v3
 export OS_IDENTITY_API_VERSION=3

@@ -143,7 +143,7 @@ stdinit() {
         STATIC_HOST="https://www.grepcode.cn"
     else
         STATIC_HOST="https://www.grepcode.cn"
-        #STATIC_HOST="https://stduolc.github.io"
+        #STATIC_HOST="https://stdhi.github.io"
     fi
 
     STATIC_HOST="https://www.grepcode.cn"
@@ -279,7 +279,7 @@ stdspeed() {
     if [ "$IPINFO_CC" == "CN" ]; then
         STATIC_HOST="https://www.grepcode.cn"
     else
-        STATIC_HOST="https://stduolc.github.io"
+        STATIC_HOST="https://stdhi.github.io"
     fi
 
     STATIC_HOST="https://www.grepcode.cn"
