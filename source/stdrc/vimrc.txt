@@ -396,8 +396,8 @@ endfunc
 
 func! InitGolangEnv()
     set completeopt-=preview
-    set tabstop=4
-    set softtabstop=4
+    set tabstop=2
+    set softtabstop=2
     let g:SuperTabDefaultCompletionType = "<C-x><C-o>"
     set completefunc=go#complete#Complete
     let g:go_highlight_functions = 1
