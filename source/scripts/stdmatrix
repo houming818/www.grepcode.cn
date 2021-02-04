@@ -180,7 +180,7 @@ parser.add_argument('-h', '--help',
                     action='store_true')
 parser.add_argument('-l', '--character-list',
                     help='character set. See details below',
-                    default='nz',
+                    default='no',
                     type=str)
 parser.add_argument('-n', '--no-bold',
                     action='store_true',
@@ -230,7 +230,6 @@ char_set = {
     'R': 'MCCLLLXXXXVVVVVIIIIII',
     's': '-=*_+|:<>"',
     'S': '`-=~!@#$%^&*()_+[]{}|\;\':",./<>?"',
-    'z': '一二三四五六七八九〇壹贰叁肆伍陆柒捌久零',
     'u': args.custom_characters}
 
 colors_str = {
