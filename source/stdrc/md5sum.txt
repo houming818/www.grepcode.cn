@@ -10,6 +10,6 @@ b8be1b0207463f215bad1d3e6d8879e2  pip.conf.txt
 efe39ea21fc3c868126f0f8d9576e0e1  tmux.conf.txt
 82d4fb5df5b5953b98b79f1456946996  tmux.theme.txt
 ea9c550205c12a2df1d4d36419e42bdf  toprc.txt
-4a2c187f12a430a6a52cd1c537f2f9c8  vimrc.txt
+2ad8fa8540b6827c629a62ca6dc19302  vimrc.txt
 cd6a379954d9ac186431db4ee8782fdc  vim.tar.gz
 299f6bbf3b66191b1e49422793ba22fb  zcolor.sh.txt
