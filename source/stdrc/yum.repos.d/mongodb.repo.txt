@@ -1,5 +1,0 @@
-[mongodb]
-name=MongoDB / CentOS-$releasever / $basearch - VirtualBox
-baseurl=https://mirrors.tuna.tsinghua.edu.cn/mongodb/yum/el$releasever
-enabled=1
-gpgcheck=0

@@ -1,6 +1,0 @@
-[submodule "tmux-themepack"]
-	path = tmux-themepack
-	url = https://github.com/jimeh/tmux-themepack.git
-[submodule "agnoster-bash"]
-	path = agnoster-bash
-	url = https://github.com/speedenator/agnoster-bash.git
