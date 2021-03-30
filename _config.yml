@@ -67,9 +67,10 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: material
+#theme: material
 #theme: Paradox
-theme.busuanzi.enable: true
+#theme.busuanzi.enable: true
+theme: next
 disqus_shortname: stdhi
 
 # Toc
@@ -126,4 +127,5 @@ deploy:
     #  branch: master
 
 #appId: 1251320938
+
 
