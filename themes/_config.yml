@@ -12,7 +12,7 @@ footer:
     color: "#ff0000"
 
   # If not defined, `author` from Hexo `_config.yml` will be used.
-  copyright: stdhi
+  copyright: houming818
 
   # Powered by Hexo & NexT
   powered: true
@@ -28,9 +28,9 @@ footer:
     # The icon for gongan beian. See: http://www.beian.gov.cn/portal/download
     gongan_icon_url: 
 
-google_analytics:
-  tracking_id: "UA-99618050-1"
-  # By default, NexT will load an external gtag.js script on your site.
-  # If you only need the pageview feature, set the following option to true to get a better performance.
-  only_pageview: false
+  google_analytics:
+    tracking_id: "G-NMMN9CLG7N"
+    # By default, NexT will load an external gtag.js script on your site.
+    # If you only need the pageview feature, set the following option to true to get a better performance.
+    only_pageview: false
 

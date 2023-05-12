@@ -71,7 +71,7 @@ pagination_dir: page
 #theme: Paradox
 #theme.busuanzi.enable: true
 theme: next
-disqus_shortname: stdhi
+disqus_shortname: houming818
 
 # Toc
 toc:
@@ -119,6 +119,5 @@ deploy:
     verbose: true
     ignore_errors: false # Default is false
 
-#appId: 1251320938
-
+      #appId: G-NMMN9CLG7N
 
