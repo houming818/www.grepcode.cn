@@ -3,10 +3,10 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: stdhi
+title: houming818
 subtitle: coding and thinking
 description:
-author: stdhi
+author: houming818
 language: zh-CN
 timezone: Asia/Shanghai
 
@@ -109,22 +109,15 @@ toc:
 #    repo: stdhi@qcloud.grepcode.cn:/home/workspace/blog
 #    branch: master
 deploy:
-  type: cos
-  bucket: www-1251320938
-  region: ap-guangzhou
-  secretId: AKIDvTrzrXjKNCWgaEb5F9maDbjDVbP6nLcd 
-  secretKey: w53lCct43qTwDrlUzJeo001pTs5NUSJw 
-  cdnConfig:
-    enable: true
-    cdnUrl: www.grepcode.cn
-    bucket: www-1251320938
-    region: ap-guangzhou
-    folder: www-1251320938
-    secretId: AKIDvTrzrXjKNCWgaEb5F9maDbjDVbP6nLcd 
-    secretKey: w53lCct43qTwDrlUzJeo001pTs5NUSJw 
-    #  type: git
-    #  repo: git@github.com:stdhi/stdhi.github.io.git
-    #  branch: master
+  - type: rsync
+    host: ra.grepcode.cn
+    user: root
+    root: /data/workspace/grepcode.cn/www/public
+    port: 22
+    delete: true
+    args: ""
+    verbose: true
+    ignore_errors: false # Default is false
 
 #appId: 1251320938
 
