@@ -3,7 +3,7 @@ title: Kubebuilder/实战环境搭建与测试项目
 link_title: Kubebuilder001
 date: 2023-09-22 13:00:00
 categories: Kubebuilder实战
-tags: 运维 开发 DevOps
+tags: 运维 开发 DevOps Kubebuilder
 ---
 
 [参考地址-helloworld](https://book.kubebuilder.io/quick-start.html)

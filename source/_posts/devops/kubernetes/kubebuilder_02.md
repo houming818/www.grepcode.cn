@@ -1,5 +1,10 @@
-# [Kubebuilder实战] 教程-构建 CronJob
-
+---
+title: Kubebuilder/教程-构建 CronJob
+link_title: Kubebuilder002
+date: 2023-09-22 14:00:00
+categories: Kubebuilder实战
+tags: 运维 开发 DevOps Kubebuilder
+---
 
 ## 前言
 
@@ -19,7 +24,7 @@
 
 ### 搭建我们的项目
 
-确保已经完整运行 [`[Kuberbuilder实战] 环境搭建与测试项目`](https://www.grepcode.cn/devops/kubernetes/kubebuilder_01.html) ,才能开始如下过程。
+确保已经完整运行 [`[Kuberbuilder实战] 环境搭建与测试项目`](https://www.grepcode.cn/2023/Kubebuilder001/) ,才能开始如下过程。
 
 #### 初始化
 
