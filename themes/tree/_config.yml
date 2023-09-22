@@ -23,7 +23,7 @@ links:
 # 这里配置 https://giscus.app/zh-CN，将生成好的填在下面
 # enable 为 true 时， 填自己的 repo、repo_id、category_id
 giscus:
-  enable: true
+  enable: false
   repo: houming818/comments-blog
   repo_id: MDEwOlJlcG9zaXRvcnkzNTMyNjc2MzM
   category_id: DIC_kwDOFQ5vsc4CZiZ3
@@ -36,13 +36,13 @@ giscus:
 # 可选, valine
 valine:
   # 评论
-  enableComment: false
+  enableComment: true
   # 阅读量
-  enableCounter: false
+  enableCounter: true
   # valine appID
-  appID:
+  appID: houming818
   # valine appKey
-  appKey:
+  appKey: On9u7ixjt7EENi8fYOf8LYOQJCzvVuoBBFQ5WoBhmT8deCZg3T7vuwoxuYFiCcNO-cn-n1
   placeholder: 请输入评论
   avatar: retro
 
