@@ -40,9 +40,9 @@ valine:
   # 阅读量
   enableCounter: true
   # valine appID
-  appID: houming818
+  appID: x641HTTHXav1FXIRRM5COv83-gzGzoHsz
   # valine appKey
-  appKey: On9u7ixjt7EENi8fYOf8LYOQJCzvVuoBBFQ5WoBhmT8deCZg3T7vuwoxuYFiCcNO-cn-n1
+  appKey: iQF44sP8mq7YdsZCwu3wPejD
   placeholder: 请输入评论
   avatar: retro
 
