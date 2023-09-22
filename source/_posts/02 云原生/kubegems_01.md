@@ -22,3 +22,15 @@ tags: 运维 开发 DevOps Kubegems 证书 cert-manager
     解释证书管理器架构的高级概述图
 
 ![高级概述图](/images/kubegems001_01.png)
+
+## 如何安装
+
+目前提供三种安装模式
+
+    1. kubectl apply
+    2. helm
+    3. OperatorHub
+
+由于我们采用了Kubegems，这里我们用kubegems的一键安装：
+
+![一键安装](/images/kubegems001_02.png)
