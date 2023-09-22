@@ -1,5 +1,5 @@
 ---
-title: kubegems/cert-manager使用手册
+title: cert-manager使用手册
 link_title: kubegems001
 date: 2023-09-22 13:00:00
 categories: Kubegems
