@@ -1,5 +1,5 @@
 ---
-title: Kubebuilder实战/OAM学习笔记x01
+title: OAM学习笔记x01
 link_title: Kubebuilder003
 date: 2023-09-22 14:00:00
 categories: Kubebuilder实战

@@ -1,5 +1,5 @@
 ---
-title: Kubebuilder实战/环境搭建与测试项目
+title: 环境搭建与测试项目
 link_title: Kubebuilder001
 date: 2023-09-22 13:00:00
 categories: Kubebuilder实战

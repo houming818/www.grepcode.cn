@@ -6,7 +6,7 @@ categories: Kubegems
 tags: 运维 开发 DevOps Kubegems 证书 cert-manager
 ---
 
-## 参考文档
+### 1.1 参考文档
 
 [cert-manager官方文档](https://cert-manager.io/docs/)
 
@@ -23,7 +23,7 @@ tags: 运维 开发 DevOps Kubegems 证书 cert-manager
 
 ![高级概述图](/images/kubegems001_01.png)
 
-## 如何安装
+### 1.2 如何安装
 
 目前提供三种安装模式
 
@@ -39,7 +39,7 @@ tags: 运维 开发 DevOps Kubegems 证书 cert-manager
 
 由于笔者采用的Kubegems的cert-manager是1.8.0版本，按照官方文档，建议K8S为`1.24`
 
-## CD 持续发布
+### 1.3 CD 持续发布
 
 你知道如何配置你的 Cert-Manager 设置，并希望自动化这个过程。
 
@@ -47,7 +47,7 @@ tags: 运维 开发 DevOps Kubegems 证书 cert-manager
 
 📖 helm template：你可以使用 helm template 生成自定义的 Cert-Manager 安装清单。请参阅使用 helm template 输出 YAML 获取更多详细信息。然后，你可以将这个模板化的 Cert-Manager 清单传输到你首选的部署工具中。
 
-## 验证安装
+### 1.4 验证安装
 
 1. 确认安装了[cmctl](https://cert-manager.io/docs/reference/cmctl/#installation)
 
@@ -84,6 +84,8 @@ tags: 运维 开发 DevOps Kubegems 证书 cert-manager
     Use "cmctl [command] --help" for more information about a command.
     ```
 
-2. 试一试搞个自动化证书
-   
+> <p style="color:red">试一试搞个自动化证书</p>
+
+### 2.1 
+
    1. 
