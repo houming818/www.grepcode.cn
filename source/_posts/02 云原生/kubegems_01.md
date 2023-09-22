@@ -21,4 +21,4 @@ tags: 运维 开发 DevOps Kubegems 证书 cert-manager
 
     解释证书管理器架构的高级概述图
 
-![高级概述图](/images/kubegems_01_01.png.png)
+![高级概述图](/images/kubegems001_01.png.png)
