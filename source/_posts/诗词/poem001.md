@@ -2,7 +2,7 @@
 title: 瑶琴
 link_title: poem001
 date: 2022-01-01 13:50:36
-categories: /诗词/诗
+categories: 诗词
 tags: 诗词
 ---
 
