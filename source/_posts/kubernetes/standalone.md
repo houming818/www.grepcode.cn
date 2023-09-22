@@ -1,6 +1,10 @@
-[kubernetes运维]搭建单点Kubernetes cluster
-========
-
+---
+title: kubernetes运维/搭建单点Kubernetes cluster
+link_title: Kubevirt002
+date: 2023-09-22 13:00:00
+categories: kubernetes运维
+tags: 运维 开发 DevOps 搭建环境
+---
 
 ## 配置与环境
 

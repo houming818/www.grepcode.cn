@@ -1,5 +1,10 @@
-# [Kubevirt实战] 2 使用 CDI 导入并启动 VM
-
+---
+title: Kubevirt实战/使用 CDI 导入并启动 VM
+link_title: Kubevirt002
+date: 2023-09-22 13:00:00
+categories: Kubevirt实战
+tags: 运维 开发 DevOps Kubevirt
+---
 
 ## 容器化数据导入器介绍
 

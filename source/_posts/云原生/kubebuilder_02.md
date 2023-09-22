@@ -1,5 +1,5 @@
 ---
-title: Kubebuilder/教程-构建 CronJob
+title: Kubebuilder实战/构建CronJob
 link_title: Kubebuilder002
 date: 2023-09-22 14:00:00
 categories: Kubebuilder实战
