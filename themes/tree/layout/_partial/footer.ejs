@@ -1,0 +1,34 @@
+<div id="footer">
+	<p>
+	©<span id="footerYear-start"><%- theme.siteStartYear %></span>-<span id="footerYear-end"></span>
+	<a href="/"><%- config.author %></a> 
+	
+	<% if (theme.busuanzi){ %>
+		|
+		<span id="busuanzi_container_site_pv">
+			pv
+			<span id="busuanzi_value_site_pv"></span>
+		</span>
+		|
+		<span id="busuanzi_container_site_uv"> 
+			uv
+			<span id="busuanzi_value_site_uv"></span>
+		</span>
+	<% } %>
+	<br>
+    <p><a href="//beian.miit.gov.cn/" target="_blank" rel="nofollow">鄂ICP备17024089号-1</a><a href="//www.beian.gov.cn/portal/registerSystemInfo?recordcode=42018502005127" target="_blank" rel="nofollow"><i style="background: url('//cdn.jsdelivr.net/gh/seatonjiang/kratos@v4.2.4/assets/img/police-ico.png)"></i>鄂公网安备 42018502005127号</a></p>
+	</p>
+</div>
+
+<% if (theme.siteStartYear == undefined) { %>
+<script type="text/javascript">
+	document.getElementById('footerYear-start').innerHTML = new Date().getFullYear() + '';
+</script>
+<% } %>
+<script type="text/javascript">
+	document.getElementById('footerYear-end').innerHTML = new Date().getFullYear() + '';
+</script>
+<% if (config.mermaid && config.mermaid.enable && page.mermaid) { %>
+  <script src="https://cdn.bootcdn.net/ajax/libs/mermaid/<%= config.mermaid.version %>/mermaid.min.js"></script>
+    </script>
+<% } %>

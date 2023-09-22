@@ -70,7 +70,7 @@ pagination_dir: page
 #theme: material
 #theme: Paradox
 #theme.busuanzi.enable: true
-theme: next
+theme: tree
 disqus_shortname: houming818
 
 # Toc
