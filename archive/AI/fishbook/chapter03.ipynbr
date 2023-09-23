@@ -1,0 +1,2243 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 第3章 word2vec"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "本章依然是词向量的分布式表示\n",
+    "\n",
+    "不过介绍另一种方法"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 基于推理的方法和神经网络"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### 基于计数方法的问题"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "基于计数：SVD，比如英语，100 万 × 100 万的庞大矩阵，执行 SVD 不现实\n",
+    "\n",
+    "基于推理：使用神经网络，通常在mini-batch上学习"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### 基于推理方法的概要"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "\n",
+    "基于推理：使用神经网络，通常在mini-batch上学习"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-1.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "基于推理的思想：给出上下文，猜中间这个词，类似完型填空"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-2.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "计算过程"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-3.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "训练：给上下文，给正确答案，得到模型\n",
+    "\n",
+    "预测：个上下文，得到概率分布"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### 神经网络中单词的处理方法"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "词向量的几种表示方式"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-4.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "我们需要使用one-hot表示方法\n",
+    "\n",
+    "此时输入层的情况"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-5.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "输入层的个数 = 单词的个数\n",
+    "\n",
+    "查看 全连接层 H = XW"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-6.png)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[[ 0.51951525 -0.35136917 -0.30513129]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "import numpy as np\n",
+    "c = np.array([[1, 0, 0, 0, 0, 0, 0]]) # 输入\n",
+    "W = np.random.randn(7, 3) # 权重\n",
+    "h = np.dot(c, W) # 中间节点\n",
+    "print(h)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "这里我们全部省略偏置"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-8.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "观察这里可以看出，W的每一行对应一个单词"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[[ 2.49232519 -0.49138191 -0.85094725]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "import sys\n",
+    "import numpy as np\n",
+    "from common.layers import MatMul\n",
+    "c = np.array([[1, 0, 0, 0, 0, 0, 0]])\n",
+    "W = np.random.randn(7, 3)\n",
+    "layer = MatMul(W)\n",
+    "h = layer.forward(c)\n",
+    "print(h)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 简单的word2vec"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### CBWO模型的推理"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-9.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "计算图如下"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-11.png)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[[-1.33432124 -0.22532353 -0.38884368 -0.50979993  2.38410366  0.38352408\n",
+      "   0.96907467]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "import sys\n",
+    "sys.path.append('..')\n",
+    "import numpy as np\n",
+    "from common.layers import MatMul\n",
+    "# 样本的上下文数据\n",
+    "c0 = np.array([[1, 0, 0, 0, 0, 0, 0]])\n",
+    "c1 = np.array([[0, 0, 1, 0, 0, 0, 0]])\n",
+    "# 权重的初始值\n",
+    "W_in = np.random.randn(7, 3)\n",
+    "W_out = np.random.randn(3, 7)\n",
+    "# 生成层\n",
+    "in_layer0 = MatMul(W_in)\n",
+    "in_layer1 = MatMul(W_in)\n",
+    "out_layer = MatMul(W_out)\n",
+    "# 正向传播\n",
+    "h0 = in_layer0.forward(c0)\n",
+    "h1 = in_layer1.forward(c1)\n",
+    "h = 0.5 * (h0 + h1)\n",
+    "s = out_layer.forward(h)\n",
+    "print(s)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### CBWO模型的学习"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "加入Softmax"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-12.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "加入交叉熵误差"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-13.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "这两个合并成一个层"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-14.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### word2vec的权重和分布式表示"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " Win 的每一行对应于各个单词的分布式表示。\n",
+    " \n",
+    " Wout 也同样保存了对单词含义进行了编码的向量，在列方向上对应了各个单词的分布式表示。"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-15.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "那么，我们最终应该使用哪个权重作为单词的分布式表示呢？这里有三个选项。\n",
+    "\n",
+    "A. 只使用输入侧的权重\n",
+    "\n",
+    "B. 只使用输出侧的权重\n",
+    "\n",
+    "C. 同时使用两个权重\n",
+    "\n",
+    "方案 A 和方案 B 只使用其中一个权重。\n",
+    "\n",
+    "而在采用方案 C 的情况下，根据如何组合这两个权重，存在多种方式，其中一个方式就是简单地将这两个权重相加。\n",
+    "\n",
+    "就 word2vec（特别是 skip-gram 模型）而言，最受欢迎的是方案 A。\n",
+    "\n",
+    "许多研究中也都仅使用输入侧的权重 Win 作为最终的单词的分布式表示。\n",
+    "\n",
+    "遵循这一思路，我们也使用 Win 作为单词的分布式表示"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 学习数据的准备"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### 上下文和目标词"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "就从语料库生成上下文和目标词\n",
+    "![](./img/3-16.png)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[0 1 2 3 4 1 5 6]\n",
+      "{0: 'you', 1: 'say', 2: 'goodbye', 3: 'and', 4: 'i', 5: 'hello', 6: '.'}\n"
+     ]
+    }
+   ],
+   "source": [
+    "import sys\n",
+    "sys.path.append('..')\n",
+    "from common.util import preprocess\n",
+    "text = 'You say goodbye and I say hello.'\n",
+    "corpus, word_to_id, id_to_word = preprocess(text)\n",
+    "print(corpus)\n",
+    "print(id_to_word)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "从单词 ID 列表 corpus 生成 contexts 和 target。"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-17.png)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# common/util.py\n",
+    "def create_contexts_target(corpus, window_size=1):\n",
+    "    # 一个是单词 ID 列表（corpus）；另一个是上下文的窗口大小（window_size）。\n",
+    "    target = corpus[window_size:-window_size]\n",
+    "    contexts = []\n",
+    "    for idx in range(window_size, len(corpus)-window_size):\n",
+    "        cs = []\n",
+    "        for t in range(-window_size, window_size + 1):\n",
+    "            if t == 0:\n",
+    "                continue\n",
+    "            cs.append(corpus[idx + t])\n",
+    "        contexts.append(cs)\n",
+    "    return np.array(contexts), np.array(target)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "contexts, target = create_contexts_target(corpus, window_size=1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[0, 2],\n",
+       "       [1, 3],\n",
+       "       [2, 4],\n",
+       "       [3, 1],\n",
+       "       [4, 5],\n",
+       "       [1, 6]])"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "contexts"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([1, 2, 3, 4, 1, 5])"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "target"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### 转化为one-hot表示\n",
+    "\n",
+    "![](./img/3-18.png)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def convert_one_hot(corpus, vocab_size):\n",
+    "    '''转换为one-hot表示\n",
+    "\n",
+    "    :param corpus: 单词ID列表（一维或二维的NumPy数组）\n",
+    "    :param vocab_size: 词汇个数\n",
+    "    :return: one-hot表示（二维或三维的NumPy数组）\n",
+    "    '''\n",
+    "    N = corpus.shape[0]\n",
+    "\n",
+    "    if corpus.ndim == 1:\n",
+    "        one_hot = np.zeros((N, vocab_size), dtype=np.int32)\n",
+    "        for idx, word_id in enumerate(corpus):\n",
+    "            one_hot[idx, word_id] = 1\n",
+    "\n",
+    "    elif corpus.ndim == 2:\n",
+    "        C = corpus.shape[1]\n",
+    "        one_hot = np.zeros((N, C, vocab_size), dtype=np.int32)\n",
+    "        for idx_0, word_ids in enumerate(corpus):\n",
+    "            for idx_1, word_id in enumerate(word_ids):\n",
+    "                one_hot[idx_0, idx_1, word_id] = 1\n",
+    "\n",
+    "    return one_hot"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "text = 'You say goodbye and I say hello.'\n",
+    "\n",
+    "corpus, word_to_id, id_to_word = preprocess(text)\n",
+    "contexts, target = create_contexts_target(corpus, window_size=1)\n",
+    "vocab_size = len(word_to_id)\n",
+    "target = convert_one_hot(target, vocab_size)\n",
+    "contexts = convert_one_hot(contexts, vocab_size)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[0, 1, 0, 0, 0, 0, 0],\n",
+       "       [0, 0, 1, 0, 0, 0, 0],\n",
+       "       [0, 0, 0, 1, 0, 0, 0],\n",
+       "       [0, 0, 0, 0, 1, 0, 0],\n",
+       "       [0, 1, 0, 0, 0, 0, 0],\n",
+       "       [0, 0, 0, 0, 0, 1, 0]])"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "target"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[[1, 0, 0, 0, 0, 0, 0],\n",
+       "        [0, 0, 1, 0, 0, 0, 0]],\n",
+       "\n",
+       "       [[0, 1, 0, 0, 0, 0, 0],\n",
+       "        [0, 0, 0, 1, 0, 0, 0]],\n",
+       "\n",
+       "       [[0, 0, 1, 0, 0, 0, 0],\n",
+       "        [0, 0, 0, 0, 1, 0, 0]],\n",
+       "\n",
+       "       [[0, 0, 0, 1, 0, 0, 0],\n",
+       "        [0, 1, 0, 0, 0, 0, 0]],\n",
+       "\n",
+       "       [[0, 0, 0, 0, 1, 0, 0],\n",
+       "        [0, 0, 0, 0, 0, 1, 0]],\n",
+       "\n",
+       "       [[0, 1, 0, 0, 0, 0, 0],\n",
+       "        [0, 0, 0, 0, 0, 0, 1]]])"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "contexts"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## CBOW模型的实现\n",
+    "\n",
+    "![](./img/3-19.png)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# ch03/simple_cbow.py\n",
+    "\n",
+    "import sys\n",
+    "sys.path.append('..')\n",
+    "import numpy as np\n",
+    "from common.layers import MatMul, SoftmaxWithLoss\n",
+    "class SimpleCBOW:\n",
+    "    def __init__(self, vocab_size, hidden_size):\n",
+    "        V, H = vocab_size, hidden_size\n",
+    "        \n",
+    "        # 初始化权重\n",
+    "        W_in = 0.01 * np.random.randn(V, H).astype('f')\n",
+    "        W_out = 0.01 * np.random.randn(H, V).astype('f')\n",
+    "        ## 我们指定 NumPy 数组的数据类型为 astype('f')，初始化将使用 32 位的浮点数。\n",
+    "        \n",
+    "        # 生成层\n",
+    "        self.in_layer0 = MatMul(W_in)\n",
+    "        self.in_layer1 = MatMul(W_in)\n",
+    "        self.out_layer = MatMul(W_out)\n",
+    "        self.loss_layer = SoftmaxWithLoss()\n",
+    "        \n",
+    "        # 将所有的权重和梯度整理到列表中\n",
+    "        layers = [self.in_layer0, self.in_layer1, self.out_layer]\n",
+    "        self.params, self.grads = [], []\n",
+    "        for layer in layers:\n",
+    "            self.params += layer.params\n",
+    "            self.grads += layer.grads\n",
+    "            \n",
+    "        # 将单词的分布式表示设置为成员变量\n",
+    "        self.word_vecs = W_in\n",
+    "\n",
+    "    def forward(self, contexts, target):\n",
+    "        h0 = self.in_layer0.forward(contexts[:, 0])\n",
+    "        h1 = self.in_layer1.forward(contexts[:, 1])\n",
+    "        h = (h0 + h1) * 0.5\n",
+    "        score = self.out_layer.forward(h)\n",
+    "        loss = self.loss_layer.forward(score, target)\n",
+    "        return loss\n",
+    "\n",
+    "    def backward(self, dout=1):\n",
+    "        ds = self.loss_layer.backward(dout)\n",
+    "        da = self.out_layer.backward(ds)\n",
+    "        da *= 0.5\n",
+    "        self.in_layer1.backward(da)\n",
+    "        self.in_layer0.backward(da)\n",
+    "        return None\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-20.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "学习的实现"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "| epoch 1 |  iter 1 / 2 | time 0[s] | loss 1.95\n",
+      "| epoch 2 |  iter 1 / 2 | time 0[s] | loss 1.95\n",
+      "| epoch 3 |  iter 1 / 2 | time 0[s] | loss 1.95\n",
+      "| epoch 4 |  iter 1 / 2 | time 0[s] | loss 1.95\n",
+      "| epoch 5 |  iter 1 / 2 | time 0[s] | loss 1.95\n",
+      "| epoch 6 |  iter 1 / 2 | time 0[s] | loss 1.95\n",
+      "| epoch 7 |  iter 1 / 2 | time 0[s] | loss 1.95\n",
+      "| epoch 8 |  iter 1 / 2 | time 0[s] | loss 1.95\n",
+      "| epoch 9 |  iter 1 / 2 | time 0[s] | loss 1.95\n",
+      "| epoch 10 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 11 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 12 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 13 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 14 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 15 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 16 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 17 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 18 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 19 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 20 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 21 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 22 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 23 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 24 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 25 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 26 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 27 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 28 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 29 |  iter 1 / 2 | time 0[s] | loss 1.94\n",
+      "| epoch 30 |  iter 1 / 2 | time 0[s] | loss 1.93\n",
+      "| epoch 31 |  iter 1 / 2 | time 0[s] | loss 1.93\n",
+      "| epoch 32 |  iter 1 / 2 | time 0[s] | loss 1.93\n",
+      "| epoch 33 |  iter 1 / 2 | time 0[s] | loss 1.93\n",
+      "| epoch 34 |  iter 1 / 2 | time 0[s] | loss 1.93\n",
+      "| epoch 35 |  iter 1 / 2 | time 0[s] | loss 1.93\n",
+      "| epoch 36 |  iter 1 / 2 | time 0[s] | loss 1.93\n",
+      "| epoch 37 |  iter 1 / 2 | time 0[s] | loss 1.93\n",
+      "| epoch 38 |  iter 1 / 2 | time 0[s] | loss 1.93\n",
+      "| epoch 39 |  iter 1 / 2 | time 0[s] | loss 1.92\n",
+      "| epoch 40 |  iter 1 / 2 | time 0[s] | loss 1.92\n",
+      "| epoch 41 |  iter 1 / 2 | time 0[s] | loss 1.92\n",
+      "| epoch 42 |  iter 1 / 2 | time 0[s] | loss 1.92\n",
+      "| epoch 43 |  iter 1 / 2 | time 0[s] | loss 1.92\n",
+      "| epoch 44 |  iter 1 / 2 | time 0[s] | loss 1.92\n",
+      "| epoch 45 |  iter 1 / 2 | time 0[s] | loss 1.91\n",
+      "| epoch 46 |  iter 1 / 2 | time 0[s] | loss 1.91\n",
+      "| epoch 47 |  iter 1 / 2 | time 0[s] | loss 1.91\n",
+      "| epoch 48 |  iter 1 / 2 | time 0[s] | loss 1.91\n",
+      "| epoch 49 |  iter 1 / 2 | time 0[s] | loss 1.91\n",
+      "| epoch 50 |  iter 1 / 2 | time 0[s] | loss 1.90\n",
+      "| epoch 51 |  iter 1 / 2 | time 0[s] | loss 1.90\n",
+      "| epoch 52 |  iter 1 / 2 | time 0[s] | loss 1.90\n",
+      "| epoch 53 |  iter 1 / 2 | time 0[s] | loss 1.90\n",
+      "| epoch 54 |  iter 1 / 2 | time 0[s] | loss 1.90\n",
+      "| epoch 55 |  iter 1 / 2 | time 0[s] | loss 1.89\n",
+      "| epoch 56 |  iter 1 / 2 | time 0[s] | loss 1.90\n",
+      "| epoch 57 |  iter 1 / 2 | time 0[s] | loss 1.89\n",
+      "| epoch 58 |  iter 1 / 2 | time 0[s] | loss 1.89\n",
+      "| epoch 59 |  iter 1 / 2 | time 0[s] | loss 1.89\n",
+      "| epoch 60 |  iter 1 / 2 | time 0[s] | loss 1.88\n",
+      "| epoch 61 |  iter 1 / 2 | time 0[s] | loss 1.87\n",
+      "| epoch 62 |  iter 1 / 2 | time 0[s] | loss 1.88\n",
+      "| epoch 63 |  iter 1 / 2 | time 0[s] | loss 1.88\n",
+      "| epoch 64 |  iter 1 / 2 | time 0[s] | loss 1.87\n",
+      "| epoch 65 |  iter 1 / 2 | time 0[s] | loss 1.87\n",
+      "| epoch 66 |  iter 1 / 2 | time 0[s] | loss 1.87\n",
+      "| epoch 67 |  iter 1 / 2 | time 0[s] | loss 1.87\n",
+      "| epoch 68 |  iter 1 / 2 | time 0[s] | loss 1.85\n",
+      "| epoch 69 |  iter 1 / 2 | time 0[s] | loss 1.87\n",
+      "| epoch 70 |  iter 1 / 2 | time 0[s] | loss 1.86\n",
+      "| epoch 71 |  iter 1 / 2 | time 0[s] | loss 1.86\n",
+      "| epoch 72 |  iter 1 / 2 | time 0[s] | loss 1.85\n",
+      "| epoch 73 |  iter 1 / 2 | time 0[s] | loss 1.84\n",
+      "| epoch 74 |  iter 1 / 2 | time 0[s] | loss 1.84\n",
+      "| epoch 75 |  iter 1 / 2 | time 0[s] | loss 1.86\n",
+      "| epoch 76 |  iter 1 / 2 | time 0[s] | loss 1.84\n",
+      "| epoch 77 |  iter 1 / 2 | time 0[s] | loss 1.84\n",
+      "| epoch 78 |  iter 1 / 2 | time 0[s] | loss 1.83\n",
+      "| epoch 79 |  iter 1 / 2 | time 0[s] | loss 1.85\n",
+      "| epoch 80 |  iter 1 / 2 | time 0[s] | loss 1.81\n",
+      "| epoch 81 |  iter 1 / 2 | time 0[s] | loss 1.83\n",
+      "| epoch 82 |  iter 1 / 2 | time 0[s] | loss 1.81\n",
+      "| epoch 83 |  iter 1 / 2 | time 0[s] | loss 1.83\n",
+      "| epoch 84 |  iter 1 / 2 | time 0[s] | loss 1.83\n",
+      "| epoch 85 |  iter 1 / 2 | time 0[s] | loss 1.80\n",
+      "| epoch 86 |  iter 1 / 2 | time 0[s] | loss 1.81\n",
+      "| epoch 87 |  iter 1 / 2 | time 0[s] | loss 1.79\n",
+      "| epoch 88 |  iter 1 / 2 | time 0[s] | loss 1.82\n",
+      "| epoch 89 |  iter 1 / 2 | time 0[s] | loss 1.78\n",
+      "| epoch 90 |  iter 1 / 2 | time 0[s] | loss 1.81\n",
+      "| epoch 91 |  iter 1 / 2 | time 0[s] | loss 1.80\n",
+      "| epoch 92 |  iter 1 / 2 | time 0[s] | loss 1.79\n",
+      "| epoch 93 |  iter 1 / 2 | time 0[s] | loss 1.75\n",
+      "| epoch 94 |  iter 1 / 2 | time 0[s] | loss 1.81\n",
+      "| epoch 95 |  iter 1 / 2 | time 0[s] | loss 1.76\n",
+      "| epoch 96 |  iter 1 / 2 | time 0[s] | loss 1.77\n",
+      "| epoch 97 |  iter 1 / 2 | time 0[s] | loss 1.76\n",
+      "| epoch 98 |  iter 1 / 2 | time 0[s] | loss 1.76\n",
+      "| epoch 99 |  iter 1 / 2 | time 0[s] | loss 1.76\n",
+      "| epoch 100 |  iter 1 / 2 | time 0[s] | loss 1.76\n",
+      "| epoch 101 |  iter 1 / 2 | time 0[s] | loss 1.75\n",
+      "| epoch 102 |  iter 1 / 2 | time 0[s] | loss 1.75\n",
+      "| epoch 103 |  iter 1 / 2 | time 0[s] | loss 1.76\n",
+      "| epoch 104 |  iter 1 / 2 | time 0[s] | loss 1.72\n",
+      "| epoch 105 |  iter 1 / 2 | time 0[s] | loss 1.72\n",
+      "| epoch 106 |  iter 1 / 2 | time 0[s] | loss 1.71\n",
+      "| epoch 107 |  iter 1 / 2 | time 0[s] | loss 1.75\n",
+      "| epoch 108 |  iter 1 / 2 | time 0[s] | loss 1.73\n",
+      "| epoch 109 |  iter 1 / 2 | time 0[s] | loss 1.72\n",
+      "| epoch 110 |  iter 1 / 2 | time 0[s] | loss 1.68\n",
+      "| epoch 111 |  iter 1 / 2 | time 0[s] | loss 1.74\n",
+      "| epoch 112 |  iter 1 / 2 | time 0[s] | loss 1.70\n",
+      "| epoch 113 |  iter 1 / 2 | time 0[s] | loss 1.69\n",
+      "| epoch 114 |  iter 1 / 2 | time 0[s] | loss 1.69\n",
+      "| epoch 115 |  iter 1 / 2 | time 0[s] | loss 1.69\n",
+      "| epoch 116 |  iter 1 / 2 | time 0[s] | loss 1.71\n",
+      "| epoch 117 |  iter 1 / 2 | time 0[s] | loss 1.69\n",
+      "| epoch 118 |  iter 1 / 2 | time 0[s] | loss 1.61\n",
+      "| epoch 119 |  iter 1 / 2 | time 0[s] | loss 1.70\n",
+      "| epoch 120 |  iter 1 / 2 | time 0[s] | loss 1.67\n",
+      "| epoch 121 |  iter 1 / 2 | time 0[s] | loss 1.66\n",
+      "| epoch 122 |  iter 1 / 2 | time 0[s] | loss 1.67\n",
+      "| epoch 123 |  iter 1 / 2 | time 0[s] | loss 1.65\n",
+      "| epoch 124 |  iter 1 / 2 | time 0[s] | loss 1.62\n",
+      "| epoch 125 |  iter 1 / 2 | time 0[s] | loss 1.63\n",
+      "| epoch 126 |  iter 1 / 2 | time 0[s] | loss 1.69\n",
+      "| epoch 127 |  iter 1 / 2 | time 0[s] | loss 1.63\n",
+      "| epoch 128 |  iter 1 / 2 | time 0[s] | loss 1.59\n",
+      "| epoch 129 |  iter 1 / 2 | time 0[s] | loss 1.66\n",
+      "| epoch 130 |  iter 1 / 2 | time 0[s] | loss 1.58\n",
+      "| epoch 131 |  iter 1 / 2 | time 0[s] | loss 1.61\n",
+      "| epoch 132 |  iter 1 / 2 | time 0[s] | loss 1.61\n",
+      "| epoch 133 |  iter 1 / 2 | time 0[s] | loss 1.65\n",
+      "| epoch 134 |  iter 1 / 2 | time 0[s] | loss 1.63\n",
+      "| epoch 135 |  iter 1 / 2 | time 0[s] | loss 1.60\n",
+      "| epoch 136 |  iter 1 / 2 | time 0[s] | loss 1.59\n",
+      "| epoch 137 |  iter 1 / 2 | time 0[s] | loss 1.55\n",
+      "| epoch 138 |  iter 1 / 2 | time 0[s] | loss 1.62\n",
+      "| epoch 139 |  iter 1 / 2 | time 0[s] | loss 1.53\n",
+      "| epoch 140 |  iter 1 / 2 | time 0[s] | loss 1.59\n",
+      "| epoch 141 |  iter 1 / 2 | time 0[s] | loss 1.52\n",
+      "| epoch 142 |  iter 1 / 2 | time 0[s] | loss 1.61\n",
+      "| epoch 143 |  iter 1 / 2 | time 0[s] | loss 1.51\n",
+      "| epoch 144 |  iter 1 / 2 | time 0[s] | loss 1.54\n",
+      "| epoch 145 |  iter 1 / 2 | time 0[s] | loss 1.60\n",
+      "| epoch 146 |  iter 1 / 2 | time 0[s] | loss 1.55\n",
+      "| epoch 147 |  iter 1 / 2 | time 0[s] | loss 1.54\n",
+      "| epoch 148 |  iter 1 / 2 | time 0[s] | loss 1.53\n",
+      "| epoch 149 |  iter 1 / 2 | time 0[s] | loss 1.47\n",
+      "| epoch 150 |  iter 1 / 2 | time 0[s] | loss 1.63\n",
+      "| epoch 151 |  iter 1 / 2 | time 0[s] | loss 1.47\n",
+      "| epoch 152 |  iter 1 / 2 | time 0[s] | loss 1.52\n",
+      "| epoch 153 |  iter 1 / 2 | time 0[s] | loss 1.50\n",
+      "| epoch 154 |  iter 1 / 2 | time 0[s] | loss 1.56\n",
+      "| epoch 155 |  iter 1 / 2 | time 0[s] | loss 1.46\n",
+      "| epoch 156 |  iter 1 / 2 | time 0[s] | loss 1.43\n",
+      "| epoch 157 |  iter 1 / 2 | time 0[s] | loss 1.60\n",
+      "| epoch 158 |  iter 1 / 2 | time 0[s] | loss 1.44\n",
+      "| epoch 159 |  iter 1 / 2 | time 0[s] | loss 1.50\n",
+      "| epoch 160 |  iter 1 / 2 | time 0[s] | loss 1.46\n",
+      "| epoch 161 |  iter 1 / 2 | time 0[s] | loss 1.54\n",
+      "| epoch 162 |  iter 1 / 2 | time 0[s] | loss 1.40\n",
+      "| epoch 163 |  iter 1 / 2 | time 0[s] | loss 1.47\n",
+      "| epoch 164 |  iter 1 / 2 | time 0[s] | loss 1.46\n",
+      "| epoch 165 |  iter 1 / 2 | time 0[s] | loss 1.46\n",
+      "| epoch 166 |  iter 1 / 2 | time 0[s] | loss 1.44\n",
+      "| epoch 167 |  iter 1 / 2 | time 0[s] | loss 1.46\n",
+      "| epoch 168 |  iter 1 / 2 | time 0[s] | loss 1.44\n",
+      "| epoch 169 |  iter 1 / 2 | time 0[s] | loss 1.43\n",
+      "| epoch 170 |  iter 1 / 2 | time 0[s] | loss 1.43\n",
+      "| epoch 171 |  iter 1 / 2 | time 0[s] | loss 1.42\n",
+      "| epoch 172 |  iter 1 / 2 | time 0[s] | loss 1.42\n",
+      "| epoch 173 |  iter 1 / 2 | time 0[s] | loss 1.43\n",
+      "| epoch 174 |  iter 1 / 2 | time 0[s] | loss 1.40\n",
+      "| epoch 175 |  iter 1 / 2 | time 0[s] | loss 1.49\n",
+      "| epoch 176 |  iter 1 / 2 | time 0[s] | loss 1.33\n",
+      "| epoch 177 |  iter 1 / 2 | time 0[s] | loss 1.34\n",
+      "| epoch 178 |  iter 1 / 2 | time 0[s] | loss 1.46\n",
+      "| epoch 179 |  iter 1 / 2 | time 0[s] | loss 1.37\n",
+      "| epoch 180 |  iter 1 / 2 | time 0[s] | loss 1.40\n",
+      "| epoch 181 |  iter 1 / 2 | time 0[s] | loss 1.37\n",
+      "| epoch 182 |  iter 1 / 2 | time 0[s] | loss 1.31\n",
+      "| epoch 183 |  iter 1 / 2 | time 0[s] | loss 1.45\n",
+      "| epoch 184 |  iter 1 / 2 | time 0[s] | loss 1.36\n",
+      "| epoch 185 |  iter 1 / 2 | time 0[s] | loss 1.31\n",
+      "| epoch 186 |  iter 1 / 2 | time 0[s] | loss 1.49\n",
+      "| epoch 187 |  iter 1 / 2 | time 0[s] | loss 1.31\n",
+      "| epoch 188 |  iter 1 / 2 | time 0[s] | loss 1.41\n",
+      "| epoch 189 |  iter 1 / 2 | time 0[s] | loss 1.20\n",
+      "| epoch 190 |  iter 1 / 2 | time 0[s] | loss 1.34\n",
+      "| epoch 191 |  iter 1 / 2 | time 0[s] | loss 1.41\n",
+      "| epoch 192 |  iter 1 / 2 | time 0[s] | loss 1.27\n",
+      "| epoch 193 |  iter 1 / 2 | time 0[s] | loss 1.40\n",
+      "| epoch 194 |  iter 1 / 2 | time 0[s] | loss 1.32\n",
+      "| epoch 195 |  iter 1 / 2 | time 0[s] | loss 1.40\n",
+      "| epoch 196 |  iter 1 / 2 | time 0[s] | loss 1.25\n",
+      "| epoch 197 |  iter 1 / 2 | time 0[s] | loss 1.25\n",
+      "| epoch 198 |  iter 1 / 2 | time 0[s] | loss 1.38\n",
+      "| epoch 199 |  iter 1 / 2 | time 0[s] | loss 1.32\n",
+      "| epoch 200 |  iter 1 / 2 | time 0[s] | loss 1.36\n",
+      "| epoch 201 |  iter 1 / 2 | time 0[s] | loss 1.24\n",
+      "| epoch 202 |  iter 1 / 2 | time 0[s] | loss 1.21\n",
+      "| epoch 203 |  iter 1 / 2 | time 0[s] | loss 1.38\n",
+      "| epoch 204 |  iter 1 / 2 | time 0[s] | loss 1.35\n",
+      "| epoch 205 |  iter 1 / 2 | time 0[s] | loss 1.21\n",
+      "| epoch 206 |  iter 1 / 2 | time 0[s] | loss 1.27\n",
+      "| epoch 207 |  iter 1 / 2 | time 0[s] | loss 1.29\n",
+      "| epoch 208 |  iter 1 / 2 | time 0[s] | loss 1.28\n",
+      "| epoch 209 |  iter 1 / 2 | time 0[s] | loss 1.26\n",
+      "| epoch 210 |  iter 1 / 2 | time 0[s] | loss 1.35\n",
+      "| epoch 211 |  iter 1 / 2 | time 0[s] | loss 1.18\n",
+      "| epoch 212 |  iter 1 / 2 | time 0[s] | loss 1.25\n",
+      "| epoch 213 |  iter 1 / 2 | time 0[s] | loss 1.27\n",
+      "| epoch 214 |  iter 1 / 2 | time 0[s] | loss 1.16\n",
+      "| epoch 215 |  iter 1 / 2 | time 0[s] | loss 1.25\n",
+      "| epoch 216 |  iter 1 / 2 | time 0[s] | loss 1.32\n",
+      "| epoch 217 |  iter 1 / 2 | time 0[s] | loss 1.26\n",
+      "| epoch 218 |  iter 1 / 2 | time 0[s] | loss 1.32\n",
+      "| epoch 219 |  iter 1 / 2 | time 0[s] | loss 1.23\n",
+      "| epoch 220 |  iter 1 / 2 | time 0[s] | loss 1.15\n",
+      "| epoch 221 |  iter 1 / 2 | time 0[s] | loss 1.31\n",
+      "| epoch 222 |  iter 1 / 2 | time 0[s] | loss 1.24\n",
+      "| epoch 223 |  iter 1 / 2 | time 0[s] | loss 1.05\n",
+      "| epoch 224 |  iter 1 / 2 | time 0[s] | loss 1.22\n",
+      "| epoch 225 |  iter 1 / 2 | time 0[s] | loss 1.32\n",
+      "| epoch 226 |  iter 1 / 2 | time 0[s] | loss 1.21\n",
+      "| epoch 227 |  iter 1 / 2 | time 0[s] | loss 1.12\n",
+      "| epoch 228 |  iter 1 / 2 | time 0[s] | loss 1.29\n",
+      "| epoch 229 |  iter 1 / 2 | time 0[s] | loss 1.21\n",
+      "| epoch 230 |  iter 1 / 2 | time 0[s] | loss 1.20\n",
+      "| epoch 231 |  iter 1 / 2 | time 0[s] | loss 1.11\n",
+      "| epoch 232 |  iter 1 / 2 | time 0[s] | loss 1.37\n",
+      "| epoch 233 |  iter 1 / 2 | time 0[s] | loss 1.19\n",
+      "| epoch 234 |  iter 1 / 2 | time 0[s] | loss 1.10\n",
+      "| epoch 235 |  iter 1 / 2 | time 0[s] | loss 1.28\n",
+      "| epoch 236 |  iter 1 / 2 | time 0[s] | loss 1.09\n",
+      "| epoch 237 |  iter 1 / 2 | time 0[s] | loss 1.19\n",
+      "| epoch 238 |  iter 1 / 2 | time 0[s] | loss 1.18\n",
+      "| epoch 239 |  iter 1 / 2 | time 0[s] | loss 1.18\n",
+      "| epoch 240 |  iter 1 / 2 | time 0[s] | loss 1.17\n",
+      "| epoch 241 |  iter 1 / 2 | time 0[s] | loss 1.16\n",
+      "| epoch 242 |  iter 1 / 2 | time 0[s] | loss 1.08\n",
+      "| epoch 243 |  iter 1 / 2 | time 0[s] | loss 1.35\n",
+      "| epoch 244 |  iter 1 / 2 | time 0[s] | loss 1.07\n",
+      "| epoch 245 |  iter 1 / 2 | time 0[s] | loss 1.17\n",
+      "| epoch 246 |  iter 1 / 2 | time 0[s] | loss 1.06\n",
+      "| epoch 247 |  iter 1 / 2 | time 0[s] | loss 1.24\n",
+      "| epoch 248 |  iter 1 / 2 | time 0[s] | loss 1.15\n",
+      "| epoch 249 |  iter 1 / 2 | time 0[s] | loss 1.15\n",
+      "| epoch 250 |  iter 1 / 2 | time 0[s] | loss 1.15\n",
+      "| epoch 251 |  iter 1 / 2 | time 0[s] | loss 1.15\n",
+      "| epoch 252 |  iter 1 / 2 | time 0[s] | loss 1.05\n",
+      "| epoch 253 |  iter 1 / 2 | time 0[s] | loss 1.23\n",
+      "| epoch 254 |  iter 1 / 2 | time 0[s] | loss 1.05\n",
+      "| epoch 255 |  iter 1 / 2 | time 0[s] | loss 1.32\n",
+      "| epoch 256 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 257 |  iter 1 / 2 | time 0[s] | loss 1.23\n",
+      "| epoch 258 |  iter 1 / 2 | time 0[s] | loss 1.12\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "| epoch 259 |  iter 1 / 2 | time 0[s] | loss 1.03\n",
+      "| epoch 260 |  iter 1 / 2 | time 0[s] | loss 1.12\n",
+      "| epoch 261 |  iter 1 / 2 | time 0[s] | loss 1.23\n",
+      "| epoch 262 |  iter 1 / 2 | time 0[s] | loss 1.12\n",
+      "| epoch 263 |  iter 1 / 2 | time 0[s] | loss 1.03\n",
+      "| epoch 264 |  iter 1 / 2 | time 0[s] | loss 1.11\n",
+      "| epoch 265 |  iter 1 / 2 | time 0[s] | loss 1.31\n",
+      "| epoch 266 |  iter 1 / 2 | time 0[s] | loss 1.02\n",
+      "| epoch 267 |  iter 1 / 2 | time 0[s] | loss 1.11\n",
+      "| epoch 268 |  iter 1 / 2 | time 0[s] | loss 1.01\n",
+      "| epoch 269 |  iter 1 / 2 | time 0[s] | loss 1.30\n",
+      "| epoch 270 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 271 |  iter 1 / 2 | time 0[s] | loss 1.11\n",
+      "| epoch 272 |  iter 1 / 2 | time 0[s] | loss 1.10\n",
+      "| epoch 273 |  iter 1 / 2 | time 0[s] | loss 1.20\n",
+      "| epoch 274 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 275 |  iter 1 / 2 | time 0[s] | loss 1.09\n",
+      "| epoch 276 |  iter 1 / 2 | time 0[s] | loss 1.20\n",
+      "| epoch 277 |  iter 1 / 2 | time 0[s] | loss 1.09\n",
+      "| epoch 278 |  iter 1 / 2 | time 0[s] | loss 1.20\n",
+      "| epoch 279 |  iter 1 / 2 | time 0[s] | loss 0.98\n",
+      "| epoch 280 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 281 |  iter 1 / 2 | time 0[s] | loss 1.18\n",
+      "| epoch 282 |  iter 1 / 2 | time 0[s] | loss 1.08\n",
+      "| epoch 283 |  iter 1 / 2 | time 0[s] | loss 1.18\n",
+      "| epoch 284 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 285 |  iter 1 / 2 | time 0[s] | loss 1.07\n",
+      "| epoch 286 |  iter 1 / 2 | time 0[s] | loss 1.06\n",
+      "| epoch 287 |  iter 1 / 2 | time 0[s] | loss 1.09\n",
+      "| epoch 288 |  iter 1 / 2 | time 0[s] | loss 1.07\n",
+      "| epoch 289 |  iter 1 / 2 | time 0[s] | loss 1.06\n",
+      "| epoch 290 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 291 |  iter 1 / 2 | time 0[s] | loss 1.29\n",
+      "| epoch 292 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 293 |  iter 1 / 2 | time 0[s] | loss 1.06\n",
+      "| epoch 294 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 295 |  iter 1 / 2 | time 0[s] | loss 1.17\n",
+      "| epoch 296 |  iter 1 / 2 | time 0[s] | loss 1.15\n",
+      "| epoch 297 |  iter 1 / 2 | time 0[s] | loss 1.06\n",
+      "| epoch 298 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 299 |  iter 1 / 2 | time 0[s] | loss 1.05\n",
+      "| epoch 300 |  iter 1 / 2 | time 0[s] | loss 1.17\n",
+      "| epoch 301 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 302 |  iter 1 / 2 | time 0[s] | loss 1.17\n",
+      "| epoch 303 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 304 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 305 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 306 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 307 |  iter 1 / 2 | time 0[s] | loss 1.14\n",
+      "| epoch 308 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 309 |  iter 1 / 2 | time 0[s] | loss 1.05\n",
+      "| epoch 310 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 311 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 312 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 313 |  iter 1 / 2 | time 0[s] | loss 1.14\n",
+      "| epoch 314 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 315 |  iter 1 / 2 | time 0[s] | loss 1.15\n",
+      "| epoch 316 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 317 |  iter 1 / 2 | time 0[s] | loss 1.01\n",
+      "| epoch 318 |  iter 1 / 2 | time 0[s] | loss 1.16\n",
+      "| epoch 319 |  iter 1 / 2 | time 0[s] | loss 1.03\n",
+      "| epoch 320 |  iter 1 / 2 | time 0[s] | loss 1.01\n",
+      "| epoch 321 |  iter 1 / 2 | time 0[s] | loss 1.02\n",
+      "| epoch 322 |  iter 1 / 2 | time 0[s] | loss 1.03\n",
+      "| epoch 323 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 324 |  iter 1 / 2 | time 0[s] | loss 1.01\n",
+      "| epoch 325 |  iter 1 / 2 | time 0[s] | loss 1.14\n",
+      "| epoch 326 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 327 |  iter 1 / 2 | time 0[s] | loss 1.13\n",
+      "| epoch 328 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 329 |  iter 1 / 2 | time 0[s] | loss 1.12\n",
+      "| epoch 330 |  iter 1 / 2 | time 0[s] | loss 1.12\n",
+      "| epoch 331 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 332 |  iter 1 / 2 | time 0[s] | loss 1.26\n",
+      "| epoch 333 |  iter 1 / 2 | time 0[s] | loss 0.89\n",
+      "| epoch 334 |  iter 1 / 2 | time 0[s] | loss 0.89\n",
+      "| epoch 335 |  iter 1 / 2 | time 0[s] | loss 1.13\n",
+      "| epoch 336 |  iter 1 / 2 | time 0[s] | loss 1.12\n",
+      "| epoch 337 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 338 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 339 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 340 |  iter 1 / 2 | time 0[s] | loss 1.02\n",
+      "| epoch 341 |  iter 1 / 2 | time 0[s] | loss 1.11\n",
+      "| epoch 342 |  iter 1 / 2 | time 0[s] | loss 1.13\n",
+      "| epoch 343 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 344 |  iter 1 / 2 | time 0[s] | loss 1.00\n",
+      "| epoch 345 |  iter 1 / 2 | time 0[s] | loss 1.11\n",
+      "| epoch 346 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 347 |  iter 1 / 2 | time 0[s] | loss 1.09\n",
+      "| epoch 348 |  iter 1 / 2 | time 0[s] | loss 0.90\n",
+      "| epoch 349 |  iter 1 / 2 | time 0[s] | loss 1.09\n",
+      "| epoch 350 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 351 |  iter 1 / 2 | time 0[s] | loss 1.01\n",
+      "| epoch 352 |  iter 1 / 2 | time 0[s] | loss 0.89\n",
+      "| epoch 353 |  iter 1 / 2 | time 0[s] | loss 1.10\n",
+      "| epoch 354 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 355 |  iter 1 / 2 | time 0[s] | loss 1.10\n",
+      "| epoch 356 |  iter 1 / 2 | time 0[s] | loss 1.01\n",
+      "| epoch 357 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 358 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 359 |  iter 1 / 2 | time 0[s] | loss 1.13\n",
+      "| epoch 360 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 361 |  iter 1 / 2 | time 0[s] | loss 0.98\n",
+      "| epoch 362 |  iter 1 / 2 | time 0[s] | loss 0.98\n",
+      "| epoch 363 |  iter 1 / 2 | time 0[s] | loss 1.10\n",
+      "| epoch 364 |  iter 1 / 2 | time 0[s] | loss 0.98\n",
+      "| epoch 365 |  iter 1 / 2 | time 0[s] | loss 0.98\n",
+      "| epoch 366 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 367 |  iter 1 / 2 | time 0[s] | loss 1.11\n",
+      "| epoch 368 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 369 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 370 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 371 |  iter 1 / 2 | time 0[s] | loss 1.09\n",
+      "| epoch 372 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 373 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 374 |  iter 1 / 2 | time 0[s] | loss 1.10\n",
+      "| epoch 375 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 376 |  iter 1 / 2 | time 0[s] | loss 1.08\n",
+      "| epoch 377 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 378 |  iter 1 / 2 | time 0[s] | loss 1.10\n",
+      "| epoch 379 |  iter 1 / 2 | time 0[s] | loss 1.07\n",
+      "| epoch 380 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 381 |  iter 1 / 2 | time 0[s] | loss 1.11\n",
+      "| epoch 382 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 383 |  iter 1 / 2 | time 0[s] | loss 1.08\n",
+      "| epoch 384 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 385 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 386 |  iter 1 / 2 | time 0[s] | loss 1.07\n",
+      "| epoch 387 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 388 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 389 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 390 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 391 |  iter 1 / 2 | time 0[s] | loss 1.06\n",
+      "| epoch 392 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 393 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 394 |  iter 1 / 2 | time 0[s] | loss 1.08\n",
+      "| epoch 395 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 396 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 397 |  iter 1 / 2 | time 0[s] | loss 1.05\n",
+      "| epoch 398 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 399 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 400 |  iter 1 / 2 | time 0[s] | loss 0.92\n",
+      "| epoch 401 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 402 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 403 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 404 |  iter 1 / 2 | time 0[s] | loss 1.08\n",
+      "| epoch 405 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 406 |  iter 1 / 2 | time 0[s] | loss 0.82\n",
+      "| epoch 407 |  iter 1 / 2 | time 0[s] | loss 0.82\n",
+      "| epoch 408 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 409 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 410 |  iter 1 / 2 | time 0[s] | loss 1.17\n",
+      "| epoch 411 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 412 |  iter 1 / 2 | time 0[s] | loss 1.06\n",
+      "| epoch 413 |  iter 1 / 2 | time 0[s] | loss 1.07\n",
+      "| epoch 414 |  iter 1 / 2 | time 0[s] | loss 0.82\n",
+      "| epoch 415 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 416 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 417 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 418 |  iter 1 / 2 | time 0[s] | loss 1.07\n",
+      "| epoch 419 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 420 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 421 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 422 |  iter 1 / 2 | time 0[s] | loss 1.18\n",
+      "| epoch 423 |  iter 1 / 2 | time 0[s] | loss 0.94\n",
+      "| epoch 424 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 425 |  iter 1 / 2 | time 0[s] | loss 0.92\n",
+      "| epoch 426 |  iter 1 / 2 | time 0[s] | loss 1.08\n",
+      "| epoch 427 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 428 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 429 |  iter 1 / 2 | time 0[s] | loss 0.90\n",
+      "| epoch 430 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 431 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 432 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 433 |  iter 1 / 2 | time 0[s] | loss 0.94\n",
+      "| epoch 434 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 435 |  iter 1 / 2 | time 0[s] | loss 0.82\n",
+      "| epoch 436 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 437 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 438 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 439 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 440 |  iter 1 / 2 | time 0[s] | loss 0.92\n",
+      "| epoch 441 |  iter 1 / 2 | time 0[s] | loss 0.94\n",
+      "| epoch 442 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 443 |  iter 1 / 2 | time 0[s] | loss 1.05\n",
+      "| epoch 444 |  iter 1 / 2 | time 0[s] | loss 1.06\n",
+      "| epoch 445 |  iter 1 / 2 | time 0[s] | loss 0.68\n",
+      "| epoch 446 |  iter 1 / 2 | time 0[s] | loss 1.06\n",
+      "| epoch 447 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 448 |  iter 1 / 2 | time 0[s] | loss 1.06\n",
+      "| epoch 449 |  iter 1 / 2 | time 0[s] | loss 0.92\n",
+      "| epoch 450 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 451 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 452 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 453 |  iter 1 / 2 | time 0[s] | loss 0.92\n",
+      "| epoch 454 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 455 |  iter 1 / 2 | time 0[s] | loss 0.90\n",
+      "| epoch 456 |  iter 1 / 2 | time 0[s] | loss 0.94\n",
+      "| epoch 457 |  iter 1 / 2 | time 0[s] | loss 0.90\n",
+      "| epoch 458 |  iter 1 / 2 | time 0[s] | loss 1.03\n",
+      "| epoch 459 |  iter 1 / 2 | time 0[s] | loss 1.05\n",
+      "| epoch 460 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 461 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 462 |  iter 1 / 2 | time 0[s] | loss 1.02\n",
+      "| epoch 463 |  iter 1 / 2 | time 0[s] | loss 0.94\n",
+      "| epoch 464 |  iter 1 / 2 | time 0[s] | loss 1.01\n",
+      "| epoch 465 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 466 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 467 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 468 |  iter 1 / 2 | time 0[s] | loss 1.02\n",
+      "| epoch 469 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 470 |  iter 1 / 2 | time 0[s] | loss 1.03\n",
+      "| epoch 471 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 472 |  iter 1 / 2 | time 0[s] | loss 0.92\n",
+      "| epoch 473 |  iter 1 / 2 | time 0[s] | loss 1.00\n",
+      "| epoch 474 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 475 |  iter 1 / 2 | time 0[s] | loss 1.02\n",
+      "| epoch 476 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 477 |  iter 1 / 2 | time 0[s] | loss 0.89\n",
+      "| epoch 478 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 479 |  iter 1 / 2 | time 0[s] | loss 0.68\n",
+      "| epoch 480 |  iter 1 / 2 | time 0[s] | loss 1.00\n",
+      "| epoch 481 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 482 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 483 |  iter 1 / 2 | time 0[s] | loss 1.04\n",
+      "| epoch 484 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 485 |  iter 1 / 2 | time 0[s] | loss 1.14\n",
+      "| epoch 486 |  iter 1 / 2 | time 0[s] | loss 0.65\n",
+      "| epoch 487 |  iter 1 / 2 | time 0[s] | loss 1.15\n",
+      "| epoch 488 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 489 |  iter 1 / 2 | time 0[s] | loss 0.92\n",
+      "| epoch 490 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 491 |  iter 1 / 2 | time 0[s] | loss 1.03\n",
+      "| epoch 492 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 493 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 494 |  iter 1 / 2 | time 0[s] | loss 0.90\n",
+      "| epoch 495 |  iter 1 / 2 | time 0[s] | loss 1.00\n",
+      "| epoch 496 |  iter 1 / 2 | time 0[s] | loss 0.66\n",
+      "| epoch 497 |  iter 1 / 2 | time 0[s] | loss 1.01\n",
+      "| epoch 498 |  iter 1 / 2 | time 0[s] | loss 1.01\n",
+      "| epoch 499 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 500 |  iter 1 / 2 | time 0[s] | loss 0.89\n",
+      "| epoch 501 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 502 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 503 |  iter 1 / 2 | time 0[s] | loss 0.89\n",
+      "| epoch 504 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 505 |  iter 1 / 2 | time 0[s] | loss 0.90\n",
+      "| epoch 506 |  iter 1 / 2 | time 0[s] | loss 0.89\n",
+      "| epoch 507 |  iter 1 / 2 | time 0[s] | loss 0.90\n",
+      "| epoch 508 |  iter 1 / 2 | time 0[s] | loss 0.90\n",
+      "| epoch 509 |  iter 1 / 2 | time 0[s] | loss 1.00\n",
+      "| epoch 510 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 511 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 512 |  iter 1 / 2 | time 0[s] | loss 1.00\n",
+      "| epoch 513 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 514 |  iter 1 / 2 | time 0[s] | loss 1.02\n",
+      "| epoch 515 |  iter 1 / 2 | time 0[s] | loss 0.75\n",
+      "| epoch 516 |  iter 1 / 2 | time 0[s] | loss 1.01\n",
+      "| epoch 517 |  iter 1 / 2 | time 0[s] | loss 0.89\n",
+      "| epoch 518 |  iter 1 / 2 | time 0[s] | loss 0.89\n",
+      "| epoch 519 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 520 |  iter 1 / 2 | time 0[s] | loss 1.00\n",
+      "| epoch 521 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 522 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 523 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 524 |  iter 1 / 2 | time 0[s] | loss 1.02\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "| epoch 525 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 526 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 527 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 528 |  iter 1 / 2 | time 0[s] | loss 1.00\n",
+      "| epoch 529 |  iter 1 / 2 | time 0[s] | loss 0.89\n",
+      "| epoch 530 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 531 |  iter 1 / 2 | time 0[s] | loss 1.00\n",
+      "| epoch 532 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 533 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 534 |  iter 1 / 2 | time 0[s] | loss 0.75\n",
+      "| epoch 535 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 536 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 537 |  iter 1 / 2 | time 0[s] | loss 0.89\n",
+      "| epoch 538 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 539 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 540 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 541 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 542 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 543 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 544 |  iter 1 / 2 | time 0[s] | loss 0.75\n",
+      "| epoch 545 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 546 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 547 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 548 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 549 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 550 |  iter 1 / 2 | time 0[s] | loss 0.98\n",
+      "| epoch 551 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 552 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 553 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 554 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 555 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 556 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 557 |  iter 1 / 2 | time 0[s] | loss 0.75\n",
+      "| epoch 558 |  iter 1 / 2 | time 0[s] | loss 0.99\n",
+      "| epoch 559 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 560 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 561 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 562 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 563 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 564 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 565 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 566 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 567 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 568 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 569 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 570 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 571 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 572 |  iter 1 / 2 | time 0[s] | loss 0.98\n",
+      "| epoch 573 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 574 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 575 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 576 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 577 |  iter 1 / 2 | time 0[s] | loss 0.98\n",
+      "| epoch 578 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 579 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 580 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 581 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 582 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 583 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 584 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 585 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 586 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 587 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 588 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 589 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 590 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 591 |  iter 1 / 2 | time 0[s] | loss 0.71\n",
+      "| epoch 592 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 593 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 594 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 595 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 596 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 597 |  iter 1 / 2 | time 0[s] | loss 0.96\n",
+      "| epoch 598 |  iter 1 / 2 | time 0[s] | loss 0.71\n",
+      "| epoch 599 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 600 |  iter 1 / 2 | time 0[s] | loss 0.71\n",
+      "| epoch 601 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 602 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 603 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 604 |  iter 1 / 2 | time 0[s] | loss 0.94\n",
+      "| epoch 605 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 606 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 607 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 608 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 609 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 610 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 611 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 612 |  iter 1 / 2 | time 0[s] | loss 1.05\n",
+      "| epoch 613 |  iter 1 / 2 | time 0[s] | loss 0.71\n",
+      "| epoch 614 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 615 |  iter 1 / 2 | time 0[s] | loss 1.02\n",
+      "| epoch 616 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 617 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 618 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 619 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 620 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 621 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 622 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 623 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 624 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 625 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 626 |  iter 1 / 2 | time 0[s] | loss 0.82\n",
+      "| epoch 627 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 628 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 629 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 630 |  iter 1 / 2 | time 0[s] | loss 1.05\n",
+      "| epoch 631 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 632 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 633 |  iter 1 / 2 | time 0[s] | loss 0.93\n",
+      "| epoch 634 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 635 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 636 |  iter 1 / 2 | time 0[s] | loss 0.92\n",
+      "| epoch 637 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 638 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 639 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 640 |  iter 1 / 2 | time 0[s] | loss 0.92\n",
+      "| epoch 641 |  iter 1 / 2 | time 0[s] | loss 0.58\n",
+      "| epoch 642 |  iter 1 / 2 | time 0[s] | loss 0.92\n",
+      "| epoch 643 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 644 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 645 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 646 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 647 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 648 |  iter 1 / 2 | time 0[s] | loss 0.90\n",
+      "| epoch 649 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 650 |  iter 1 / 2 | time 0[s] | loss 0.92\n",
+      "| epoch 651 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 652 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 653 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 654 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 655 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 656 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 657 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 658 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 659 |  iter 1 / 2 | time 0[s] | loss 0.90\n",
+      "| epoch 660 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 661 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 662 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 663 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 664 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 665 |  iter 1 / 2 | time 0[s] | loss 0.91\n",
+      "| epoch 666 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 667 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 668 |  iter 1 / 2 | time 0[s] | loss 0.68\n",
+      "| epoch 669 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 670 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 671 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 672 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 673 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 674 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 675 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 676 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 677 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 678 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 679 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 680 |  iter 1 / 2 | time 0[s] | loss 0.75\n",
+      "| epoch 681 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 682 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 683 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 684 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 685 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 686 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 687 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 688 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 689 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 690 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 691 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 692 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 693 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 694 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 695 |  iter 1 / 2 | time 0[s] | loss 0.75\n",
+      "| epoch 696 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 697 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 698 |  iter 1 / 2 | time 0[s] | loss 0.53\n",
+      "| epoch 699 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 700 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 701 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 702 |  iter 1 / 2 | time 0[s] | loss 0.75\n",
+      "| epoch 703 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 704 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 705 |  iter 1 / 2 | time 0[s] | loss 0.95\n",
+      "| epoch 706 |  iter 1 / 2 | time 0[s] | loss 0.66\n",
+      "| epoch 707 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 708 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 709 |  iter 1 / 2 | time 0[s] | loss 0.55\n",
+      "| epoch 710 |  iter 1 / 2 | time 0[s] | loss 0.97\n",
+      "| epoch 711 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 712 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 713 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 714 |  iter 1 / 2 | time 0[s] | loss 0.82\n",
+      "| epoch 715 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 716 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 717 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 718 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 719 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 720 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 721 |  iter 1 / 2 | time 0[s] | loss 0.84\n",
+      "| epoch 722 |  iter 1 / 2 | time 0[s] | loss 0.85\n",
+      "| epoch 723 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 724 |  iter 1 / 2 | time 0[s] | loss 0.65\n",
+      "| epoch 725 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 726 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 727 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 728 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 729 |  iter 1 / 2 | time 0[s] | loss 0.88\n",
+      "| epoch 730 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 731 |  iter 1 / 2 | time 0[s] | loss 0.61\n",
+      "| epoch 732 |  iter 1 / 2 | time 0[s] | loss 0.80\n",
+      "| epoch 733 |  iter 1 / 2 | time 0[s] | loss 0.87\n",
+      "| epoch 734 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 735 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 736 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 737 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 738 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 739 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 740 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 741 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 742 |  iter 1 / 2 | time 0[s] | loss 0.66\n",
+      "| epoch 743 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 744 |  iter 1 / 2 | time 0[s] | loss 0.71\n",
+      "| epoch 745 |  iter 1 / 2 | time 0[s] | loss 0.71\n",
+      "| epoch 746 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 747 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 748 |  iter 1 / 2 | time 0[s] | loss 0.61\n",
+      "| epoch 749 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 750 |  iter 1 / 2 | time 0[s] | loss 0.75\n",
+      "| epoch 751 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 752 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 753 |  iter 1 / 2 | time 0[s] | loss 0.71\n",
+      "| epoch 754 |  iter 1 / 2 | time 0[s] | loss 0.75\n",
+      "| epoch 755 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 756 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 757 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 758 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 759 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 760 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 761 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 762 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 763 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 764 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 765 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 766 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 767 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 768 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 769 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 770 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 771 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 772 |  iter 1 / 2 | time 0[s] | loss 0.65\n",
+      "| epoch 773 |  iter 1 / 2 | time 0[s] | loss 0.68\n",
+      "| epoch 774 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 775 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 776 |  iter 1 / 2 | time 0[s] | loss 0.79\n",
+      "| epoch 777 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 778 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 779 |  iter 1 / 2 | time 0[s] | loss 0.68\n",
+      "| epoch 780 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 781 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 782 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 783 |  iter 1 / 2 | time 0[s] | loss 0.68\n",
+      "| epoch 784 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 785 |  iter 1 / 2 | time 0[s] | loss 0.68\n",
+      "| epoch 786 |  iter 1 / 2 | time 0[s] | loss 0.77\n",
+      "| epoch 787 |  iter 1 / 2 | time 0[s] | loss 0.57\n",
+      "| epoch 788 |  iter 1 / 2 | time 0[s] | loss 0.57\n",
+      "| epoch 789 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 790 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 791 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 792 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 793 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 794 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 795 |  iter 1 / 2 | time 0[s] | loss 0.71\n",
+      "| epoch 796 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 797 |  iter 1 / 2 | time 0[s] | loss 0.51\n",
+      "| epoch 798 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 799 |  iter 1 / 2 | time 0[s] | loss 0.61\n",
+      "| epoch 800 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 801 |  iter 1 / 2 | time 0[s] | loss 0.66\n",
+      "| epoch 802 |  iter 1 / 2 | time 0[s] | loss 0.66\n",
+      "| epoch 803 |  iter 1 / 2 | time 0[s] | loss 0.50\n",
+      "| epoch 804 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 805 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 806 |  iter 1 / 2 | time 0[s] | loss 0.71\n",
+      "| epoch 807 |  iter 1 / 2 | time 0[s] | loss 0.50\n",
+      "| epoch 808 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 809 |  iter 1 / 2 | time 0[s] | loss 0.65\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "| epoch 810 |  iter 1 / 2 | time 0[s] | loss 0.65\n",
+      "| epoch 811 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 812 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 813 |  iter 1 / 2 | time 0[s] | loss 0.65\n",
+      "| epoch 814 |  iter 1 / 2 | time 0[s] | loss 0.75\n",
+      "| epoch 815 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 816 |  iter 1 / 2 | time 0[s] | loss 0.54\n",
+      "| epoch 817 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 818 |  iter 1 / 2 | time 0[s] | loss 0.54\n",
+      "| epoch 819 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 820 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 821 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 822 |  iter 1 / 2 | time 0[s] | loss 0.58\n",
+      "| epoch 823 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 824 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 825 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 826 |  iter 1 / 2 | time 0[s] | loss 0.48\n",
+      "| epoch 827 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 828 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 829 |  iter 1 / 2 | time 0[s] | loss 0.49\n",
+      "| epoch 830 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 831 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 832 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 833 |  iter 1 / 2 | time 0[s] | loss 0.47\n",
+      "| epoch 834 |  iter 1 / 2 | time 0[s] | loss 0.83\n",
+      "| epoch 835 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 836 |  iter 1 / 2 | time 0[s] | loss 0.73\n",
+      "| epoch 837 |  iter 1 / 2 | time 0[s] | loss 0.43\n",
+      "| epoch 838 |  iter 1 / 2 | time 0[s] | loss 0.76\n",
+      "| epoch 839 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 840 |  iter 1 / 2 | time 0[s] | loss 0.48\n",
+      "| epoch 841 |  iter 1 / 2 | time 0[s] | loss 0.56\n",
+      "| epoch 842 |  iter 1 / 2 | time 0[s] | loss 0.78\n",
+      "| epoch 843 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 844 |  iter 1 / 2 | time 0[s] | loss 0.56\n",
+      "| epoch 845 |  iter 1 / 2 | time 0[s] | loss 0.61\n",
+      "| epoch 846 |  iter 1 / 2 | time 0[s] | loss 0.68\n",
+      "| epoch 847 |  iter 1 / 2 | time 0[s] | loss 0.55\n",
+      "| epoch 848 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 849 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 850 |  iter 1 / 2 | time 0[s] | loss 0.61\n",
+      "| epoch 851 |  iter 1 / 2 | time 0[s] | loss 0.55\n",
+      "| epoch 852 |  iter 1 / 2 | time 0[s] | loss 0.61\n",
+      "| epoch 853 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 854 |  iter 1 / 2 | time 0[s] | loss 0.51\n",
+      "| epoch 855 |  iter 1 / 2 | time 0[s] | loss 0.74\n",
+      "| epoch 856 |  iter 1 / 2 | time 0[s] | loss 0.41\n",
+      "| epoch 857 |  iter 1 / 2 | time 0[s] | loss 0.81\n",
+      "| epoch 858 |  iter 1 / 2 | time 0[s] | loss 0.57\n",
+      "| epoch 859 |  iter 1 / 2 | time 0[s] | loss 0.43\n",
+      "| epoch 860 |  iter 1 / 2 | time 0[s] | loss 0.86\n",
+      "| epoch 861 |  iter 1 / 2 | time 0[s] | loss 0.44\n",
+      "| epoch 862 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 863 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 864 |  iter 1 / 2 | time 0[s] | loss 0.50\n",
+      "| epoch 865 |  iter 1 / 2 | time 0[s] | loss 0.66\n",
+      "| epoch 866 |  iter 1 / 2 | time 0[s] | loss 0.53\n",
+      "| epoch 867 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 868 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 869 |  iter 1 / 2 | time 0[s] | loss 0.49\n",
+      "| epoch 870 |  iter 1 / 2 | time 0[s] | loss 0.66\n",
+      "| epoch 871 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 872 |  iter 1 / 2 | time 0[s] | loss 0.61\n",
+      "| epoch 873 |  iter 1 / 2 | time 0[s] | loss 0.50\n",
+      "| epoch 874 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 875 |  iter 1 / 2 | time 0[s] | loss 0.68\n",
+      "| epoch 876 |  iter 1 / 2 | time 0[s] | loss 0.56\n",
+      "| epoch 877 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 878 |  iter 1 / 2 | time 0[s] | loss 0.49\n",
+      "| epoch 879 |  iter 1 / 2 | time 0[s] | loss 0.58\n",
+      "| epoch 880 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 881 |  iter 1 / 2 | time 0[s] | loss 0.48\n",
+      "| epoch 882 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 883 |  iter 1 / 2 | time 0[s] | loss 0.57\n",
+      "| epoch 884 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 885 |  iter 1 / 2 | time 0[s] | loss 0.68\n",
+      "| epoch 886 |  iter 1 / 2 | time 0[s] | loss 0.44\n",
+      "| epoch 887 |  iter 1 / 2 | time 0[s] | loss 0.70\n",
+      "| epoch 888 |  iter 1 / 2 | time 0[s] | loss 0.57\n",
+      "| epoch 889 |  iter 1 / 2 | time 0[s] | loss 0.47\n",
+      "| epoch 890 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 891 |  iter 1 / 2 | time 0[s] | loss 0.66\n",
+      "| epoch 892 |  iter 1 / 2 | time 0[s] | loss 0.57\n",
+      "| epoch 893 |  iter 1 / 2 | time 0[s] | loss 0.57\n",
+      "| epoch 894 |  iter 1 / 2 | time 0[s] | loss 0.44\n",
+      "| epoch 895 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 896 |  iter 1 / 2 | time 0[s] | loss 0.47\n",
+      "| epoch 897 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 898 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 899 |  iter 1 / 2 | time 0[s] | loss 0.49\n",
+      "| epoch 900 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 901 |  iter 1 / 2 | time 0[s] | loss 0.40\n",
+      "| epoch 902 |  iter 1 / 2 | time 0[s] | loss 0.72\n",
+      "| epoch 903 |  iter 1 / 2 | time 0[s] | loss 0.48\n",
+      "| epoch 904 |  iter 1 / 2 | time 0[s] | loss 0.65\n",
+      "| epoch 905 |  iter 1 / 2 | time 0[s] | loss 0.46\n",
+      "| epoch 906 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 907 |  iter 1 / 2 | time 0[s] | loss 0.39\n",
+      "| epoch 908 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 909 |  iter 1 / 2 | time 0[s] | loss 0.66\n",
+      "| epoch 910 |  iter 1 / 2 | time 0[s] | loss 0.47\n",
+      "| epoch 911 |  iter 1 / 2 | time 0[s] | loss 0.55\n",
+      "| epoch 912 |  iter 1 / 2 | time 0[s] | loss 0.65\n",
+      "| epoch 913 |  iter 1 / 2 | time 0[s] | loss 0.51\n",
+      "| epoch 914 |  iter 1 / 2 | time 0[s] | loss 0.49\n",
+      "| epoch 915 |  iter 1 / 2 | time 0[s] | loss 0.53\n",
+      "| epoch 916 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 917 |  iter 1 / 2 | time 0[s] | loss 0.43\n",
+      "| epoch 918 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 919 |  iter 1 / 2 | time 0[s] | loss 0.48\n",
+      "| epoch 920 |  iter 1 / 2 | time 0[s] | loss 0.61\n",
+      "| epoch 921 |  iter 1 / 2 | time 0[s] | loss 0.44\n",
+      "| epoch 922 |  iter 1 / 2 | time 0[s] | loss 0.66\n",
+      "| epoch 923 |  iter 1 / 2 | time 0[s] | loss 0.56\n",
+      "| epoch 924 |  iter 1 / 2 | time 0[s] | loss 0.42\n",
+      "| epoch 925 |  iter 1 / 2 | time 0[s] | loss 0.54\n",
+      "| epoch 926 |  iter 1 / 2 | time 0[s] | loss 0.54\n",
+      "| epoch 927 |  iter 1 / 2 | time 0[s] | loss 0.56\n",
+      "| epoch 928 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 929 |  iter 1 / 2 | time 0[s] | loss 0.54\n",
+      "| epoch 930 |  iter 1 / 2 | time 0[s] | loss 0.55\n",
+      "| epoch 931 |  iter 1 / 2 | time 0[s] | loss 0.52\n",
+      "| epoch 932 |  iter 1 / 2 | time 0[s] | loss 0.56\n",
+      "| epoch 933 |  iter 1 / 2 | time 0[s] | loss 0.51\n",
+      "| epoch 934 |  iter 1 / 2 | time 0[s] | loss 0.57\n",
+      "| epoch 935 |  iter 1 / 2 | time 0[s] | loss 0.43\n",
+      "| epoch 936 |  iter 1 / 2 | time 0[s] | loss 0.51\n",
+      "| epoch 937 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 938 |  iter 1 / 2 | time 0[s] | loss 0.44\n",
+      "| epoch 939 |  iter 1 / 2 | time 0[s] | loss 0.69\n",
+      "| epoch 940 |  iter 1 / 2 | time 0[s] | loss 0.47\n",
+      "| epoch 941 |  iter 1 / 2 | time 0[s] | loss 0.53\n",
+      "| epoch 942 |  iter 1 / 2 | time 0[s] | loss 0.58\n",
+      "| epoch 943 |  iter 1 / 2 | time 0[s] | loss 0.42\n",
+      "| epoch 944 |  iter 1 / 2 | time 0[s] | loss 0.55\n",
+      "| epoch 945 |  iter 1 / 2 | time 0[s] | loss 0.44\n",
+      "| epoch 946 |  iter 1 / 2 | time 0[s] | loss 0.58\n",
+      "| epoch 947 |  iter 1 / 2 | time 0[s] | loss 0.43\n",
+      "| epoch 948 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 949 |  iter 1 / 2 | time 0[s] | loss 0.45\n",
+      "| epoch 950 |  iter 1 / 2 | time 0[s] | loss 0.52\n",
+      "| epoch 951 |  iter 1 / 2 | time 0[s] | loss 0.52\n",
+      "| epoch 952 |  iter 1 / 2 | time 0[s] | loss 0.52\n",
+      "| epoch 953 |  iter 1 / 2 | time 0[s] | loss 0.42\n",
+      "| epoch 954 |  iter 1 / 2 | time 0[s] | loss 0.67\n",
+      "| epoch 955 |  iter 1 / 2 | time 0[s] | loss 0.41\n",
+      "| epoch 956 |  iter 1 / 2 | time 0[s] | loss 0.63\n",
+      "| epoch 957 |  iter 1 / 2 | time 0[s] | loss 0.53\n",
+      "| epoch 958 |  iter 1 / 2 | time 0[s] | loss 0.51\n",
+      "| epoch 959 |  iter 1 / 2 | time 0[s] | loss 0.42\n",
+      "| epoch 960 |  iter 1 / 2 | time 0[s] | loss 0.50\n",
+      "| epoch 961 |  iter 1 / 2 | time 0[s] | loss 0.52\n",
+      "| epoch 962 |  iter 1 / 2 | time 0[s] | loss 0.51\n",
+      "| epoch 963 |  iter 1 / 2 | time 0[s] | loss 0.49\n",
+      "| epoch 964 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 965 |  iter 1 / 2 | time 0[s] | loss 0.37\n",
+      "| epoch 966 |  iter 1 / 2 | time 0[s] | loss 0.43\n",
+      "| epoch 967 |  iter 1 / 2 | time 0[s] | loss 0.66\n",
+      "| epoch 968 |  iter 1 / 2 | time 0[s] | loss 0.41\n",
+      "| epoch 969 |  iter 1 / 2 | time 0[s] | loss 0.49\n",
+      "| epoch 970 |  iter 1 / 2 | time 0[s] | loss 0.64\n",
+      "| epoch 971 |  iter 1 / 2 | time 0[s] | loss 0.36\n",
+      "| epoch 972 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 973 |  iter 1 / 2 | time 0[s] | loss 0.44\n",
+      "| epoch 974 |  iter 1 / 2 | time 0[s] | loss 0.40\n",
+      "| epoch 975 |  iter 1 / 2 | time 0[s] | loss 0.65\n",
+      "| epoch 976 |  iter 1 / 2 | time 0[s] | loss 0.50\n",
+      "| epoch 977 |  iter 1 / 2 | time 0[s] | loss 0.60\n",
+      "| epoch 978 |  iter 1 / 2 | time 0[s] | loss 0.43\n",
+      "| epoch 979 |  iter 1 / 2 | time 0[s] | loss 0.40\n",
+      "| epoch 980 |  iter 1 / 2 | time 0[s] | loss 0.55\n",
+      "| epoch 981 |  iter 1 / 2 | time 0[s] | loss 0.40\n",
+      "| epoch 982 |  iter 1 / 2 | time 0[s] | loss 0.59\n",
+      "| epoch 983 |  iter 1 / 2 | time 0[s] | loss 0.48\n",
+      "| epoch 984 |  iter 1 / 2 | time 0[s] | loss 0.43\n",
+      "| epoch 985 |  iter 1 / 2 | time 0[s] | loss 0.54\n",
+      "| epoch 986 |  iter 1 / 2 | time 0[s] | loss 0.40\n",
+      "| epoch 987 |  iter 1 / 2 | time 0[s] | loss 0.51\n",
+      "| epoch 988 |  iter 1 / 2 | time 0[s] | loss 0.56\n",
+      "| epoch 989 |  iter 1 / 2 | time 0[s] | loss 0.52\n",
+      "| epoch 990 |  iter 1 / 2 | time 0[s] | loss 0.44\n",
+      "| epoch 991 |  iter 1 / 2 | time 0[s] | loss 0.39\n",
+      "| epoch 992 |  iter 1 / 2 | time 0[s] | loss 0.62\n",
+      "| epoch 993 |  iter 1 / 2 | time 0[s] | loss 0.34\n",
+      "| epoch 994 |  iter 1 / 2 | time 0[s] | loss 0.51\n",
+      "| epoch 995 |  iter 1 / 2 | time 0[s] | loss 0.54\n",
+      "| epoch 996 |  iter 1 / 2 | time 0[s] | loss 0.39\n",
+      "| epoch 997 |  iter 1 / 2 | time 0[s] | loss 0.57\n",
+      "| epoch 998 |  iter 1 / 2 | time 0[s] | loss 0.42\n",
+      "| epoch 999 |  iter 1 / 2 | time 0[s] | loss 0.53\n",
+      "| epoch 1000 |  iter 1 / 2 | time 0[s] | loss 0.42\n"
+     ]
+    }
+   ],
+   "source": [
+    "import sys\n",
+    "sys.path.append('..')\n",
+    "from common.trainer import Trainer\n",
+    "from common.optimizer import Adam\n",
+    "# from simple_cbow import SimpleCBOW\n",
+    "from common.util import preprocess, create_contexts_target,convert_one_hot\n",
+    "\n",
+    "window_size = 1\n",
+    "hidden_size = 5\n",
+    "batch_size = 3\n",
+    "max_epoch = 1000\n",
+    "\n",
+    "text = 'You say goodbye and I say hello.'\n",
+    "corpus, word_to_id, id_to_word = preprocess(text)\n",
+    "vocab_size = len(word_to_id)\n",
+    "contexts, target = create_contexts_target(corpus, window_size)\n",
+    "target = convert_one_hot(target, vocab_size)\n",
+    "contexts = convert_one_hot(contexts, vocab_size)\n",
+    "model = SimpleCBOW(vocab_size, hidden_size)\n",
+    "optimizer = Adam()\n",
+    "trainer = Trainer(model, optimizer)\n",
+    "\n",
+    "trainer.fit(contexts, target, max_epoch, batch_size)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<Figure size 432x288 with 1 Axes>"
+      ]
+     },
+     "metadata": {
+      "needs_background": "light"
+     },
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "trainer.plot()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([[ 9.8249644e-01, -8.5833055e-01, -1.6273881e+00, -8.3720165e-01,\n",
+       "         1.5045615e+00],\n",
+       "       [-1.2812319e+00,  1.3110808e+00, -8.7866598e-01,  1.0851197e+00,\n",
+       "         1.1270859e+00],\n",
+       "       [ 1.0270251e+00, -1.1239169e+00,  5.7423646e-03, -1.2175992e+00,\n",
+       "         1.3867971e-01],\n",
+       "       [ 8.8527596e-01,  1.1560804e+00, -1.5801679e+00,  1.6953762e+00,\n",
+       "         6.4786702e-01],\n",
+       "       [ 1.0355864e+00, -1.1164038e+00,  7.7242870e-04, -1.2073808e+00,\n",
+       "         1.6012776e-01],\n",
+       "       [ 9.6382952e-01, -8.7047106e-01, -1.6310581e+00, -8.3580989e-01,\n",
+       "         1.4927622e+00],\n",
+       "       [-1.7909030e+00,  1.0794820e+00,  6.4835131e-01, -8.5396254e-01,\n",
+       "         1.3498298e+00]], dtype=float32)"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "word_vecs = model.word_vecs\n",
+    "word_vecs"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "you [ 0.98249644 -0.85833055 -1.6273881  -0.83720165  1.5045615 ]\n",
+      "say [-1.2812319  1.3110808 -0.878666   1.0851197  1.1270859]\n",
+      "goodbye [ 1.0270251  -1.1239169   0.00574236 -1.2175992   0.13867971]\n",
+      "and [ 0.88527596  1.1560804  -1.5801679   1.6953762   0.647867  ]\n",
+      "i [ 1.0355864e+00 -1.1164038e+00  7.7242870e-04 -1.2073808e+00\n",
+      "  1.6012776e-01]\n",
+      "hello [ 0.9638295  -0.87047106 -1.6310581  -0.8358099   1.4927622 ]\n",
+      ". [-1.790903    1.079482    0.6483513  -0.85396254  1.3498298 ]\n"
+     ]
+    }
+   ],
+   "source": [
+    "for word_id, word in id_to_word.items():\n",
+    "    print(word, word_vecs[word_id])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "我们终于将单词表示为了密集向量！这就是单词的分布式表示。\n",
+    "\n",
+    "我们有理由相信，这样的分布式表示能够很好地捕获单词含义\n",
+    "\n",
+    "下一章我们使用大的语料库，应该能获得更好的结果"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## word2vec的补充说明\n",
+    "\n",
+    "### CBOW模型和概率\n",
+    "\n",
+    "![](./img/3-22.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    " wt−1 和 wt+1 发生后，wt 发生的概率"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3.1.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "“wt 发生”这一事件是正确解，它对应的 one-hot 向量的元素是 1，其他元素都是 0\n",
+    "\n",
+    "则损失函数"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3.2.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "上面是一笔样本数据的损失函数。\n",
+    "\n",
+    "如果将其扩展到整个语料库，则损失函数可以写为："
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3.3.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### skip-gram模型"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "如前所述，word2vec 有两个模型：\n",
+    "\n",
+    "一个是我们已经讨论过的 CBOW模型；\n",
+    "\n",
+    "另一个是被称为 skip-gram 的模型。\n",
+    "\n",
+    "skip-gram 是反转了 CBOW 模型处理的上下文和目标词的模型。"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-23.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "此时，skip-gram 模型的网络结构如图 "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3-24.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "kip-gram 模型的输入层只有一个，输出层的数量则与上下文的单词个数相等。\n",
+    "\n",
+    "因此，首先要分别求出各个输出层的损失（通过Softmax with Loss 层等），然后将它们加起来作为最后的损失。"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "用概率表示"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3.4.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "当给定 wt 时，wt−1 和 wt+1 同时发生的概率"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3.5.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "代入交叉熵误差函数，可以推导出 skip-gram 模型的损失函数"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3.6.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "这里利用了对数的性质 log xy = log x + log y\n",
+    "\n",
+    "skip-gram 模型的损失函数先分别求出各个上下文对应的损失，然后将它们加在一起。\n",
+    "\n",
+    "式 (3.6) 是一笔样本数据的损失函数。\n",
+    "\n",
+    "如果扩展到整个语料库，则skip-gram 模型的损失函数可以表示为"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "![](./img/3.7.png)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "比较式 (3.7) 和 CBOW 模型的式 (3.3)，差异是非常明显的。\n",
+    "\n",
+    "因为 skip-gram 模型的预测次数和上下文单词数量一样多，所以它的损失函数需要求各个上下文单词对应的损失的总和。\n",
+    "\n",
+    "而CBOW模型只需要求目标词的损失。\n",
+    "\n",
+    "以上就是对 skip-gram 模型的介绍。"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### CBOW vs skip-gram"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "那么，我们应该使用 CBOW 模型和 skip-gram 模型中的哪一个呢？\n",
+    "\n",
+    "答案应该是 skip-gram 模型。\n",
+    "\n",
+    "这是因为，从单词的分布式表示的准确度来看，在大多数情况下，skip-grm 模型的结果更好。\n",
+    "\n",
+    "特别是随着语料库规模的增大，在低频词和类推问题的性能方面，skip-gram 模型往往会有更好的表现（单词的分布式表示的评价方法会在 4.4.2 节说明）。\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "skip-gram 模型根据一个单词预测其周围的单词，这是一个非常难的问题。\n",
+    "\n",
+    "假如我们来解决图 3-23 中的问题，此时，对于 CBOW 模型的问题，我们很容易回答“say”。\n",
+    "\n",
+    "但是，对于 skip-gram 模型的问题，则存在许多候选。\n",
+    "\n",
+    "因此，可以说 skip-gram 模型要解决的是更难的问题。\n",
+    "\n",
+    "经过这个更难的问题的锻炼，skip-gram 模型能提供更好的单词的分布式表示。"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "此外，就学习速度而言，CBOW 模型比 skip-gram 模型要快。这是因为 skip-gram 模型需要根据上下文数量计算相应个数的损失，计算成本变大。"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### 基于计数与基于推理"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "首先，我们考虑需要向词汇表添加新词并更新单词的分布式表示的场景。\n",
+    "\n",
+    "此时，基于计数的方法需要从头开始计算。即便是想稍微修改一下单词的分布式表示，也需要重新完成生成共现矩阵、进行 SVD 等一系列操作。\n",
+    "\n",
+    "相反，基于推理的方法（word2vec）允许参数的增量学习。\n",
+    "\n",
+    "具体来说，可以将之前学习到的权重作为下一次学习的初始值，在不损失之前学习到的经验的情况下，高效地更新单词的分布式表示。\n",
+    "\n",
+    "在这方面，基于推理的方法（word2vec）具有优势"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "其次，两种方法得到的单词的分布式表示的性质和准确度有什么差异呢？\n",
+    "\n",
+    "就分布式表示的性质而言，基于计数的方法主要是编码单词的相似性，而 word2vec（特别是 skip-gram 模型）除了单词的相似性以外，还能理解更复杂的单词之间的模式。\n",
+    "\n",
+    "关于这一点，word2vec 因能解开“king −man + woman = queen”这样的类推问题而知名（关于类推问题，我们将在 4.4.2 节说明）。\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "这里有一个常见的误解，那就是基于推理的方法在准确度方面优于基于计数的方法。\n",
+    "\n",
+    "实际上，有研究表明，就单词相似性的定量评价而言，基于推理的方法和基于计数的方法难分上下"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-success\" role=\"alert\">\n",
+    "    <strong>澄清！！</strong> \n",
+    "2014 年发表的题为“Don’t count, predict!”（不要计数，要预测！）\n",
+    "的论文 [24] 系统地比较了基于计数的方法和基于推理的方法，并给\n",
+    "出了基于推理的方法在准确度上始终更好的结论。但是，之后又有\n",
+    "其他的论文 [25]提出，就单词的相似性而言，结论高度依赖于超参数，\n",
+    "基于计数的方法和基于推理的方法难分胜负。"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "另外一个重要的事实是，基于推理的方法和基于计数的方法存在关联性。\n",
+    "\n",
+    "具体地说，使用了 skip-gram 和下一章介绍的 Negative Sampling 的模型被证明与对整个语料库的共现矩阵（实际上会对矩阵进行一定的修改）进行特殊矩阵分解的方法具有相同的作用 [26]。\n",
+    "\n",
+    "换句话说，这两个方法论（在某些条件下）是“相通”的。"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "此外，在 word2vec 之后，有研究人员提出了 GloVe 方法 [27]。\n",
+    "\n",
+    "GloVe方法融合了基于推理的方法和基于计数的方法。\n",
+    "\n",
+    "该方法的思想是，将整个语料库的统计数据的信息纳入损失函数，进行 mini-batch 学习（具体请参考论文 [27]）。\n",
+    "\n",
+    "据此，这两个方法论成功地被融合在了一起。"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 小结"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "托马斯·米科洛夫（Tomas Mikolov）在一系列论文 [22] [23] 中提出了word2vec。\n",
+    "\n",
+    "自论文发表以来，word2vec 受到了许多关注，它的作用也在许多自然语言处理任务中得到了证明。下一章，我们将结合具体的例子来说明word2vec 的重要性，特别是 word2vec 的迁移学习的作用。\n",
+    "\n",
+    "本章我们详细解释了 word2vec 的 CBOW 模型，并对其进行了实现。\n",
+    "\n",
+    "CBOW 模型基本上是一个 2 层的神经网络，结构非常简单。\n",
+    "\n",
+    "我们使用MatMul 层和 Softmax with Loss 层构建了 CBOW 模型，并用一个小规模语料库确认了它的学习过程。遗憾的是，现阶段的 CBOW 模型在处理效率上还存在一些问题。\n",
+    "\n",
+    "不过，在理解了本章的 CBOW 模型之后，离真正的word2vec 也就一步之遥了。\n",
+    "\n",
+    "下一章，我们将改进 CBOW 模型。"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.3"
+  },
+  "nbTranslate": {
+   "displayLangs": [
+    "*"
+   ],
+   "hotkey": "alt-t",
+   "langInMainMenu": true,
+   "sourceLang": "en",
+   "targetLang": "fr",
+   "useGoogleTranslate": true
+  },
+  "toc": {
+   "base_numbering": "3",
+   "nav_menu": {},
+   "number_sections": true,
+   "sideBar": true,
+   "skip_h1_title": false,
+   "title_cell": "Table of Contents",
+   "title_sidebar": "Contents",
+   "toc_cell": false,
+   "toc_position": {
+    "height": "371.198px",
+    "left": "1004.48px",
+    "top": "72.3958px",
+    "width": "264.188px"
+   },
+   "toc_section_display": true,
+   "toc_window_display": true
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
