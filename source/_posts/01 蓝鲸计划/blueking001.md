@@ -2,7 +2,7 @@
 title: 计划说明
 link_title: blueking001
 categories:
-  - 04 蓝鲸计划
+  - 01 蓝鲸计划
 tags: 运维 开发 DevOps 蓝鲸 blueking
 date: 2023-09-22 13:00:00
 ---

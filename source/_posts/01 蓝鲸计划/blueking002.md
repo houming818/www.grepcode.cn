@@ -1,9 +1,10 @@
 ---
 title: 搭建蓝鲸
 link_title: blueking002
-date: 2023-09-23 00:00:00
-categories: blueking
+categories:
+  - 01 蓝鲸计划
 tags: 运维 开发 DevOps 蓝鲸 ubuntu blueking 搭建
+date: 2023-09-23 00:00:00
 ---
 
 ## 参考链接

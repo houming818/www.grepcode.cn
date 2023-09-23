@@ -1,9 +1,10 @@
 ---
 title: kubernetes运维/搭建单点Kubernetes cluster
 link_title: kubernetes001
-date: 2023-09-22 13:00:00
-categories: kubernetes运维
+categories:
+  - 04 kubernetes
 tags: 运维 开发 DevOps 搭建环境
+date: 2023-09-22 13:00:00
 ---
 
 ## 配置与环境
