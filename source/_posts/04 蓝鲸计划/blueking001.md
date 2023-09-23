@@ -1,5 +1,5 @@
 ---
-title: 学习计划说明
+title: 计划说明
 link_title: blueking001
 date: 2023-09-22 13:00:00
 categories: blueking
