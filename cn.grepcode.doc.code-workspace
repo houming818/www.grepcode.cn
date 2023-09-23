@@ -1,8 +1,7 @@
 {
-	"folders": [
-		{
-			"path": "../cn.grepcode.doc"
-		}
-	],
-	"settings": {}
+    "folders": [
+        {
+            "path": "../cn.grepcode.doc"
+        }
+    ]
 }
