@@ -121,3 +121,7 @@ deploy:
 
       #appId: G-NMMN9CLG7N
 
+auto_category:
+ enable: true
+ multiple: false
+ depth: 

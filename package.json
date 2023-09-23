@@ -13,6 +13,7 @@
     },
     "dependencies": {
         "hexo": "^5.0.0",
+        "hexo-auto-category": "^0.2.2",
         "hexo-deploy-tencentcloud-cdn": "0.0.3",
         "hexo-deployer-cos-enhanced": "^1.0.1",
         "hexo-deployer-rsync": "^2.0.0",
