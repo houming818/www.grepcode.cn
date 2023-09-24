@@ -81,4 +81,25 @@ Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
 
 $ ~/bin/bkdl-7.1-stable.sh -ur latest base demo nm_gse_full saas scripts
 
+#### 编辑部署元数据 ####
+
+$ vim ~/bkce7.1-install/blueking/environments/default/values.yaml
+
+编辑域名和https
+
+```
+
+![Alt text](/images/blueking002_01.png)
+
+```bash
+#### 一键部署 ####
+BK_DOMAIN=bk.ftjd.org  # 请修改为你分配给蓝鲸平台的主域名
+cd ~/bkce7.1-install/blueking/  # 进入工作目录
+# 检查域名是否符合k8s域名规范，要全部内容匹配才执行脚本，否则提示域名不符合。
+# 执行时，ubuntu会提示yum不存在。检查后，尝试用yum安装的是 bash-completion jq uuid
+# ubuntu安装好后即可。
+scripts/setup_bkce7.sh -i base
+
+# 时间较长，耐心等待...
+
 ```
