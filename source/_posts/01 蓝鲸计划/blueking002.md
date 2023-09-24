@@ -112,4 +112,14 @@ scripts/setup_bkce7.sh -i base
 
 # 时间较长，耐心等待...
 
+# 如下命令会重复执行，直到部署完成
+for i in {1..24}; 
+do 
+  /root/bkce7.1-install/blueking/scripts/setup_bkce7.sh -i base
+  if [ "$?" -eq "0" ]; 
+  then 
+    break
+  fi
+done
+
 ```
