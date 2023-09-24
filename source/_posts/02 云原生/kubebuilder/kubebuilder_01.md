@@ -1,9 +1,11 @@
 ---
 title: 环境搭建与测试项目
 link_title: Kubebuilder001
-date: 2023-09-22 13:00:00
-categories: Kubebuilder实战
+categories:
+  - 02 云原生
+  - kubebuilder
 tags: 运维 开发 DevOps Kubebuilder
+date: 2023-09-22 13:00:00
 ---
 
 [参考地址-helloworld](https://book.kubebuilder.io/quick-start.html)

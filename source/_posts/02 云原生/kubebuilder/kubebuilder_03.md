@@ -1,9 +1,11 @@
 ---
 title: OAM学习笔记x01
 link_title: Kubebuilder003
-date: 2023-09-22 14:00:00
-categories: Kubebuilder实战
+categories:
+  - 02 云原生
+  - kubebuilder
 tags: 运维 开发 DevOps Kubebuilder
+date: 2023-09-22 14:00:00
 ---
 
 基于 kubevela 的源码分析。
