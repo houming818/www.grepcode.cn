@@ -87,11 +87,21 @@ $ vim ~/bkce7.1-install/blueking/environments/default/values.yaml
 
 编辑域名和https
 
+编辑
+ingressNginx：
+  hostNetwork: false
+
 ```
 
 ![Alt text](/images/blueking002_01.png)
 
 ```bash
+#### 一键部署之前 ####
+# 由于原来bk7的storage-class有一些问题，这里采用在下的yaml配置storage！
+$ kubectl apply -f https://cdn.grepcode.cn/blueking/local-path-storage.yaml
+NAME                      PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+local-storage (default)   rancher.io/local-path   Delete          WaitForFirstConsumer   false                  77s
+
 #### 一键部署 ####
 BK_DOMAIN=bk.ftjd.org  # 请修改为你分配给蓝鲸平台的主域名
 cd ~/bkce7.1-install/blueking/  # 进入工作目录
