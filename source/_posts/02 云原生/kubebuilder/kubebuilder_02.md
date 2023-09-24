@@ -1,9 +1,11 @@
 ---
 title: 构建CronJob
 link_title: Kubebuilder002
-date: 2023-09-22 14:00:00
-categories: Kubebuilder实战
+categories:
+  - 02 云原生
+  - kubebuilder
 tags: 运维 开发 DevOps Kubebuilder
+date: 2023-09-22 14:00:00
 ---
 
 ## 前言

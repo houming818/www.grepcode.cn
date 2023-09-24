@@ -1,9 +1,11 @@
 ---
 title: cert-manager使用手册
 link_title: kubegems001
-date: 2023-09-22 13:00:00
-categories: Kubegems
+categories:
+  - 02 云原生
+  - kubegems
 tags: 运维 开发 DevOps Kubegems 证书 cert-manager
+date: 2023-09-22 13:00:00
 ---
 
 ### 1.1 参考文档
