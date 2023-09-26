@@ -85,7 +85,8 @@ $ ~/bin/bkdl-7.1-stable.sh -ur latest base demo nm_gse_full saas scripts
 
 $ vim ~/bkce7.1-install/blueking/environments/default/values.yaml
 
-编辑域名和https
+编辑域名
+不支持https
 
 编辑
 ingressNginx：
