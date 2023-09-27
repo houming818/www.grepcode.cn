@@ -103,6 +103,8 @@ $ kubectl apply -f https://cdn.grepcode.cn/blueking/local-path-storage.yaml
 NAME                      PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
 local-storage (default)   rancher.io/local-path   Delete          WaitForFirstConsumer   false                  77s
 
+$ kubectl apply -f http://cdn.grepcode.cn/blueking/metrics-server.yaml
+
 #### 一键部署 ####
 BK_DOMAIN=bk.ftjd.org  # 请修改为你分配给蓝鲸平台的主域名
 cd ~/bkce7.1-install/blueking/  # 进入工作目录

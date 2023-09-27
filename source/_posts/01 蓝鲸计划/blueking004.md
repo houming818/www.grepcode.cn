@@ -14,15 +14,28 @@ date: 2023-09-26 13:00:00
 
 需要注意的是，文中说的测试接口：
 
-    {
-        "bk_app_code":"<替换为你的 bk_app_code>",
-        "bk_app_secret":"<替换为你的 bk_app_secret>",
-        "bk_username": "admin",
-        "receiver": "654321@qq.com",
-        "sender": "123456@qq.com",
-        "title": "This is a Test",
-        "content": "<html>Welcome to Blueking</html>"
-    }
+用法一：
+{
+    "bk_app_code":"{{bk_app_code}}",
+    "bk_app_secret":"{{BK_APP_SECRET}}",
+    "bk_username": "admin",
+    "receiver": "****@qq.com",
+    "sender": "houming@domain.cn",
+    "title": "This is a Test",
+    "content": "<html>Welcome to Blueking</html>"
+}
+
+
+用法二：
+{
+    "bk_app_code":"{{bk_app_code}}",
+    "bk_app_secret":"{{BK_APP_SECRET}}",
+    "bk_username": "admin",
+    "receiver": "****@qq.com",
+    "sender": "蓝鲸<houming@domain.cn>",
+    "title": "This is a Test",
+    "content": "<html>Welcome to Blueking</html>"
+}
 
 这里的sender，只能写smtp配置的sender。否则会发送失败。
 
