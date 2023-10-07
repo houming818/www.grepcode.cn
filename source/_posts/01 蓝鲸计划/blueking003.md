@@ -19,10 +19,10 @@ root@bk-login-web-dddd7868d-n2g9r:/app#
 
 $ python manage.py shell
 
->>>
-from django.contrib.auth import get_user_model
-UserModel = get_user_model()
-user = UserModel.objects.get(username="admin")
-user.set_password("Blueking@2023")
-user.save()
+>>> from bkuser_core.profiles.models import Profile
+>>> from django.contrib.auth.hashers import make_password
+>>> admin = Profile.objects.get(username='admin', domain='default.local')
+>>> admin.password = make_password("********")
+>>> admin.save()
+
 ```
