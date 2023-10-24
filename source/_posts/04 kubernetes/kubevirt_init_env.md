@@ -3,7 +3,11 @@ title: Kubevirt实战/环境搭建与测试项目
 link_title: Kubevirt001
 categories:
   - 04 kubernetes
-tags: 运维 开发 DevOps Kubevirt
+tags: 
+  - 运维 
+  - 开发 
+  - DevOps 
+  - Kubevirt
 date: 2023-09-22 13:00:00
 ---
 
