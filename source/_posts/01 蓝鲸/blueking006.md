@@ -2,7 +2,7 @@
 title: 如何使用外部MySQL
 link_title: blueking006
 categories:
-  - 01 蓝鲸计划
+  - 01 蓝鲸
 tags: 运维 开发 DevOps 蓝鲸 blueking 外部数据库 MySQL MongoDB
 date: 2023-11-16 18:00:00
 ---
