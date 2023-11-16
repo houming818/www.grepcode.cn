@@ -37,3 +37,4 @@ ne     Ready    control-plane,master,worker   18d   v1.23.17
  如何搭建k8s集群，网上资料很多，可自行搜索。
 
  依赖项说明到此结束。
+

@@ -67,8 +67,6 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-#theme: material
-#theme: Paradox
 #theme.busuanzi.enable: true
 theme: next
 disqus_shortname: houming818
@@ -117,8 +115,8 @@ auto_category:
  multiple: false
  depth: 
 
-algolia:
-  applicationID: '0RFP3AK42V'
-  apiKey: '027fde124e548b8e53cacc22589f8325'
-  indexName: 'blog'
-  chunkSize: 5000
+#algolia:
+#  applicationID: '0RFP3AK42V'
+#  apiKey: '027fde124e548b8e53cacc22589f8325'
+#  indexName: 'blog'
+#  chunkSize: 5000
