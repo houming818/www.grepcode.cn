@@ -3,7 +3,11 @@ title: Kubevirt实战/使用 CDI 导入并启动 VM
 link_title: Kubevirt002
 categories:
   - 04 kubernetes
-tags: 运维 开发 DevOps Kubevirt
+tags: 
+  - 运维 
+  - 开发 
+  - DevOps 
+  - Kubevirt
 date: 2023-09-22 13:00:00
 ---
 

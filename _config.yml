@@ -4,10 +4,10 @@
 
 # Site
 title: houming818
-subtitle: coding and thinking
+subtitle: 万物之始 始于无明
 description:
 author: houming818
-language: zh-CN
+language: zh-Hans
 timezone: Asia/Shanghai
 
 # URL
@@ -67,22 +67,36 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-#theme: material
-#theme: Paradox
 #theme.busuanzi.enable: true
-theme: tree
+theme: next
 disqus_shortname: houming818
 
 # Toc
 toc:
   maxDepth: 4
 
+search:
+  path: search.xml
+  field: post
+
+localsearch:
+  enable: true
+
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
-#deploy:
-#  - type: git
-#    repo: git@github.com:stdhi/stdhi.github.io.git
-#    branch: master
+deploy:
+  #  - type: git
+  #    repo: git@github.com:houming818/houming818.github.io.git
+  #    branch: master
+
+  - type: rsync
+    host: ra.grepcode.cn
+    user: root
+    root: /data/workspace/grepcode.cn/www/public
+    port: 22
+    delete: true
+    verbose: true
+    ignore_errors: false # Default is false
 
 #  - type: rsync
 #    host: qcloud.grepcode.cn
@@ -94,34 +108,15 @@ toc:
 #    verbose: true
 #    ignore_errors: false # Default is false
 
-#  - type: rsync
-#    host: 192.168.1.102
-#    user: tunnel
-#    root: /home/workspace/static.grepcode.cn
-#    port: 22
-#    delete: true
-#    args: ""
-#    verbose: true
-#    ignore_errors: false # Default is false
-
-#deploy:
-#    type: rsync
-#    repo: stdhi@qcloud.grepcode.cn:/home/workspace/blog
-#    branch: master
-deploy:
-  - type: rsync
-    host: ra.grepcode.cn
-    user: root
-    root: /data/workspace/grepcode.cn/www/public
-    port: 22
-    delete: true
-    args: ""
-    verbose: true
-    ignore_errors: false # Default is false
-
       #appId: G-NMMN9CLG7N
 
 auto_category:
  enable: true
  multiple: false
  depth: 
+
+#algolia:
+#  applicationID: '0RFP3AK42V'
+#  apiKey: '027fde124e548b8e53cacc22589f8325'
+#  indexName: 'blog'
+#  chunkSize: 5000

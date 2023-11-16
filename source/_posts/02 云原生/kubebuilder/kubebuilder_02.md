@@ -4,7 +4,11 @@ link_title: Kubebuilder002
 categories:
   - 02 云原生
   - kubebuilder
-tags: 运维 开发 DevOps Kubebuilder
+tags: 
+  - 运维 
+  - 开发 
+  - DevOps 
+  - Kubebuilder
 date: 2023-09-22 14:00:00
 ---
 

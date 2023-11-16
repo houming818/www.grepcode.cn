@@ -4,7 +4,13 @@ link_title: kubegems001
 categories:
   - 02 云原生
   - kubegems
-tags: 运维 开发 DevOps Kubegems 证书 cert-manager
+tags: 
+  - 运维 
+  - 开发 
+  - DevOps 
+  - Kubegems 
+  - 证书 
+  - cert-manager
 date: 2023-09-22 13:00:00
 ---
 
