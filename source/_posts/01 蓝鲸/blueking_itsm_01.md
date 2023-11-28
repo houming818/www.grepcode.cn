@@ -1,0 +1,129 @@
+---
+title: 蓝鲸内参-ITSM开发环境搭建
+link_title: blueking_itsm_01
+categories:
+  - 01 蓝鲸
+tags: DevOps 蓝鲸 blueking ITSM 二次开发
+date: 2023-11-28 17:00:00
+---
+
+环境说明：
+
+```bash
+$ kubectl get nodes -o wide
+NAME   STATUS   ROLES                         AGE     VERSION   INTERNAL-IP     EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
+fe     Ready    worker                        6d22h   v1.20.4   192.168.1.106   <none>        Ubuntu 20.04.4 LTS   5.4.0-166-generic   containerd://1.6.24
+ne     Ready    control-plane,master,worker   6d22h   v1.20.4   192.168.1.103   <none>        Ubuntu 20.04.4 LTS   5.15.0-88-generic   containerd://1.6.24
+```
+
+开发环境和开发代码位于ne（192.168.1.103）上。可以直接连通到K8S内部svc和pod。
+
+
+前置操作：
+
+> 1. 安装蓝鲸7.1及环境配置
+> 2. 在Saas中安装ITSM，用于初始化ITSM依赖中间件和数据库
+
+环境准备：
+
+- 配置后端MySQL服务Redis服务RabbitMQ服务
+
+```bash
+
+$ kubectl -n bkapp-bk0us0itsm-prod exec -it bkapp-bk0us0itsm-prod--web-7559ccd4d4-2rt76 bash
+
+# 获取MySQL的环境变量
+> env | grep -i mysql
+MYSQL_PASSWORD=********
+MYSQL_NAME=bkapp-bk_itsm--2
+MYSQL_PORT=3306
+MYSQL_USER=bkapp-bk_itsm--2
+MYSQL_HOST=bk-mysql-mysql.blueking.svc.cluster.local
+
+# 获取Redis的环境变量
+> env | grep -i redis
+REDIS_PASSWORD=********
+REDIS_PORT=6379
+REDIS_HOST=bk-redis-master.blueking.svc.cluster.local
+
+# 获取RabbitMQ的环境变量
+> env | grep rabbitmq -i
+RABBITMQ_VHOST=app-bkapp-bk_itsm-pr-a835
+RABBITMQ_USER=app-bkapp-bk_itsm-pr-a835
+RABBITMQ_HOST=bk-rabbitmq.blueking.svc.cluster.local
+RABBITMQ_PASSWORD=********
+RABBITMQ_PORT=5672
+
+$ kubectl get svc |grep -P 'bk-mysql-mysql|bk-redis-master|bk-rabbitmq'
+
+bk-mysql-mysql                               ClusterIP   10.233.58.89    <none>        3306/TCP                                                                          6d4h
+bk-rabbitmq                                  ClusterIP   10.233.20.81    <none>        5672/TCP,4369/TCP,25672/TCP,15672/TCP                                             6d4h
+bk-rabbitmq-headless                         ClusterIP   None            <none>        4369/TCP,5672/TCP,25672/TCP,15672/TCP                                             6d4h
+bk-redis-master                              ClusterIP   10.233.59.161   <none>        6379/TCP                                                                          6d4h
+
+# 配置好hosts，这样开发代码就能访问中间件和数据库了。
+@ne$ vim /etc/hosts
+10.233.58.89 bk-mysql-mysql.blueking.svc.cluster.local
+10.233.20.81 bk-rabbitmq.blueking.svc.cluster.local
+10.233.59.161 bk-redis-master.blueking.svc.cluster.local
+```
+
+- 安装环境
+
+    [参考官方文档](https://github.com/TencentBlueKing/bk-itsm/blob/master/docs/install/dev_deploy.md)
+
+  - 安装 python 和包
+  ```
+  apt install libev-dev libjpeg-dev zlib1g-dev
+  pip install -r requirements.txt
+  ```
+
+  - 配置环境变量
+  
+  ```bash
+  # 新建一个dev.env
+  export BK_PAAS_HOST="apps.ftjd.org"
+  export BKPAAS_APP_SECRET=********
+  export BKPAAS_APP_CODE=bk_itsm
+  export BKPAAS_APP_ID=bk_itsm
+
+  export BKAPP_IAM_INITIAL_FILE="dev"
+  
+  export MYSQL_PASSWORD=********
+  export MYSQL_NAME=bkapp-bk_itsm--2
+  export MYSQL_PORT=3306
+  export MYSQL_USER=bkapp-bk_itsm--2
+  export MYSQL_HOST=bk-mysql-mysql.blueking.svc.cluster.local
+
+  export REDIS_PASSWORD=********
+  export REDIS_PORT=6379
+  export REDIS_HOST=bk-redis-master.blueking.svc.cluster.local
+
+  export RABBITMQ_VHOST=app-bkapp-bk_itsm-pr-a835
+  export RABBITMQ_USER=app-bkapp-bk_itsm-pr-a835
+  export RABBITMQ_HOST=bk-rabbitmq.blueking.svc.cluster.local
+  export RABBITMQ_PASSWORD=********
+  export RABBITMQ_PORT=5672
+
+  ```
+
+  - 打包并收集前端静态资源
+
+    > 注意：node版本是14.21.3
+    >
+    > 需要安装python2
+
+```bash
+# 1）安装依赖包
+# 进入 frontend/pc/，执行以下命令安装
+
+cnpm install node-sass --legacy-peer-deps
+cnpm install --legacy-peer-deps
+
+# 如果安装失败，手动清理npm缓存
+cnpm cache clean --force
+
+# 2）本地打包 在 frontend/desktop/ 目录下，继续执行以下命令打包前端静态资源
+
+cnpm run build:dev
+```
