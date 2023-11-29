@@ -16,6 +16,11 @@ fe     Ready    worker                        6d22h   v1.20.4   192.168.1.106   
 ne     Ready    control-plane,master,worker   6d22h   v1.20.4   192.168.1.103   <none>        Ubuntu 20.04.4 LTS   5.15.0-88-generic   containerd://1.6.24
 ```
 
+|域名|端口|用途|
+| - | - | - |
+|dev-web.ftjd.org| 8004 | 提供web服务，浏览器输入dev-web.ftjd.org:8004可以访问开发的ITSM|
+|dev-api.ftjd.org| 8005 | 提供ITSM的API服务，在dev的webpack包中配置该地址|
+
 开发环境和开发代码位于ne（192.168.1.103）上。可以直接连通到K8S内部svc和pod。
 
 
@@ -29,30 +34,6 @@ ne     Ready    control-plane,master,worker   6d22h   v1.20.4   192.168.1.103   
 - 配置后端MySQL服务Redis服务RabbitMQ服务
 
 ```bash
-
-$ kubectl -n bkapp-bk0us0itsm-prod exec -it bkapp-bk0us0itsm-prod--web-7559ccd4d4-2rt76 bash
-
-# 获取MySQL的环境变量
-> env | grep -i mysql
-MYSQL_PASSWORD=********
-MYSQL_NAME=bkapp-bk_itsm--2
-MYSQL_PORT=3306
-MYSQL_USER=bkapp-bk_itsm--2
-MYSQL_HOST=bk-mysql-mysql.blueking.svc.cluster.local
-
-# 获取Redis的环境变量
-> env | grep -i redis
-REDIS_PASSWORD=********
-REDIS_PORT=6379
-REDIS_HOST=bk-redis-master.blueking.svc.cluster.local
-
-# 获取RabbitMQ的环境变量
-> env | grep rabbitmq -i
-RABBITMQ_VHOST=app-bkapp-bk_itsm-pr-a835
-RABBITMQ_USER=app-bkapp-bk_itsm-pr-a835
-RABBITMQ_HOST=bk-rabbitmq.blueking.svc.cluster.local
-RABBITMQ_PASSWORD=********
-RABBITMQ_PORT=5672
 
 $ kubectl get svc |grep -P 'bk-mysql-mysql|bk-redis-master|bk-rabbitmq'
 
@@ -74,37 +55,25 @@ bk-redis-master                              ClusterIP   10.233.59.161   <none> 
 
   - 安装 python 和包
   ```
-  apt install libev-dev libjpeg-dev zlib1g-dev
+  apt install libev-dev libjpeg-dev zlib1g-dev libevent-dev python3-all-dev
   pip install -r requirements.txt
+  pip uninstall typing_extensions
+  pip install typing_extensions
+  pip install blueapps
+  # 如果有包安装问题，一个个解决
   ```
 
   - 配置环境变量
   
   ```bash
   # 新建一个dev.env
-  export BK_PAAS_HOST="apps.ftjd.org"
-  export BKPAAS_APP_SECRET=********
-  export BKPAAS_APP_CODE=bk_itsm
-  export BKPAAS_APP_ID=bk_itsm
-
-  export BKAPP_IAM_INITIAL_FILE="dev"
   
-  export MYSQL_PASSWORD=********
-  export MYSQL_NAME=bkapp-bk_itsm--2
-  export MYSQL_PORT=3306
-  export MYSQL_USER=bkapp-bk_itsm--2
-  export MYSQL_HOST=bk-mysql-mysql.blueking.svc.cluster.local
+  $ kubectl -n bkapp-bk0us0itsm-prod exec -it bkapp-bk0us0itsm-prod--web-7559ccd4d4-2rt76 bash
 
-  export REDIS_PASSWORD=********
-  export REDIS_PORT=6379
-  export REDIS_HOST=bk-redis-master.blueking.svc.cluster.local
+  # 获取环境变量
+  > env | grep -i BK
 
-  export RABBITMQ_VHOST=app-bkapp-bk_itsm-pr-a835
-  export RABBITMQ_USER=app-bkapp-bk_itsm-pr-a835
-  export RABBITMQ_HOST=bk-rabbitmq.blueking.svc.cluster.local
-  export RABBITMQ_PASSWORD=********
-  export RABBITMQ_PORT=5672
-
+  # 输出配置为dev.env
   ```
 
   - 打包并收集前端静态资源
@@ -123,7 +92,35 @@ cnpm install --legacy-peer-deps
 # 如果安装失败，手动清理npm缓存
 cnpm cache clean --force
 
+# 2) 变更 frontend/pc/build/webpack.dev.conf.js
+
+// 本地代理地址
+const HOST = 'ftjd.org'
+const ORIGIN = `http://${HOST}`
+const SET_URL = ''
+
+
 # 2）本地打包 在 frontend/desktop/ 目录下，继续执行以下命令打包前端静态资源
 
-cnpm run build:dev
+cnpm run dev
+
+> itsm@1.0.0 dev /data/cn.grepcode/blueking/bk-itsm/frontend/pc
+> cross-env webpack-dev-server --progress --config ./build/webpack.dev.conf.js
+
+Happy[happy-babel-js]: Version: 5.0.1. Threads: 24 (shared pool)
+ℹ ｢wds｣: Project is running at http://dev.ftjd.org:8004/
+ℹ ｢wds｣: webpack output is served from /
+ℹ ｢wds｣: Content not from webpack is served from /data/cn.grepcode/blueking/bk-itsm/static
+Happy[happy-babel-js]: All set; signaling webpack to proceed.
+
 ```
+
+  - 启动后端服务
+
+```bash
+python manage.py runserver 0.0.0.0:8005
+```
+
+最终效果图
+
+![Alt text](/source/images/blueking_itsm_01_01.png)
