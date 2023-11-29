@@ -3,7 +3,13 @@ title: 蓝鲸安装命令归纳
 link_title: blueking007
 categories:
   - 01 蓝鲸
-tags: 运维 开发 DevOps 蓝鲸 blueking 安装
+tags: 
+  - 运维
+  - 开发
+  - DevOps
+  - 蓝鲸
+  - blueking
+  - 安装
 date: 2023-11-22 12:00:00
 ---
 

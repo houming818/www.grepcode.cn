@@ -3,7 +3,12 @@ title: ITSM开发环境搭建
 link_title: blueking_itsm_01
 categories:
   - 01 蓝鲸
-tags: DevOps 蓝鲸 blueking ITSM 二次开发
+tags: 
+  - DevOps
+  - 蓝鲸
+  - blueking
+  - ITSM
+  - 二次开发
 date: 2023-11-28 17:00:00
 ---
 
@@ -123,4 +128,4 @@ python manage.py runserver 0.0.0.0:8005
 
 最终效果图
 
-![Alt text](/images/blueking_itsm_01_01.png)
+![最终效果图](/images/blueking_itsm_01_01.png)
