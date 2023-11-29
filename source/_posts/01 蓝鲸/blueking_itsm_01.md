@@ -1,5 +1,5 @@
 ---
-title: 蓝鲸内参-ITSM开发环境搭建
+title: ITSM开发环境搭建
 link_title: blueking_itsm_01
 categories:
   - 01 蓝鲸
