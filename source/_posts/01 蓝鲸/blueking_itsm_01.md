@@ -123,4 +123,4 @@ python manage.py runserver 0.0.0.0:8005
 
 最终效果图
 
-![Alt text](/source/images/blueking_itsm_01_01.png)
+![Alt text](/images/blueking_itsm_01_01.png)
