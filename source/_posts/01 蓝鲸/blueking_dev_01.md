@@ -33,7 +33,7 @@ date: 2023-11-29 17:00:00
 
 ## 前端页面
 
-![前端页面][3]
+![前端页面][4]
 
 
 [1]: https://www.grepcode.cn/images/blueking_dev_01/blueking_dev_01_01.png
@@ -43,3 +43,7 @@ date: 2023-11-29 17:00:00
 [3]: https://www.grepcode.cn/images/blueking_dev_01/blueking_dev_01_03.png
 
 [4]: https://www.grepcode.cn/images/blueking_dev_01/blueking_dev_01_04.png
+
+> **下期预告**
+> 
+> 开始对接用户系统，实现登陆蓝鲸后可直接登录珊瑚虫。
