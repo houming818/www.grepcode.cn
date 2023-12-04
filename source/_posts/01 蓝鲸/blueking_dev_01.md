@@ -14,6 +14,11 @@ date: 2023-11-29 17:00:00
 
 ## 新建项目
 
-![新建项目](/source/images/blueking_dev_01/blueking_dev_01_01.png)
+![新建项目](https://www.grepcode.cn/images/blueking_dev_01/blueking_dev_01_01.png)
 
-![部署项目](/source/images/blueking_dev_01/blueking_dev_01_02.png)
+其中，Git相关信息填写：
+
+
+
+## 部署项目
+![部署项目](https://www.grepcode.cn/images/blueking_dev_01/blueking_dev_01_02.png)

@@ -128,4 +128,8 @@ python manage.py runserver 0.0.0.0:8005
 
 最终效果图
 
-![最终效果图](/images/blueking_itsm_01_01.png)
+![最终效果图][1]
+
+
+
+[1]: https://www.grepcode.cn/images/blueking_itsm_01/blueking_itsm_01_01.png
