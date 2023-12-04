@@ -17,3 +17,8 @@ apiKey=Search-Only API Key= 027fde124e548b8e53cacc22589f8325
 # 更新索引 index
 export HEXO_ALGOLIA_INDEXING_KEY=027fde124e548b8e53cacc22589f8325
 hexo algolia
+
+Blueking@2023
+Grepcode818.
+
+admin.password = make_password("Grepcode818.")

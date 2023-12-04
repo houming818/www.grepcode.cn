@@ -101,7 +101,7 @@ ingressNginx：
 
 ```
 
-![Alt text](/images/blueking002_01.png)
+![Alt text](https://www.grepcode.cn/images/blueking002_01.png)
 
 ```bash
 #### 一键部署之前 ####

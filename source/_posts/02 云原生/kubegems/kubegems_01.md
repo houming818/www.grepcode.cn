@@ -29,7 +29,7 @@ date: 2023-09-22 13:00:00
 
     解释证书管理器架构的高级概述图
 
-![高级概述图](/images/kubegems001_01.png)
+![高级概述图](https://www.grepcode.cn/images/kubegems001_01.png)
 
 ### 1.2 如何安装
 
@@ -41,7 +41,7 @@ date: 2023-09-22 13:00:00
 
 由于我们采用了Kubegems，这里我们用kubegems的一键安装：
 
-![一键安装](/images/kubegems001_02.png)
+![一键安装](https://www.grepcode.cn/images/kubegems001_02.png)
 
 安装说明：
 
