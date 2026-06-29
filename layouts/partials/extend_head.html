@@ -1,0 +1,54 @@
+<script async defer src="https://umami.grepcode.cn/script.js" data-website-id="920fbb83-ddc8-4492-9fc0-dbb075909e6b"></script>
+<noscript><img src="https://umami.grepcode.cn/api/send?website-id=920fbb83-ddc8-4492-9fc0-dbb075909e6b&hostname=www.grepcode.cn&path=" referrerpolicy="no-referrer-when-downgrade" alt="" width="1" height="1" style="display:none"></noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ]
+  });"></script>
+
+<style>
+/* ── Block-level line numbers (paragraphs, headings, lists, blockquotes) ── */
+.post-content { counter-reset: block-num; }
+.post-content > h1,
+.post-content > h2,
+.post-content > h3,
+.post-content > h4,
+.post-content > p,
+.post-content > blockquote,
+.post-content > ul,
+.post-content > ol,
+.post-content > table { counter-increment: block-num; }
+.post-content > h1::before,
+.post-content > h2::before,
+.post-content > h3::before,
+.post-content > h4::before,
+.post-content > p::before,
+.post-content > blockquote::before,
+.post-content > ul::before,
+.post-content > ol::before,
+.post-content > table::before {
+  content: counter(block-num);
+  font-size: 0.68em; color: var(--secondary); opacity: 0.55;
+  margin-right: 0.5em; vertical-align: super;
+  user-select: none;
+}
+.post-content > hr { counter-increment: block-num; }
+
+/* ── Code block per-line numbers (Hugo chroma output) ── */
+.post-content .highlight pre code { counter-reset: code-line; }
+.post-content .highlight pre code > span:first-child { counter-reset: code-line; }
+.post-content .highlight pre code > span {
+  counter-increment: code-line;
+}
+.post-content .highlight pre code > span::before {
+  content: counter(code-line);
+  display: inline-block; width: 2.2em; margin-right: 0.6em;
+  text-align: right; color: var(--secondary); opacity: 0.45;
+  font-size: 0.78em; user-select: none; flex-shrink: 0;
+}
+</style>

@@ -1,0 +1,41 @@
+# ===============================================
+# = Hugo Site Config: www.grepcode.cn
+# ===============================================
+baseURL = "https://www.grepcode.cn/"
+uglyURLs = true
+disableKinds = ["taxonomy", "term"]
+languageCode = "zh-CN"
+title = "GrepCode"
+theme = ["blog-theme", "PaperMod"]
+contentDir = "src"
+publishDir = "dist"
+themesDir = "themes"
+
+[markup.goldmark.extensions.passthrough]
+enable = true
+[markup.goldmark.extensions.passthrough.delimiters]
+block = [["$$", "$$"]]
+inline = [["$", "$"]]
+
+[markup.goldmark.renderer]
+unsafe = true
+
+[params]
+defaultTheme = "dark"
+ShowReadingTime = false
+ShowShareButtons = false
+ShowPostNavLinks = true
+ShowBreadCrumbs = false
+ShowCodeCopyButtons = false
+ShowToc = false
+ShowFullTextinRSS = true
+    comments = true
+mainSections = [""]
+
+[author]
+name = "Houming818 (nio) & opencode (AI)"
+email = "houming818@qq.com"
+
+[params.homeInfoParams]
+Title = "GrepCode"
+Content = "代码是机器的诗，诗是灵魂的代码"
