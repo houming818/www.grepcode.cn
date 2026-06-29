@@ -1,0 +1,14 @@
+{{ define "main" }}
+  <h1>{{ .Title }}</h1>
+  {{ .Content }}
+  <ul class="dynamic-list">
+    {{ range .Pages.ByTitle }}
+    <li>
+      <a href="{{ .RelPermalink }}">
+        {{ .Title }}
+        {{ with .Params.description }}<br/><small>{{ . }}</small>{{ end }}
+      </a>
+    </li>
+    {{ end }}
+  </ul>
+{{ end }}

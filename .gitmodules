@@ -1,6 +1,0 @@
-[submodule "themes/aria"]
-	path = themes/aria
-	url = https://github.com/AlynxZhou/hexo-theme-aria
-[submodule "themes/heyan"]
-	path = themes/heyan
-	url = https://github.com/smile-yan/hexo-theme-heyan.git

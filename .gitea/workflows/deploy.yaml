@@ -1,0 +1,32 @@
+name: Deploy to www.grepcode.cn
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    container:
+      image: reg.grepcode.cn/zoo/hugo-node:latest
+    steps:
+      - name: Checkout
+        uses: https://repos.grepcode.cn/actions/checkout@v4
+
+      - name: Build
+        run: |
+          rm -rf dist
+          hugo
+          echo "Built: $(find dist -name '*.html' | wc -l) pages"
+
+      - name: Deploy to ra
+        env:
+          RA_SSH_KEY: ${{ secrets.RA_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$RA_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan ra.grepcode.cn > ~/.ssh/known_hosts 2>/dev/null
+          rsync -avz --delete dist/ houming818@ra.grepcode.cn:/data/docker/nginx/static/www.grepcode.cn/
+          echo "Deploy done"

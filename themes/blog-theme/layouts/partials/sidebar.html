@@ -1,0 +1,19 @@
+{{- $current := . }}
+{{- $sections := .Site.Home.Sections }}
+{{- $rootPages := where .Site.RegularPages "Section" "" }}
+
+<ul class="tree-list">
+{{- range $sections }}
+  <li>
+    <details class="tree-folder" open>
+      <summary class="tree-label">{{ .Title }}</summary>
+      {{- range .Pages.ByTitle }}
+        <a href="{{ .RelPermalink }}" class="tree-item{{ if eq $current.RelPermalink .RelPermalink }} active{{ end }}">{{ .Title }}</a>
+      {{- end }}
+    </details>
+  </li>
+{{- end }}
+{{- range $rootPages.ByTitle }}
+  <li><a href="{{ .RelPermalink }}" class="tree-item{{ if eq $current.RelPermalink .RelPermalink }} active{{ end }}">{{ .Title }}</a></li>
+{{- end }}
+</ul>
