@@ -8,16 +8,11 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    container:
-      image: alpine:latest
     steps:
       - name: Checkout
         uses: https://repos.grepcode.cn/actions/checkout@v4
 
-      - name: Install tools
-        run: apk add --no-cache curl tar rsync openssh
-
-      - name: Setup Hugo
+      - name: Install Hugo
         run: |
           curl -L -s -o /tmp/hugo.tar.gz \
             https://github.com/gohugoio/hugo/releases/download/v0.160.1/hugo_extended_0.160.1_linux-amd64.tar.gz
@@ -37,6 +32,5 @@ jobs:
           mkdir -p ~/.ssh
           echo "$RA_SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan ra.grepcode.cn > ~/.ssh/known_hosts 2>/dev/null
           rsync -avz --delete dist/ houming818@ra.grepcode.cn:/data/docker/nginx/static/www.grepcode.cn/
-          echo "Deploy done → https://www.grepcode.cn"
+          echo "Deploy done"
