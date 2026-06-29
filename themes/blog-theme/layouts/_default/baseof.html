@@ -1,0 +1,37 @@
+{{- if lt hugo.Version "0.146.0" }}
+{{- errorf "hugo v0.146.0+ required" }}
+{{- end -}}
+
+<!DOCTYPE html>
+<html lang="{{ site.Language }}" data-theme="dark">
+<head>
+    {{- partial "head.html" . }}
+</head>
+<body id="top">
+    {{ partialCached "header.html" . .Page }}
+
+    <div class="main-layout">
+        <input type="checkbox" id="sidebar-toggle">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-inner">
+                <div class="sidebar-site">
+                    <a href="{{ "" | absLangURL }}">{{ site.Title }}</a>
+                </div>
+                <nav class="sidebar-tree">
+                    {{- partial "sidebar.html" . }}
+                </nav>
+                <div class="sidebar-foot">
+                    <a href="/robots.txt">robots.txt</a>
+                </div>
+            </div>
+        </aside>
+        <label class="sidebar-overlay" for="sidebar-toggle"></label>
+        <label class="sidebar-toggle-btn" for="sidebar-toggle" role="button" aria-label="导航菜单">&#9776;</label>
+        <main class="main">
+            {{- block "main" . }}{{ end }}
+        </main>
+    </div>
+
+    {{ partialCached "footer.html" . .Layout .Kind }}
+</body>
+</html>

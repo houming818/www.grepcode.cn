@@ -1,0 +1,14 @@
+# ===============================================
+# = 文件信息
+# ===============================================
+# 责任人：待补充
+# 编写者：自动治理机器人（opencode）
+# 创建时间：2026-04-27
+# 更新时间：2026-04-27
+# 文件功能：Hugo 共享主题，基于 PaperMod 的侧边栏增强（锦上添花）
+# 所属项目：blogs/shared-theme
+# 原则继承：本文件完全遵循 log/AGENTS.txt 的 principles 原则，遇缺必补，继往开来。
+
+name = "blog-theme"
+license = "GPL-3.0"
+description = "Shared dark theme with article sidebar tree, based on PaperMod"
