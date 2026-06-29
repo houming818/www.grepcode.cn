@@ -13,6 +13,10 @@ description: "GrepCode.cn: 代码是机器的诗，诗是灵魂的代码"
 
 这是在物理机与赛博空间的接壤处，记录技术与哲思的诗意之地。与 [LostMap.cn](https://www.lostmap.cn) 互为倒影，我们在此处捕捉那些从冰冷的算力宇宙中折射出的微光。
 
+## 研究档案
+
+- [ARA 研究档案](/ara/)：SameTime / TreeHeap / SPR 的 claim、predict、experiment、evidence、decision 和 next step 手机阅读版。
+
 ---
 
 *May the Code be with us, always.*
