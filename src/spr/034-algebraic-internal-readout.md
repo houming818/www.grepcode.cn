@@ -1,13 +1,13 @@
 ---
-title: "[SPR-034] 从 checksum 退一步：先读懂 TreeHeap 内部节点的代数属性"
+title: "[SPR-034] 从 checksum 退一步：先读 TreeHeap 内部节点的自然属性"
 date: 2026-06-29
 weight: 34
 author: nio (Houming818) & Codex Review
-description: "SPR-034 把 SPR-032 的内部节点 checksum 失败拆开：如果 read kernel 已经能走到 internal node，那么应该先读取 length、first、last、prefix 这种 TreeHeap 自然属性，而不是任意 checksum。实验显示 routed internal readout 明显强于 root bottleneck，但 residue/mod 仍然是硬点。"
+description: "SPR-034 把 SPR-032 的内部节点 checksum 失败拆开：如果 read kernel 已经能走到 internal node，那么应该先读取 length、first、last、prefix 这种 TreeHeap 自然属性，而不是任意 checksum。实验显示 routed internal readout 明显强于 root bottleneck。residue 只保留为旁路诊断，不作为本 claim 的判断条件。"
 tags: [SPR, TreeHeap, ARA, S1, Read Kernel, Algebraic Readout]
 ---
 
-# 从 checksum 退一步：先读懂 TreeHeap 内部节点的代数属性
+# 从 checksum 退一步：先读 TreeHeap 内部节点的自然属性
 
 SPR-032 做了一件很关键的事：
 
@@ -28,7 +28,7 @@ SPR-032 做了一件很关键的事：
 不完整的部分是：
 
 ```text
-internal node 的 checksum 读得很差。
+internal node 的 arbitrary checksum 读得很差。
 ```
 
 当时容易得出一个过强结论：
@@ -44,13 +44,13 @@ internal state 不一定没信息，它可能像 hash 或 latent vector 一样�
 
 ```text
 如果 read kernel 已经走到了 internal node，
-我们是不是应该先读 TreeHeap 自然拥有的代数属性，
+我们是不是应该先读 TreeHeap 自然拥有的结构属性，
 而不是强行预测一个任意 checksum bucket？
 ```
 
 这篇就是这个实验。
 
-## 什么叫“代数属性”
+## 什么叫自然属性
 
 假设一句短句被写入一棵 TreeHeap。
 
@@ -78,9 +78,8 @@ internal state 不一定没信息，它可能像 hash 或 latent vector 一样�
 | `last` | 这个子树最后一个 token 是什么 |
 | `prefix0` | 第一个有序槽位是什么 |
 | `prefix1` | 第二个有序槽位是什么 |
-| `residue` | 对这个子树做一个取模 checksum |
 
-前五个很自然。
+这些问题很自然。
 
 它们类似十进制数字里的：
 
@@ -91,9 +90,21 @@ internal state 不一定没信息，它可能像 hash 或 latent vector 一样�
 长度是多少？
 ```
 
-`residue` 更难。
-它不是直接读某个位置，而是要求模型把整段子树做一种模运算摘要。
-所以我预期它会比 `length / first / last / prefix` 更难。
+也类似数组或树里的：
+
+```text
+这个子区间多长？
+第一个元素是谁？
+最后一个元素是谁？
+前两个有序槽位是什么？
+```
+
+我在脚本里还保留了一个 `residue` 诊断项。
+但这里需要说清楚：它不是 SPR-034 的核心 claim。
+
+你提出 residue，是为了讨论一维有序数组折叠成树时，是否会出现某种模周期或循环结构。
+这个想法更接近后续“线性顺序如何折叠成树”的数学问题，不应该压到本次 S1 readout proof 上。
+所以在本文里，`residue` 只作为旁路数据记录，不参与通过/失败判断。
 
 ## 实验设计
 
@@ -123,7 +134,7 @@ device = cuda
 
 ```text
 给定一棵 TreeHeap 和一个 query node，
-输出这个节点覆盖子树的 length / first / last / residue / prefix0 / prefix1。
+输出这个节点覆盖子树的 length / first / last / prefix0 / prefix1。
 ```
 
 这里的关键对比是：
@@ -136,75 +147,75 @@ routed internal node state
 
 如果 TreeHeap 的地址和子结构真的有用，那么走到目标节点之后再读，应该比让 root 一口气背下所有信息更容易。
 
-## 主实验：64 个 residue bucket
+## 主实验：自然属性 readout
 
 先看 internal node 的 OOD 结果。
 
-| Model | Length | First | Last | Residue | Prefix0 | Prefix1 | Mean | Exact all |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| `root_query_decoder` | 0.8388 | 0.5543 | 0.2387 | 0.0847 | 0.5543 | 0.3756 | 0.4411 | 0.0516 |
-| `routed_state_decoder` | 0.9886 | 0.9277 | 0.8725 | 0.3675 | 0.9267 | 0.8725 | 0.8259 | 0.3571 |
-| `algebraic_oracle` | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 |
+| Model | Length | First | Last | Prefix0 | Prefix1 |
+|---|---:|---:|---:|---:|---:|
+| `root_query_decoder` | 0.8388 | 0.5543 | 0.2387 | 0.5543 | 0.3756 |
+| `routed_state_decoder` | 0.9886 | 0.9277 | 0.8725 | 0.9267 | 0.8725 |
+| `algebraic_oracle` | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 |
 
-这个表说明两件事。
-
-第一，走到目标节点之后，读自然属性明显更容易。
+这个表说明一件很清楚的事：
 
 ```text
-internal mean:
-root   = 0.4411
-routed = 0.8259
-gain   = +0.3849
+走到目标节点之后，
+读自然结构属性明显更容易。
 ```
 
-第二，`residue` 仍然很差。
+逐项看：
 
 ```text
-routed residue = 0.3675
+length:  0.8388 -> 0.9886
+first:   0.5543 -> 0.9277
+last:    0.2387 -> 0.8725
+prefix0: 0.5543 -> 0.9267
+prefix1: 0.3756 -> 0.8725
 ```
 
 也就是说：
 
 ```text
-TreeHeap node state 对 length / first / last / prefix 很友好，
-但对取模 checksum 还不够友好。
+TreeHeap node state 对 length / first / last / prefix 很友好。
 ```
 
 这和预期一致。
-因为 `first`、`last`、`prefix` 是地址/路径读法。
-`residue` 更像一个整段摘要，需要更专门的有限域或 mod kernel。
+因为 `first`、`last`、`prefix` 本质上是地址/路径读法。
+它们直接使用了 TreeHeap 的有序叶子、路径和子树覆盖关系。
 
-## 诊断实验：把 residue 从 64 桶降到 16 桶
+## 旁路诊断：residue 不作为本次 claim
 
-为了确认是不是 residue 太细，我又跑了一个诊断实验。
+实验里还记录了 `residue`。
+这是一个旁路诊断，不是 SPR-034 的主线。
 
-唯一变化是：
+我跑了两个版本：
 
 ```text
+residue_buckets = 64
 residue_buckets = 16
 ```
 
-结果：
-
-| Model | Length | First | Last | Residue | Prefix0 | Prefix1 | Mean | Exact all |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| `root_query_decoder` | 0.8527 | 0.5624 | 0.2303 | 0.1087 | 0.5637 | 0.3675 | 0.4476 | 0.0380 |
-| `routed_state_decoder` | 0.9919 | 0.9355 | 0.9011 | 0.5203 | 0.9367 | 0.8849 | 0.8617 | 0.4755 |
-| `algebraic_oracle` | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 |
-
-这次 residue 从：
+结果显示：
 
 ```text
-0.3675 -> 0.5203
+64 buckets: routed residue = 0.3675
+16 buckets: routed residue = 0.5203
 ```
 
-有提升，但仍然没有解决。
-
-所以结论更清楚了：
+这个结果可以先放着。
 
 ```text
-residue 不是完全没信号，
-但当前 kernel 不擅长稳定学习这种模摘要。
+residue 可能和“线性顺序如何折叠成树”的模周期问题有关，
+但它不决定 SPR-034 是否成立。
+```
+
+换句话说，SPR-034 不是在证明 TreeHeap 的模运算。
+SPR-034 只证明一件更稳的事：
+
+```text
+到达 internal node 后，
+自然子树属性比 arbitrary checksum 更适合作为第一批 readout 目标。
 ```
 
 ## 这证明了什么
@@ -221,7 +232,7 @@ not arbitrary checksum labels.
 状态是：
 
 ```text
-supported / mixed pilot
+supported pilot
 ```
 
 支持的部分：
@@ -236,9 +247,9 @@ routed internal node state
 ```text
 length  接近 0.99
 first   接近 0.93
-last    0.87 到 0.90
+last    0.87
 prefix0 接近 0.93
-prefix1 0.87 到 0.88
+prefix1 0.87
 ```
 
 这说明 TreeHeap 的地址、路径、子结构不是摆设。
@@ -256,11 +267,13 @@ prefix1 0.87 到 0.88
 
 它也没有证明 TreeHeap 已经胜过 Transformer 或 pointer network。
 
+它也没有证明 residue/mod 这条线。
+
 这次证明的只是一个更底层的点：
 
 ```text
 TreeHeap internal node 可以成为一个可读的局部结构对象。
-但要读什么，必须符合 TreeHeap 的代数结构。
+但要读什么，必须符合 TreeHeap 的地址、路径和子结构。
 ```
 
 ## 为什么这对 S1 重要
@@ -291,12 +304,7 @@ kernel 不是一次性看全局，而是在结构上移动、停下、读取。
 
 SPR-035 我建议做三件事。
 
-第一，做 residue-aware kernel。
-
-现在的 `residue` 弱，说明普通 MLP readout 没有自动学好模运算。
-可以给 TreeHeap 增加有限域槽位，或者设计专门的 mod kernel。
-
-第二，加 baseline。
+第一，加 baseline。
 
 需要比较：
 
@@ -308,7 +316,7 @@ small Transformer read baseline
 
 如果这些 baseline 也能同样好，那么 TreeHeap 的优势就不成立。
 
-第三，把 SPR-032 和 SPR-034 接起来。
+第二，把 SPR-032 和 SPR-034 接起来。
 
 这次 `routed_state_decoder` 假设目标节点已经选中。
 下一步应该让：
@@ -316,10 +324,22 @@ small Transformer read baseline
 ```text
 probabilistic route distribution
 ->
-algebraic readout
+natural algebraic readout
 ```
 
 连成一个端到端过程。
+
+第三，另开一条“线性顺序折叠成树”的数学实验。
+
+这里可以再讨论 residue。
+但那应该是另一个 claim：
+
+```text
+一维有序数组 -> TreeHeap
+是否需要模周期 / folding kernel / cyclic address 来解释。
+```
+
+它不应该污染 SPR-034 的自然读出结论。
 
 ## 总结
 
@@ -327,20 +347,20 @@ SPR-034 的一句话结论是：
 
 ```text
 不要先让 internal node 预测任意 checksum。
-先让它读 TreeHeap 自然的代数属性。
+先让它读 TreeHeap 自然的结构属性。
 ```
 
 实验支持这个判断。
 
 `length / first / last / prefix` 已经表现出很强的 routed read 优势。
-`residue / mod` 仍然是开放问题。
+`residue / mod` 只是旁路诊断，后面可以另开数学折叠实验。
 
 所以 S1 现在不是停在“internal node 读不懂”。
 更准确地说是：
 
 ```text
 internal node 能读，
-但 decoder 必须尊重 TreeHeap 的地址、路径和子结构代数。
+但 decoder 必须尊重 TreeHeap 的地址、路径和子结构。
 ```
 
 这就是从 SPR-032 到 SPR-034 的推进。
