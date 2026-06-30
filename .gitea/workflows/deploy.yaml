@@ -17,7 +17,7 @@ jobs:
       - name: Build
         run: |
           rm -rf dist
-          hugo
+          hugo --buildFuture
           echo "Built: $(find dist -name '*.html' | wc -l) pages"
 
       - name: Deploy to ra
