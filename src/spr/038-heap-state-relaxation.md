@@ -1,158 +1,17 @@
 ---
-title: "[SPR-038] 梯度不只改参数：TreeHeap 的状态松弛 proof"
+title: "[SPR-038] 梯度到底改什么：TreeHeap 状态松弛的边界"
 date: 2026-06-30
 weight: 38
 author: nio (Houming818) & Codex Review
-description: "SPR-038 验证 Houming818 的 heap state gradient 假设：梯度不一定只更新 kernel 参数，也可以直接更新 TreeHeap 的 arr[i] 状态，让 heap 沿能量下降方向进入更平衡的结构。"
+description: "SPR-038 修订版：区分参数 TreeHeap、激活 TreeHeap、物理地址、语义地址和 kernel；说明本实验只证明状态松弛，不证明 kernel 参数学习。"
 tags: [SPR, TreeHeap, ARA, Gradient, Energy, Relaxation]
 ---
 
-# 梯度不只改参数：TreeHeap 的状态松弛 proof
+# 梯度到底改什么：TreeHeap 状态松弛的边界
 
-SPR-037 里，我们讨论了“可控流形”。
+这篇是 SPR-038 的修订版。
 
-当时的实验是：
-
-```text
-手动调整 relation_weight / order_weight
-观察 fold 质量是否从乱态变好
-```
-
-这个 proof 通过了。
-
-但是你马上指出了一个更深的问题：
-
-```text
-既然是流形，肯定要考虑梯度信息如何产生。
-不然怎么学习？
-```
-
-然后你提出了一个很关键的想法：
-
-```text
-梯度不一定只是改参数。
-它也可能调整 heap 的平衡性。
-```
-
-这篇 SPR-038 就是直接跑这个 proof。
-
-## 先说结论
-
-这次 proof 支持一个窄 claim：
-
-```text
-TreeHeap 可以存在 heap state gradient。
-```
-
-也就是说：
-
-```text
-不更新 kernel 参数 theta，
-只更新当前 heap state H，
-也可以让 heap 沿能量下降方向进入更低能量状态。
-```
-
-实验结果：
-
-| 指标 | 数值 |
-|---|---:|
-| scalar energy ratio | 2.47e-31 |
-| scalar left delta | +1.0000 |
-| scalar right delta | -1.0000 |
-| mean vector energy ratio | 1.24e-13 |
-| max vector energy ratio | 3.69e-13 |
-| mean centroid error drop | 3.0393 |
-| pass rate | 1.0000 |
-| pilot pass | true |
-
-这个结果说明：
-
-```text
-状态梯度这条机制是成立的。
-```
-
-但它还不说明：
-
-```text
-TreeHeap 已经理解语言
-TreeHeap 已经能翻译
-状态松弛已经能自动学世界模型
-```
-
-这次只是机制 proof。
-
-## Houming818 的假设
-
-这次 proof 的核心假设来自 Houming818：
-
-```text
-梯度信息可能不是简单的参数变更，
-而是一种 heap 平衡性调整。
-```
-
-你给的例子是：
-
-```text
-[2.0, 1.0, 3.0]
-```
-
-如果梯度来了，它不一定是去修改某个外部参数。
-
-它可能直接调整当前 heap：
-
-```text
-[2.0, 1.0, 3.0]
--> [2.0, 1.5, 2.5]
--> [2.0, 1.8, 2.2]
-```
-
-这个过程不是：
-
-```text
-改函数
-```
-
-而是：
-
-```text
-调状态
-```
-
-这很像物理里的系统松弛：
-
-```text
-当前状态能量高，
-于是系统沿能量下降方向移动。
-```
-
-## 两种学习路径
-
-普通神经网络更常见的是参数梯度：
-
-```text
-theta <- theta - eta * grad_theta L
-```
-
-也就是：
-
-```text
-函数参数变了。
-```
-
-TreeHeap 可以有另一条路径：
-
-```text
-H <- H - eta * grad_H E(H)
-```
-
-这里：
-
-```text
-H = 当前 TreeHeap state
-E(H) = 当前 heap 的能量
-```
-
-也就是说：
+原版里有一个说法不够严谨：
 
 ```text
 函数不变。
@@ -161,57 +20,132 @@ kernel 系数不变。
 只有 arr[i] 的状态在移动。
 ```
 
-这就是 heap state relaxation。
+Houming818 指出这里混淆了几层东西。
 
-## 为什么这有意义
+这个批评是对的。
 
-之前我们经常问：
-
-```text
-目标 heap 怎么可导？
-```
-
-但这个思路把问题换了一下：
+TreeHeap 里至少要区分五个对象：
 
 ```text
-目标 heap 不一定要可导。
-当前 heap 的能量函数可导就行。
+Theta  = parameter TreeHeap，也就是模型参数
+H      = activation / memory TreeHeap，也就是当前样本上的状态
+A      = physical address rule，比如 left(i)=2i, right(i)=2i+1
+K_Theta = kernel operator，由参数 Theta 定义的局部卷积算子
+L      = scalar loss / energy，用来产生梯度
 ```
 
-例如我们可以定义：
+类比线性回归：
 
 ```text
-E_balance(H)       左右是否平衡
-E_parent_child(H)  父子是否一致
-E_relation(H, W)   heap 是否贴合关系场
-E_entropy(P)       概率容器是否过早坍缩
+y = w*x + b
 ```
 
-总能量：
+普通机器学习里，`w` 和 `b` 是参数。
+
+放到 TreeHeap 口径里，`w` 和 `b` 可以不是两个孤立标量，而是一个很小的参数堆：
 
 ```text
-E_total(H)
-  = E_balance(H)
-  + E_parent_child(H)
-  + E_relation(H, W)
-  + E_entropy(P)
+Theta = {
+  w,
+  b
+}
 ```
 
-然后做：
+所以“参数就是一个 TreeHeap”是合理的。
+
+更一般地：
 
 ```text
-H <- H - eta * grad_H E_total(H)
+H_next = K_Theta(H, A)
+L = loss(H_next)
 ```
 
-这样，梯度来自当前状态的能量。
+如果训练模型参数，就是：
 
-不是来自一个必须可导的目标树。
+```text
+Theta <- Theta - eta * grad_Theta L
+```
 
-## Proof 1：最小 scalar heap
+如果调整当前 heap 状态，就是：
 
-第一个 proof 就是你给的例子的数学化。
+```text
+H <- H - eta * grad_H L
+```
 
-初始状态：
+这两件事不是一回事。
+
+## 物理地址和语义地址
+
+原文说“地址规则不变”，也需要修正。
+
+严格说，不变的是物理寻址规则：
+
+```text
+left(i)  = 2i
+right(i) = 2i + 1
+```
+
+也就是数组位置和父子索引关系没有变。
+
+但是 `arr[i]` 的向量状态一旦变了，它在语义空间里的位置当然也变了。
+
+所以应该写成：
+
+```text
+物理地址 A 不变。
+语义状态 H[i] 可变。
+语义地址 / 向量位置会随 H[i] 改变。
+```
+
+这点很重要。
+
+否则会误以为 SPR-038 证明了“地址不变还学习了结构”。
+
+它没有。
+
+它只证明：
+
+```text
+在固定物理地址规则下，当前 heap state 可以被一个 scalar energy 推动，向低能量状态移动。
+```
+
+## SPR-038 到底证明了什么
+
+SPR-038 的 claim 是：
+
+```text
+S1-RELAX-C01:
+A differentiable energy over the current TreeHeap state can generate gradients
+that relax arr[i] toward a lower-energy equilibrium while kernel parameters
+and address rules remain fixed.
+```
+
+修订后，这句话要更精确地理解为：
+
+```text
+Theta 不更新。
+K_Theta 不更新。
+物理地址规则 A 不更新。
+当前样本的 heap state H 更新。
+```
+
+也就是：
+
+```text
+这不是参数学习。
+这是状态松弛。
+```
+
+它更像一个物理系统：
+
+```text
+给定能量函数 E(H)，
+当前状态 H 沿着 -grad_H E(H) 移动。
+```
+
+## Proof 1：标量能量只说明 loss 能产生梯度
+
+第一个 toy 是：
 
 ```text
 root  = 2.0
@@ -226,52 +160,36 @@ E = (left - right)^2
   + (root - (left + right) / 2)^2
 ```
 
-第一项要求：
-
-```text
-left 和 right 平衡
-```
-
-第二项要求：
-
-```text
-root 接近左右孩子的平均值
-```
-
-训练时：
-
-```text
-不更新 theta
-只更新 root / left / right
-```
-
-结果：
-
-```text
-initial: [2.0, 1.0, 3.0], energy = 4.0
-final:   [2.0, 2.0, 2.0], energy = 9.86e-31
-```
-
-也就是说：
-
-```text
-left  增加了 1.0
-right 减少了 1.0
-```
-
-这正好对应你说的：
+梯度下降后：
 
 ```text
 [2.0, 1.0, 3.0]
--> [2.0, 1.5, 2.5]
 -> [2.0, 2.0, 2.0]
 ```
 
-## Proof 2：7 节点 vector TreeHeap
+实验结果：
 
-第二个 proof 稍微更像 TreeHeap。
+```text
+initial energy = 4.0
+final energy   = 9.86e-31
+energy ratio   = 2.47e-31
+```
 
-结构是：
+这个 proof 的意义很窄：
+
+```text
+只要有 scalar loss / energy，
+就能对当前 H 求梯度，
+并让 H 沿低能量方向移动。
+```
+
+它不说明 kernel 结构已经学习了。
+
+它也不说明参数 TreeHeap `Theta` 已经被训练。
+
+## Proof 2：7 节点 TreeHeap 状态松弛
+
+第二个 toy 使用 7 节点树：
 
 ```text
         1
@@ -285,207 +203,199 @@ right 减少了 1.0
 
 ```text
 4,5,6,7 是固定叶子向量
-1,2,3 是可更新的 internal heap state
+1,2,3 是可更新 internal heap state
 ```
 
 注意：
 
 ```text
-叶子不动
-kernel 参数不动
-地址规则不动
-只更新 arr[1], arr[2], arr[3]
+更新的是 H[1], H[2], H[3]
+不是更新 Theta
 ```
 
-能量有两部分。
-
-第一部分是父子一致性：
+能量有两部分：
 
 ```text
-arr[parent] 应该接近 mean(left_child, right_child)
+E_consistency:
+  parent 应该接近 children 的局部组合
+
+E_relation:
+  internal node 应该接近固定 relation anchor
 ```
 
-第二部分是关系锚点一致性：
+总能量：
 
 ```text
-arr[node] 应该接近固定 relation anchor
+E_total(H) = E_consistency(H) + E_relation(H)
 ```
 
-这两个东西组成当前 heap 的能量。
+32 次随机初始化结果：
 
-然后只对 `arr[i]` 做梯度下降。
-
-## vector proof 结果
-
-随机初始化 32 次。
-
-结果：
-
-```text
-mean_vector_energy_ratio = 1.24e-13
-max_vector_energy_ratio  = 3.69e-13
-mean_centroid_error_drop = 3.0393
-pass_rate                = 1.0
-```
+| 指标 | 数值 |
+|---|---:|
+| scalar energy ratio | 2.47e-31 |
+| mean vector energy ratio | 1.24e-13 |
+| max vector energy ratio | 3.69e-13 |
+| mean centroid error drop | 3.0393 |
+| pass rate | 1.0000 |
+| pilot pass | true |
 
 这说明：
 
 ```text
-所有 32 次随机初始化都收敛了。
+在这个 toy 能量场里，
+TreeHeap state H 可以稳定收敛。
 ```
 
-其中一次 trace：
+但仍然要强调：
 
 ```text
-energy: 52.88 -> 37.70 -> 27.48 -> 11.88 -> 3.72 -> 0.20 -> 0.0022 -> 7.19e-12
-centroid_error: 3.3872 -> 2.9325 -> 2.5580 -> 1.7572 -> 1.0210 -> 0.2565 -> 0.0278 -> 0.0000016
+这不是 kernel 参数学习。
 ```
 
-这就是很典型的状态松弛曲线。
+## kernel 卷积到底应该是什么
 
-## 这次 claim
+Houming818 给了一个更贴切的例子。
 
-这次 claim 是：
+还是这棵树：
 
 ```text
-S1-RELAX-C01:
-A differentiable energy over the current TreeHeap state can generate gradients
-that relax arr[i] toward a lower-energy equilibrium while kernel parameters
-and address rules remain fixed.
+        1
+      /   \
+     2     3
+    / \   / \
+   4   5 6   7
 ```
 
-状态：
+如果 kernel 是：
 
 ```text
-supported pilot
+[root, left, right] = [1, 1, 1]
 ```
 
-它证明的是：
+对每个内部节点做局部卷积：
 
 ```text
-TreeHeap 不只有参数梯度路径。
-它也可以有状态梯度路径。
+H'[1] = 1*H[1] + 1*H[2] + 1*H[3] = 1 + 2 + 3 = 6
+H'[2] = 1*H[2] + 1*H[4] + 1*H[5] = 2 + 4 + 5 = 11
+H'[3] = 1*H[3] + 1*H[6] + 1*H[7] = 3 + 6 + 7 = 16
+```
+
+叶子暂时保持不变，则得到：
+
+```text
+[6, 11, 16, 4, 5, 6, 7]
+```
+
+这个例子比 SPR-038 更接近 TreeHeap kernel 的核心。
+
+因为 kernel 不是抽象地“调状态”，而是在做：
+
+```text
+观察一个局部 subheap
+计算一个新 state
+把局部结构信息写回当前节点
 ```
 
 也就是：
 
 ```text
-改函数是一种学习。
-调 heap 状态也是一种学习。
+S_i = [H[i], H[left(i)], H[right(i)]]
+H'[i] = K_Theta(S_i)
 ```
 
-## 这没有证明什么
-
-它没有证明：
+如果 kernel 是线性的：
 
 ```text
-翻译
-语言理解
-无监督世界模型
-真实 relation field
-TreeHeap 胜过 Transformer
+H'[i] = theta_root * H[i]
+      + theta_left * H[left(i)]
+      + theta_right * H[right(i)]
 ```
 
-它也没有证明：
+那么 `[1,1,1]` 就是一个最简单的 TreeHeap 卷积核。
+
+## 和 Transformer 的关系
+
+Transformer 里常见的核心相似度是：
 
 ```text
-所有语言目标都能写成漂亮的能量函数。
+score(i,j) = Q_i dot K_j
 ```
 
-所以这次不能夸大。
+它是在 flat token 空间上做全连接关系计算。
 
-它只是证明：
+TreeHeap kernel 可以看成：
 
 ```text
-只要能定义当前 heap 的可导能量，
-梯度就可以直接作用在 heap state 上。
+score / state = K_Theta(root, left, right)
 ```
 
-## 对路线的影响
+也就是在局部子堆上做结构化关系计算。
 
-这个结果很重要。
-
-之前我们大致有：
+所以更合理的类比不是：
 
 ```text
-kernel 参数学习
+TreeHeap 已经替代 Transformer
 ```
 
-现在多了一条：
+而是：
 
 ```text
-heap state relaxation
+Transformer 在 flat all-to-all token 图上学习共现关系。
+TreeHeap 希望在 address/path/subheap 结构上学习局部卷积关系。
 ```
 
-于是 TreeHeap 的学习可以分成：
+如果 `K_Theta` 学到的是类似 `[1,1,1]`、`[0.2,0.5,0.3]`、镜像 kernel、stop/left/right kernel 这样的结构算子，那么 TreeHeap 才真正有自己的归纳偏置。
+
+## 修订后的结论
+
+SPR-038 支持的结论是：
 
 ```text
-1. 学 kernel
-   让算子更会写、读、合并、坍缩
-
-2. 调 H
-   让当前 heap 自己进入低能量结构
+TreeHeap 的当前状态 H 可以在 scalar energy 下做梯度松弛。
 ```
 
-这比普通“把所有东西都塞进参数矩阵”更有 TreeHeap 自己的味道。
-
-更像：
+SPR-038 不支持的结论是：
 
 ```text
-kernel 定义力场
-heap state 在力场里松弛
-probability container 决定何时坍缩
+TreeHeap kernel 参数 Theta 已经能通过梯度学会卷积结构。
 ```
 
-## 下一步
-
-下一步不能只停留在平衡 toy。
-
-应该把三件事接起来：
+所以 SPR-038 的位置应该是：
 
 ```text
-真实或弱真实 relation field
-heap state relaxation
-stop / left / right 概率坍缩
+状态梯度 proof
+不是参数学习 proof
 ```
 
-最小实验可以是：
+下一步 SPR-039 应该转向：
 
 ```text
-输入真实短句
-构造弱 relation field
-初始化一个 noisy TreeHeap
-只用 energy relaxation 调 arr[i]
-再用 read kernel 查询 block
-看 block F1 是否提升
+parameter TreeHeap / kernel Theta learning proof
 ```
 
-如果这个通过，就说明：
+最小实验就是：
 
 ```text
-状态松弛不仅能平衡数值，
-还能帮助真实短句结构变稳定。
+输入 H = [1,2,3,4,5,6,7]
+目标 H' = [6,11,16,4,5,6,7]
+
+模型不知道 kernel = [1,1,1]
+只通过 loss 学 theta_root, theta_left, theta_right
 ```
 
-那时候，TreeHeap 的可控流形就不只是手动调参地图，而更像一个可学习动力系统。
-
-## 一句话总结
-
-SPR-038 的结论是：
+如果训练后得到：
 
 ```text
-梯度不一定只改参数。
-TreeHeap 的 arr[i] 本身也可以被梯度推动，
-沿当前能量函数进入更稳定的结构状态。
+Theta ~= [1,1,1]
 ```
 
-这条路还很早。
-
-但它给 TreeHeap 增加了一个重要可能：
+那才说明：
 
 ```text
-不是只学习函数，
-而是让结构自己松弛。
+TreeHeap kernel 的参数可以通过 loss / gradient 学到局部卷积规则。
 ```
 
-> **ARA**: [heap-state relaxation](https://github.com/houming818/sametime/blob/main/ara/s1-echo/logic/heap_state_relaxation.md) / [claims](https://github.com/houming818/sametime/blob/main/ara/s1-echo/logic/claims.md) / [experiment script](https://github.com/houming818/sametime/blob/main/ara/s1-echo/src/s1_heap_state_relaxation_probe.py) / [evidence](https://github.com/houming818/sametime/tree/main/ara/s1-echo/evidence/s1_heap_state_relaxation_probe)
+这会成为 SPR-039 的核心。
+
+> **ARA**: [heap-state relaxation](https://github.com/houming818/sametime/blob/main/ara/s1-echo/logic/heap_state_relaxation.md) / [claims](https://github.com/houming818/sametime/blob/main/ara/s1-echo/logic/claims.md) / [evidence](https://github.com/houming818/sametime/tree/main/ara/s1-echo/evidence/s1_heap_state_relaxation_probe)
