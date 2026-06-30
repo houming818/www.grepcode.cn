@@ -435,3 +435,5 @@ cyclic / modulo folding kernel
 先自然 readout，再语义 decoder；
 先结构清楚，再研究 modulo。
 ```
+
+> **ARA**: [claims](https://github.com/houming818/sametime/blob/main/ara/s1-echo/logic/claims.md) / [experiments](https://github.com/houming818/sametime/blob/main/ara/s1-echo/logic/experiments.md) / [evidence](https://github.com/houming818/sametime/tree/main/ara/s1-echo/evidence/)

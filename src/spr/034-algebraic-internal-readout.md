@@ -364,3 +364,5 @@ internal node 能读，
 ```
 
 这就是从 SPR-032 到 SPR-034 的推进。
+
+> **ARA**: [claims](https://github.com/houming818/sametime/blob/main/ara/s1-echo/logic/claims.md) / [experiments](https://github.com/houming818/sametime/blob/main/ara/s1-echo/logic/experiments.md) / [evidence](https://github.com/houming818/sametime/tree/main/ara/s1-echo/evidence/)
