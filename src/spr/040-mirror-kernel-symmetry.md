@@ -33,6 +33,15 @@ mirror / chiral flip / 左右镜像翻转
 
 这不是语言理解 proof，也不是 WMT proof。它是 TreeHeap kernel 工具箱里的一个基础 proof。
 
+这次收束以后，SPR-040 也不准备升级成旋转、3D fold 或平面投影 proof。我们先只托付一个最小事实：
+
+```text
+mirror 会交换 left/right 的结构方向；
+loss 可以把这个 mirrored slot assignment 学回参数里。
+```
+
+这已经够重要，因为它说明 kernel 的 `root/left/right` 不是三个匿名标量位置，而是树上的局部结构方向。
+
 ## 为什么要证明 mirror
 
 SPR-039 证明了：
@@ -316,6 +325,16 @@ Theta ~= P_lr theta = [0.5, -0.75, 1.25]
 
 这一步说明的不只是“公式手写成立”，还说明这个 mirrored kernel 可以从数据里被学回。
 
+更具体地说，这一步要验证：
+
+```text
+learned_root  ~= original_root
+learned_left  ~= original_right
+learned_right ~= original_left
+```
+
+也就是说，loss 学到的不是一个抽象口号，而是 left/right 槽位在 mirror 后的对应关系。
+
 ## 实验结果
 
 脚本：
@@ -346,6 +365,8 @@ io.grepcode.cn
 | unflipped-kernel mean error | `6.4372` |
 | learned mirrored theta | `[0.5000000000000002, -0.7499999999999998, 1.2499999999999996]` |
 | theta-mirror L2 error | `5.44e-16` |
+| left slot learns original right error | `2.22e-16` |
+| right slot learns original left error | `4.44e-16` |
 | learned test MSE | `1.01e-30` |
 | learned OOD MSE | `9.76e-30` |
 
@@ -355,6 +376,7 @@ io.grepcode.cn
 用 mirrored kernel 时，误差是机器精度。
 不用 mirrored kernel 时，误差明显变大。
 从 mirrored data 训练时，参数能学回 [root,right,left]。
+left/right 槽位 assignment 的学习误差也是机器精度。
 ```
 
 所以：
@@ -396,6 +418,28 @@ mirror
 
 这些都可以成为后续 encoder/decoder 的基本工具。
 
+但这里要避免过度解释。
+
+SPR-040 现在最稳的结论不是：
+
+```text
+TreeHeap 已经证明了完整 3D fold。
+TreeHeap 已经学会连续旋转角。
+TreeHeap 已经解决 latent plane 投影。
+```
+
+而是：
+
+```text
+TreeHeap kernel 的槽位具有结构方向意义；
+mirror 会改变这些方向的对应关系；
+这个方向对应关系可以被 loss 学回。
+```
+
+这是一块很小但很硬的积木。
+
+它把 TreeHeap kernel 从“标量覆盖”推进到“结构方向上的局部卷积”，但还没有推进到完整的空间折叠理论。
+
 ## 还没有证明什么
 
 这次没有证明：
@@ -406,6 +450,9 @@ WMT 翻译
 真实语义 mirror
 任意群等变
 TreeHeap 胜过所有 flat model
+连续旋转角学习
+完整 3D fold
+latent plane 投影权重学习
 ```
 
 它只证明：
@@ -417,14 +464,14 @@ TreeHeap 的 root/left/right 局部卷积，
 
 ## 下一步
 
-接下来可以沿着几个方向扩展：
+接下来可以沿着几个方向扩展，但不需要急着开新编号去做旋转。更合理的是先让后学工程师评判 SPR-040 这个最小 claim 是否站稳：
 
 ```text
-1. scalar kernel -> vector / matrix kernel
-2. depth-1 kernel -> recursive depth-k kernel
-3. mirror -> path permutation / subtree move / slot transform
-4. single kernel -> multi-kernel bank
-5. toy heap -> short real corpus TreeHeap echo
+1. 当前 mirror assignment proof 是否表述清楚
+2. 是否需要补一个 flat baseline，证明无结构槽位时不能自然解释 mirror
+3. 是否要把 scalar slot 扩展到 vector slot
+4. 是否要把 depth-1 root/left/right 扩展到 recursive subheap
+5. 是否要接回 short real corpus TreeHeap echo
 ```
 
 如果这些继续成立，TreeHeap 的 kernel 就不是一组临时写出来的函数，而是一个可以逐步扩展的结构化代数工具箱。
