@@ -42,6 +42,50 @@ loss 可以把这个 mirrored slot assignment 学回参数里。
 
 这已经够重要，因为它说明 kernel 的 `root/left/right` 不是三个匿名标量位置，而是树上的局部结构方向。
 
+## DeepSeek 回测后的收束
+
+DeepSeek / Runner 做了 ARA 可靠性审阅，把 SPR-040 评为：
+
+```text
+中等可靠。
+```
+
+这个评价是合理的。
+
+因为 SPR-040 的 evidence 很清楚：
+
+```text
+flipped-kernel error 接近机器精度。
+unflipped-kernel error 明显变大。
+loss 能学回 [root,right,left]。
+```
+
+但它的范围也很窄：
+
+```text
+这是结构赋值级别的 proof。
+不是旋转 proof。
+不是 3D fold proof。
+也不是“模型自己学会何时翻转整棵树”的 proof。
+```
+
+换句话说，现在证明的是：
+
+```text
+给定 mirror 这种结构变换后，
+kernel 的 left/right 槽位应该怎样跟着变。
+```
+
+还没有证明：
+
+```text
+模型自己发现某个句子需要 mirror。
+模型自己决定 mirror 发生在哪个 subheap。
+模型自己决定递归 mirror 到多深。
+```
+
+这个边界很重要。它让 SPR-040 更专业，也更不容易过度解释。
+
 ## 为什么要证明 mirror
 
 SPR-039 证明了：
@@ -298,6 +342,16 @@ max_abs(left - right)
 
 如果这个误差接近 0，就说明代数等式成立。
 
+这一步是数学/代数检查。它不是学习结果。
+
+也就是说，`P_m` 是我们定义好的 mirror 地址置换，`P_lr` 是我们定义好的 kernel 槽位置换。这里验证的是：
+
+```text
+这个定义是否自洽。
+```
+
+它不证明模型自己学会了翻树。
+
 ### Proof B：归纳学习检查
 
 这部分训练。
@@ -334,6 +388,16 @@ learned_right ~= original_left
 ```
 
 也就是说，loss 学到的不是一个抽象口号，而是 left/right 槽位在 mirror 后的对应关系。
+
+这一步才是学习结果。
+
+但学习到的东西也要说准确：
+
+```text
+学到的是 mirrored kernel slot assignment。
+不是学到 mirror 触发规则。
+不是学到递归翻转策略。
+```
 
 ## 实验结果
 
@@ -440,6 +504,97 @@ mirror 会改变这些方向的对应关系；
 
 它把 TreeHeap kernel 从“标量覆盖”推进到“结构方向上的局部卷积”，但还没有推进到完整的空间折叠理论。
 
+如果用一句更数学化的话说：
+
+```text
+root/left/right 是 TreeHeap 局部坐标系。
+mirror 是这个局部坐标系上的置换。
+loss 可以学习置换后的参数赋值。
+```
+
+但还没有到：
+
+```text
+loss 可以学习何时选择这个置换。
+```
+
+这个“何时选择”需要另一层学习树。
+
+## 后续数学故事：多参森林
+
+Houming818 提出的更合理方向是：
+
+```text
+不要让一个大参数树混合学习所有结构能力。
+应该用多参森林。
+```
+
+也就是：
+
+```text
+Theta_write   负责写入
+Theta_read    负责读取
+Theta_compose 负责组合
+Theta_mirror  负责 mirror
+Theta_time    负责时间状语前置
+```
+
+每棵树有自己的参数和梯度。
+
+这样做的原因是，mirror 的学习信号不应该被 read/write/semantic 的大 loss 混在一起冲掉。
+
+对于 mirror，可以拆成两棵相关的树：
+
+```text
+Theta_mirror:
+  怎么翻，也就是执行 mirror 算子。
+
+Phi_mirror:
+  什么时候翻，也就是触发规则。
+```
+
+当前 SPR-040 只碰到了第一件事的一小部分：
+
+```text
+mirror 后 kernel 槽位如何赋值。
+```
+
+还没有学习：
+
+```text
+Phi_mirror(H, context) -> 是否触发 mirror
+```
+
+以翻译为例：
+
+```text
+I arrived home at 7 o'clock.
+我七点到家了。
+```
+
+这里更像是一个局部结构重排：
+
+```text
+时间短语从英文尾部，移动到中文谓词前。
+```
+
+这不是全树 mirror，而是某种局部 reorder kernel。未来应该有一棵专门的参数树学习：
+
+```text
+Theta_time:
+  怎么把时间短语前置。
+
+Phi_time:
+  什么时候触发时间短语前置。
+```
+
+所以 SPR-040 的位置很清楚：
+
+```text
+它不是终点。
+它是在证明 TreeHeap kernel 的结构方向是真的。
+```
+
 ## 还没有证明什么
 
 这次没有证明：
@@ -453,6 +608,8 @@ TreeHeap 胜过所有 flat model
 连续旋转角学习
 完整 3D fold
 latent plane 投影权重学习
+learned mirror trigger
+learned recursive mirror depth
 ```
 
 它只证明：
@@ -472,6 +629,7 @@ TreeHeap 的 root/left/right 局部卷积，
 3. 是否要把 scalar slot 扩展到 vector slot
 4. 是否要把 depth-1 root/left/right 扩展到 recursive subheap
 5. 是否要接回 short real corpus TreeHeap echo
+6. 是否要设计 multi-parameter forest：单独训练 mirror/time/read/write 参数树
 ```
 
 如果这些继续成立，TreeHeap 的 kernel 就不是一组临时写出来的函数，而是一个可以逐步扩展的结构化代数工具箱。
