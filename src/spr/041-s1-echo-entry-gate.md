@@ -47,6 +47,133 @@ mirror -> inverse mirror -> echo state -> echo decoder
 
 这个差别非常关键。
 
+## 再收束：结构基元只有 mirror
+
+这里还要再修正一次说法。
+
+不要把 TreeHeap 结构学习理解成：
+
+```text
+很多种 gate。
+```
+
+比如：
+
+```text
+boundary gate
+head gate
+role gate
+operation gate
+...
+```
+
+这些名字容易把问题说散。
+
+Houming818 的判断更干净：
+
+```text
+结构调整的基元可以先只保留一个：
+
+mirror / flip
+```
+
+复杂性不来自很多操作类型，而来自三个参数：
+
+```text
+1. 在哪个 node 上 flip
+2. flip 到多深
+3. 是否递归继续 flip
+```
+
+所以更基本的结构算子应该写成：
+
+```text
+Flip(node, depth)
+```
+
+含义是：
+
+```text
+从某个 TreeHeap node 开始，
+在给定 depth 范围内做 left/right mirror。
+```
+
+例如：
+
+```text
+Flip(root, 1)
+```
+
+只交换 root 的左右孩子。
+
+```text
+Flip(root, 2)
+```
+
+交换 root 的左右孩子，并继续影响下一层。
+
+```text
+Flip(NP_node, 1)
+```
+
+只在某个局部短语 subheap 上做有限深度翻转。
+
+这能解释为什么真实语言里经常不是整句翻转，而是局部结构翻转。
+
+比如：
+
+```text
+the windows of that house are all open
+```
+
+中文更自然是：
+
+```text
+那所房子的所有窗户都打开了
+```
+
+这里不是整句 mirror，而是局部 subheap 的顺序调整：
+
+```text
+windows of that house
+```
+
+更接近：
+
+```text
+that house 的 windows
+```
+
+所以后续真正要学的不是一堆 gate 名字，而是：
+
+```text
+P(node, depth | H, context)
+```
+
+也就是：
+
+```text
+在哪个 node 上翻？
+翻多深？
+```
+
+SPR-041 当前证明的是最小情况：
+
+```text
+node = root
+depth = full over 4 leaves
+```
+
+换句话说：
+
+```text
+给定整个 4-leaf TreeHeap 需要 flip，
+模型能不能学会 inverse flip，
+把 observed mirror state 扭回 canonical echo state。
+```
+
+这比“很多 gate”更接近 TreeHeap 的数学味道。
+
 ## 为什么上一版是错的
 
 上一版的模型可以选择不同 read kernel：
@@ -156,10 +283,11 @@ E[token]:
   token 写入 TreeHeap leaf 的向量。
 
 inverse_route_logits:
-  结构逆操作的路由 kernel。
+  当前 toy 中的逆向 flip 路由 kernel。
 
 inverse_gate:
-  当前输入结构选择哪个 inverse operator。
+  当前 toy 中选择 identity inverse 还是 mirror inverse。
+  更一般地说，它以后应当学习 P(node, depth | H, context)。
 
 echo_decoder:
   只负责从 canonical state 读 token。
@@ -249,6 +377,22 @@ decoder 可以补偿。
 ```
 
 这才是在证明“mirror 被扭回 echo”。
+
+从 `Flip(node, depth)` 的角度看，这里的 proof 是：
+
+```text
+Flip(root, full_depth)^-1(observed)
+≈ canonical
+```
+
+其中 `full_depth` 只覆盖当前 4 个 leaf 的 toy TreeHeap。
+
+所以这不是完整的语言结构学习，只是证明：
+
+```text
+给定 flip 范围时，
+inverse flip 可以被梯度学成一个 canonicalization operator。
+```
 
 ## 实验结果
 
@@ -406,17 +550,27 @@ transform flag 是给定的。
 下一步应该是：
 
 ```text
-learned trigger + inverse canonicalization
+learned node/depth + inverse canonicalization
 ```
 
 也就是：
 
 ```text
 tokens/context
--> trigger/gate
--> inverse structural operator
+-> P(node, depth)
+-> inverse Flip(node, depth)
 -> canonical state
 -> shared decoder
+```
+
+如果这个方向成立，原来那些听起来很多的 gate 名字都可以先收束掉。
+
+我们只需要先证明：
+
+```text
+一个 mirror/flip 基元，
+通过 node 和 depth 的递归选择，
+能覆盖足够多的结构重排。
 ```
 
 再往后才是：
