@@ -454,3 +454,199 @@ TreeHeap S1-echo 在句级 hash / 句级结构 state 层面，
 ```
 
 > ARA: [S1 sentence flip echo](https://github.com/houming818/sametime/blob/main/ara/s1-echo/logic/s1_sentence_flip_echo.md) / [evidence](https://github.com/houming818/sametime/tree/main/ara/s1-echo/evidence/s1_sentence_flip_echo_probe) / [claims](https://github.com/houming818/sametime/blob/main/ara/s1-echo/logic/claims.md)
+
+## 2026-07-03 修正：从整树 flip 到局部 subheap flip
+
+Houming818 对上面的整树实验提出了一个很重要的批评：
+
+```text
+整句 Flip(root, full_depth) 太理想化。
+真实语言迁移通常不是整句反转，而是某个局部 subheap 被调整。
+```
+
+这个批评是对的。
+所以上面的 `S1-ECHO-SENT-C01` 现在应该读成：
+
+```text
+整树 same-algebra flip smoke proof
+```
+
+它证明 TreeHeap 自己的 `Flip` 算子可以制造合法扰动，也证明 learned inverse route 可以恢复大部分真实短句。
+但它还不够像真实语言。
+
+因此我补了一个更接近实际的实验：
+
+```text
+S1-ECHO-LOCAL-FLIP-C01
+```
+
+### 新实验怎么做
+
+这次不再翻整棵树。
+对每个真实英文短句，先选一个局部连续 span：
+
+```text
+sentence = [w0, w1, ..., wk, ..., wn]
+span = [wi, ..., wj]
+```
+
+然后只对这个 span 建一个局部 TreeHeap：
+
+```text
+H_span = WriteLeaves(span)
+```
+
+再用 TreeHeap 自己的局部 flip：
+
+```text
+H_span_observed = Flip(span_root, full_depth)
+```
+
+句子的其他部分保持不动：
+
+```text
+left_context + DecodeLeaves(H_span_observed) + right_context
+```
+
+最后训练一个 inverse route，把局部 span 扭回 canonical echo state，再用同一个固定 codebook decoder 读回 token。
+
+注意，这里仍然不是翻译。
+它只问一个更小、更清楚的问题：
+
+```text
+如果真实句子里某个局部 subheap 被 TreeHeap 同群算子 flip 过，
+模型能不能用梯度学会把这个局部结构恢复？
+```
+
+### 数据和结果
+
+运行位置：
+
+```text
+io.grepcode.cn
+```
+
+证据目录：
+
+```text
+ara/s1-echo/evidence/s1_local_flip_echo_probe/
+```
+
+数据设置：
+
+```text
+WMT17 English side
+samples = 20,000
+train/test/OOD = 16,000 / 2,000 / 2,000
+sentence length = 8..32
+vocab = 8192
+local span length = 2..8
+```
+
+结果：
+
+```text
+hard_local_treeheap_closure_exact = 1.0000
+learned_ood_exact                 = 1.0000
+learned_ood_token_acc             = 1.0000
+learned_ood_edit_similarity       = 1.0000
+
+no_inverse_ood_exact              = 0.0010
+no_inverse_ood_token_acc          = 0.7698
+no_inverse_ood_edit_similarity    = 0.7376
+```
+
+按 span 长度拆开看：
+
+| span length | OOD exact | OOD token acc |
+|---:|---:|---:|
+| 2 | 1.0000 | 1.0000 |
+| 3 | 1.0000 | 1.0000 |
+| 4 | 1.0000 | 1.0000 |
+| 5 | 1.0000 | 1.0000 |
+| 6 | 1.0000 | 1.0000 |
+| 7 | 1.0000 | 1.0000 |
+| 8 | 1.0000 | 1.0000 |
+
+按 span 在句子里的位置拆开看：
+
+| span position | OOD exact | OOD token acc |
+|---|---:|---:|
+| front | 1.0000 | 1.0000 |
+| middle | 1.0000 | 1.0000 |
+| back | 1.0000 | 1.0000 |
+
+这个结果比整树 flip 更干净。
+因为 no-inverse baseline 已经能保留未翻转的上下文 token，所以它的 token acc 还有 `0.7698`。
+但它几乎不能完整还原句子：
+
+```text
+no_inverse_ood_exact = 0.0010
+```
+
+这说明真正缺的不是 token 读取能力，而是局部结构 inverse。
+
+### 这证明了什么
+
+这次 proof 支持一个更准确的 claim：
+
+```text
+TreeHeap 的局部 subheap flip 可以作为同群结构扰动；
+给定 span start/span length 时，
+一个可学习 inverse route 可以通过梯度恢复 canonical echo state。
+```
+
+换成更直白的话：
+
+```text
+TreeHeap 不只是整句反转玩具。
+它可以在真实句子中的局部片段上做结构扰动和结构恢复。
+```
+
+这对后续 S1 有意义，因为真实语言里的调整通常就是局部的：
+
+```text
+介词短语移动
+时间短语前置
+定语范围调整
+局部词序变化
+```
+
+### 还没有证明什么
+
+这次实验仍然没有证明：
+
+```text
+模型能自动发现哪个 subheap 需要 flip
+模型能自动决定 flip depth
+模型知道这个 flip 对应真实翻译规则
+模型理解语义
+模型能直接提升 WMT 翻译质量
+```
+
+因为这次实验里：
+
+```text
+span start/span length 是给定的 metadata
+```
+
+所以真正的下一步不是继续证明“能不能反翻转”。
+这个已经过了。
+
+下一步应该是：
+
+```text
+学习 P(node, depth | H, context)
+```
+
+也就是让模型自己判断：
+
+```text
+该动哪一个局部 subheap？
+动到多深？
+什么时候不动？
+```
+
+这才更接近 S1 走向 S2 的入口。
+
+> ARA update: [local flip logic](https://github.com/houming818/sametime/blob/main/ara/s1-echo/logic/s1_local_flip_echo.md) / [local flip evidence](https://github.com/houming818/sametime/tree/main/ara/s1-echo/evidence/s1_local_flip_echo_probe)
