@@ -266,6 +266,345 @@ Echo 指标：
 | TreeHeap | 1.0000 | 0.9981 | 1.0000 | 0.9610 |
 | BoW | 1.0000 | 0.9985 | 1.0000 | 0.9690 |
 
+## 指标体检报告：这些数字到底怎么看
+
+这次的指标有点多。
+如果只看一两个数字，很容易误判。
+
+可以把它当成体检报告来看：
+
+```text
+不是每个指标都是越大越好。
+有些是越小越好。
+有些要看 TreeHeap 和 BoW 的差距。
+有些只说明任务成立，不说明 TreeHeap 有结构优势。
+```
+
+### positive distance
+
+含义：
+
+```text
+d(H_en, H_zh)
+```
+
+也就是一对真实平行句的 canonical state 距离。
+
+健康趋势：
+
+```text
+越小越好。
+```
+
+因为英文和中文如果表达同一个意义，它们的中间态应该更近。
+
+这次结果：
+
+```text
+TreeHeap = 0.3458
+BoW      = 0.4028
+```
+
+读数：
+
+```text
+TreeHeap 更好。
+```
+
+但这个指标不能单独看。
+如果所有句子都坍缩到同一个点，positive distance 也会很小。
+所以必须同时看 negative distance 和 retrieval。
+
+### negative distance
+
+含义：
+
+```text
+d(H_en, H_zh_wrong)
+```
+
+也就是英文句子和错配中文句子的距离。
+
+健康趋势：
+
+```text
+越大越好。
+```
+
+不同意义的句子应该离远一点。
+
+这次结果：
+
+```text
+TreeHeap = 0.9929
+BoW      = 0.9968
+```
+
+读数：
+
+```text
+两者都健康，BoW 略高。
+```
+
+但 negative distance 高不一定代表整体更好，还要看 positive 是否也低。
+
+### margin
+
+含义：
+
+```text
+margin = negative_distance - positive_distance
+```
+
+这是最像“血压差”的指标。
+它衡量模型能不能把：
+
+```text
+真平行句拉近
+错配句推远
+```
+
+健康趋势：
+
+```text
+越大越好。
+```
+
+这次结果：
+
+```text
+Untrained TreeHeap = 0.0030
+BoW                = 0.5939
+TreeHeap           = 0.6472
+```
+
+读数：
+
+```text
+训练确实产生了强信号。
+TreeHeap 比 BoW 高 0.0533。
+```
+
+这个是 TreeHeap 本次最主要的正向证据。
+
+但注意：
+
+```text
+0.6472 vs 0.5939
+```
+
+不是碾压。
+只能叫 small advantage。
+
+### retrieval@1
+
+含义：
+
+```text
+给一个英文 H_en，
+在 2000 个中文候选 H_zh 里找最近的，
+最近那个是不是正确平行句？
+```
+
+健康趋势：
+
+```text
+越大越好。
+```
+
+这次结果：
+
+```text
+random   = 0.0005
+BoW      = 0.6285
+TreeHeap = 0.6300
+```
+
+读数：
+
+```text
+任务成立。
+TreeHeap 和 BoW 几乎持平。
+```
+
+这也是 DS 说“弱”的原因。
+如果只看 retrieval@1，TreeHeap 不能说有结构性优势。
+
+### retrieval@5
+
+含义：
+
+```text
+正确中文句是否在最近的前 5 个候选里？
+```
+
+健康趋势：
+
+```text
+越大越好。
+```
+
+这次结果：
+
+```text
+BoW      = 0.8085
+TreeHeap = 0.8195
+```
+
+读数：
+
+```text
+TreeHeap 略好。
+```
+
+但还是小优势。
+
+### entropy
+
+entropy 就是熵。
+
+这里它衡量的是：
+
+```text
+模型在 2000 个中文候选里选择匹配对象时，
+分布有多不确定。
+```
+
+如果分布很平：
+
+```text
+每个候选都差不多像
+```
+
+熵就高。
+
+如果分布更尖：
+
+```text
+少数候选明显更像
+```
+
+熵就低。
+
+健康趋势：
+
+```text
+在不坍缩的前提下，越小越好。
+```
+
+为什么要加“在不坍缩的前提下”？
+
+因为如果模型胡乱把所有概率压到一个错误候选，熵也会低。
+所以 entropy 必须和 retrieval、margin 一起看。
+
+这次结果：
+
+```text
+Untrained TreeHeap = 6.9731
+BoW                = 4.3442
+TreeHeap           = 4.0443
+```
+
+读数：
+
+```text
+TreeHeap 的匹配分布更尖锐。
+这是正向信号。
+```
+
+但它不是单独的胜利指标。
+如果 retrieval 没提升，低熵可能只是更自信地错。
+
+### echo token
+
+含义：
+
+```text
+canonical/leaf state 能不能把原句 token 读回来？
+```
+
+健康趋势：
+
+```text
+越大越好。
+```
+
+这次结果：
+
+```text
+TreeHeap EN/ZH = 1.0000 / 0.9981
+BoW EN/ZH      = 1.0000 / 0.9985
+```
+
+读数：
+
+```text
+echo 基本没崩。
+但这不是 TreeHeap 优势。
+```
+
+因为 BoW 也能 echo 得很好。
+
+### 体检总评
+
+如果把这些指标合在一起：
+
+| 指标 | 健康趋势 | TreeHeap 本次读数 | 结论 |
+|---|---|---:|---|
+| positive distance | 越小越好 | 0.3458 | 好于 BoW |
+| negative distance | 越大越好 | 0.9929 | 健康，略低于 BoW |
+| margin | 越大越好 | 0.6472 | 好于 BoW，主要正证据 |
+| retrieval@1 | 越大越好 | 0.6300 | 与 BoW 几乎持平 |
+| retrieval@5 | 越大越好 | 0.8195 | 略好于 BoW |
+| entropy | 不坍缩前提下越小越好 | 4.0443 | 好于 BoW |
+| echo token | 越大越好 | 1.0000 / 0.9981 | 健康，但 BoW 也健康 |
+
+所以结论不能写成：
+
+```text
+TreeHeap 已经证明 canonicalization 有结构性优势。
+```
+
+更准确是：
+
+```text
+WMT canonical echo 任务成立。
+TreeHeap 有 signal。
+TreeHeap 在 margin 和 entropy 上优于 BoW。
+但 retrieval@1 几乎持平，所以只能叫 weak positive / small advantage。
+```
+
+DS 的审计意见是合理的。
+
+### 如果“最佳结果就是持平”，怎么办
+
+有一种可能：
+
+```text
+在当前数据切分和当前模型容量下，
+BoW 已经吃掉了大部分可用信号。
+```
+
+这不奇怪。
+WMT 平行语料里，主题词、数字、专名、标点和领域词很强。
+BoW 不懂结构，但它能抓这些共现线索。
+
+所以如果 retrieval@1 长期持平，我们需要换测试方法，而不是硬说 TreeHeap 赢了。
+
+下一轮应该增加这些测试：
+
+| 测试 | 目的 |
+|---|---|
+| 长句 bucket | 看 TreeHeap 是否在长句、结构更复杂时超过 BoW |
+| 词袋干扰 | 打乱词序但保留词袋，检查 BoW 是否被保留优势 |
+| 低频词过滤 | 降低专名/数字带来的捷径 |
+| 结构重排对 | 测试局部顺序变化时 TreeHeap 是否更稳 |
+| 更大 retrieval pool | 从 2000 扩到 10k/50k，看优势是否保留 |
+| small Transformer baseline | 判断 TreeHeap 是否只是打赢弱 baseline |
+| root-only echo 限制 | 防止 leaf memory 偷偷承担全部回读任务 |
+
+这才是后续能真正验证 TreeHeap 结构性的方向。
+
 先看最重要的部分：
 
 ```text
