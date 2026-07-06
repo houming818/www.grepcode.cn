@@ -264,6 +264,375 @@ query 和 left subheap 的状态更匹配，
 
 如果 `arr[i]` 表示得差，kernel 就会迷路。
 
+## 这里必须停一下：H、Q、Theta 到底是什么
+
+上面的二叉树查找只是工程近似。
+
+如果我们把它上升到 TreeHeap 理论层，不能只说：
+
+```text
+有个 kernel，输出 left/right/stop。
+```
+
+这样太像普通神经网络包装出来的说法。
+
+必须把三个对象说清楚：
+
+```text
+H      = 当前样本的 TreeHeap state
+Q      = 当前输入问题 / 读取意图 / 求解变量
+Theta  = 可学习的参数 TreeHeap
+```
+
+然后模型做的事情应该是：
+
+```text
+Route_Theta(H, Q) -> ProbabilityBucket(stop, left, right)
+```
+
+也就是说，它不是先天直接给一个硬答案。
+
+它先给一个概率桶：
+
+```text
+stop  = 0.05
+left  = 0.10
+right = 0.85
+```
+
+如果需要硬执行，就坍缩成：
+
+```text
+right
+```
+
+如果还不想坍缩，就把这个概率桶传给下一层。
+
+这才更接近我们一直说的：
+
+```text
+概率容器
+延迟坍缩
+结构搜索
+```
+
+### H：当前句子的全程状态
+
+假设输入句子是：
+
+```text
+I like small cats
+```
+
+写入 TreeHeap 后，得到一个 `H`：
+
+```text
+H.arr[4] = state("I")
+H.arr[5] = state("like")
+H.arr[6] = state("small")
+H.arr[7] = state("cats")
+
+H.arr[2] = compose(H.arr[4], H.arr[5])
+H.arr[3] = compose(H.arr[6], H.arr[7])
+H.arr[1] = compose(H.arr[2], H.arr[3])
+```
+
+这里的 `H` 不是参数。
+
+它更像一次前向计算里的运行时内存。
+
+同一句话每次输入，都会生成自己的 `H`。
+
+不同句子有不同的 `H`。
+
+所以：
+
+```text
+H = data state
+```
+
+不是：
+
+```text
+H = learned parameter
+```
+
+### Q：这次想解决的问题
+
+`Q` 不是整棵树。
+
+`Q` 是“我现在要问什么”。
+
+在 echo 任务里，`Q` 可以很简单：
+
+```text
+我要读回第 k 个 token。
+```
+
+或者：
+
+```text
+我要找 token cats。
+```
+
+在翻译任务里，`Q` 会复杂很多，可能是：
+
+```text
+我要生成中文第 t 个位置；
+我要读英文里和当前中文位置最相关的 subheap；
+我要判断某个时间状语是否应该前置。
+```
+
+所以：
+
+```text
+Q = query / task intent
+```
+
+它决定这次 route 的目标。
+
+同一个 `H`，不同的 `Q`，应该得到不同的概率桶。
+
+比如同一句话：
+
+```text
+H = TreeHeap("I like small cats")
+```
+
+如果：
+
+```text
+Q = read("I")
+```
+
+路线应该偏 left-left。
+
+如果：
+
+```text
+Q = read("cats")
+```
+
+路线应该偏 right-right。
+
+### Theta：参数也应该是 TreeHeap
+
+这里是最容易讲糊的地方。
+
+如果我们写：
+
+```text
+score = MLP([Q, H.arr[i], H.arr[2i], H.arr[2i+1]])
+```
+
+这当然能跑。
+
+但它不一定是 TreeHeap 的理论形态。
+
+更严格地说，`Theta` 应该也是一个参数 TreeHeap。
+
+比如 route kernel 可以有自己的参数堆：
+
+```text
+Theta_route.arr[1] = root slot parameter
+Theta_route.arr[2] = left slot parameter
+Theta_route.arr[3] = right slot parameter
+Theta_route.arr[4...] = deeper/local pattern parameters
+```
+
+它不是一句话的运行时状态。
+
+它是模型长期学习出来的规则。
+
+类比线性回归：
+
+```text
+y = w x + b
+```
+
+这里：
+
+```text
+w, b = 参数
+x    = 输入
+y    = 输出
+```
+
+放到 TreeHeap 里，就是：
+
+```text
+H      = 输入句子形成的 TreeHeap state
+Theta  = 模型学到的参数 TreeHeap
+Q      = 当前求解意图
+P      = 输出概率桶
+```
+
+所以更像：
+
+```text
+P = Route(H, Q; Theta)
+```
+
+而不是：
+
+```text
+P = Route(H, Q)
+```
+
+### Theta 怎么参与当前 node 的计算
+
+在某个 node `i`，我们有当前局部数据：
+
+```text
+local_H(i) = [H.arr[i], H.arr[2i], H.arr[2i+1]]
+```
+
+参数 TreeHeap 也提供一个局部算子：
+
+```text
+local_Theta = [Theta.arr[root], Theta.arr[left], Theta.arr[right], ...]
+```
+
+一个最小形式可以写成：
+
+```text
+z_stop  = f_stop(Q, H.arr[i],     local_Theta)
+z_left  = f_left(Q, H.arr[2i],    local_Theta)
+z_right = f_right(Q, H.arr[2i+1], local_Theta)
+```
+
+然后：
+
+```text
+P(stop, left, right)
+  = softmax([z_stop, z_left, z_right])
+```
+
+这里的 `f_stop / f_left / f_right` 可以先用 MLP 近似。
+
+但理论上它应该逐步替换成 TreeHeap kernel：
+
+```text
+root slot 怎么比较
+left slot 怎么比较
+right slot 怎么比较
+路径前缀怎么参与
+subheap compose 怎么参与
+mirror / fold 等算子怎么参与
+```
+
+这就是当前理论还没完全闭合的地方。
+
+### Theta 怎么训练
+
+训练过程和普通机器学习一样，需要 loss。
+
+在 echo route 任务里，我们知道正确动作。
+
+比如：
+
+```text
+当前 node = arr[1]
+query = cats
+正确动作 = right
+```
+
+模型输出：
+
+```text
+P(stop)=0.05
+P(left)=0.30
+P(right)=0.65
+```
+
+那么 loss 可以用交叉熵：
+
+```text
+Loss = -log P(right)
+```
+
+如果模型把 right 概率调高，loss 下降。
+
+梯度下降更新的是：
+
+```text
+Theta_route
+```
+
+也就是参数 TreeHeap。
+
+不是直接把这句话的 `H` 当作长期参数。
+
+更完整一点：
+
+```text
+for each training sample:
+    H = Encode(sentence)
+    Q = BuildQuery(task)
+
+    for each route step:
+        P = Route_Theta(H, Q, node=i)
+        Loss += CE(P, correct_action)
+
+    update Theta by gradient descent
+```
+
+如果 encoder 也是可学习的，那么还会更新：
+
+```text
+Theta_encode
+Theta_compose
+Theta_route
+Theta_read
+```
+
+但这几个最好分开训练或分阶段训练。
+
+不然梯度会混在一起，最后我们不知道到底是谁学会了东西。
+
+### 当前 046 实验实际做到了哪一步
+
+必须诚实说，当前实验没有完全做到上面的理论形态。
+
+当前 dense content-aware proof 做到的是：
+
+```text
+H.arr[i] 使用 dense vocab-count subheap state；
+Q 使用 supervised query token；
+Theta 使用一个普通神经网络参数；
+输出 stop/left/right 概率；
+用交叉熵训练；
+最后硬坍缩成路径。
+```
+
+也就是说，它证明了：
+
+```text
+如果 H.arr[i] 真的包含子堆内容，
+一个可学习 route function 可以读 H 和 Q，
+并学出 stop/left/right 概率桶。
+```
+
+但它还没有证明：
+
+```text
+Theta 本身已经是一个严格的参数 TreeHeap；
+compose/read/route 都已经在 TreeHeap 代数内部闭合；
+模型已经能无监督发现 Q；
+模型已经能翻译。
+```
+
+所以 046 的正确定位应该是：
+
+```text
+第一次 content-aware route 工程 proof。
+不是完整 TreeHeap route 理论闭包。
+```
+
+这个区分必须保留。
+
+如果不保留，我们就会再次把“能跑的近似实现”误写成“理论已经完成”。
+
 ## 现在的结论先说清楚
 
 这次结论分两层。
