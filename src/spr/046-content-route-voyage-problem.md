@@ -50,6 +50,220 @@ route kernel 虽然递归走树，
 
 如果不能，说明我们仍然只是在做外部几何导航。
 
+## 先把算法讲清楚
+
+这里的 TreeHeap route，不是一个玄学词。
+
+它就是一个“在二叉堆里找东西”的算法。
+
+先看普通数组。
+
+一句话可以写成：
+
+```text
+["I", "like", "small", "cats"]
+```
+
+如果只用数组，我们会说：
+
+```text
+第 0 个词是 I
+第 1 个词是 like
+第 2 个词是 small
+第 3 个词是 cats
+```
+
+TreeHeap 会先把这句话放进一棵二叉堆。
+
+为了简单，假设最多 4 个 leaf：
+
+```text
+              arr[1]
+             /      \
+        arr[2]      arr[3]
+        /   \       /   \
+    arr[4] arr[5] arr[6] arr[7]
+      I    like   small  cats
+```
+
+这里有一个很重要的规则：
+
+```text
+left child  = arr[2i]
+right child = arr[2i + 1]
+```
+
+例如：
+
+```text
+arr[1] 的 left  是 arr[2]
+arr[1] 的 right 是 arr[3]
+arr[2] 的 left  是 arr[4]
+arr[2] 的 right 是 arr[5]
+```
+
+leaf 里面放具体 token。
+
+internal node 里面放这个子树的摘要。
+
+比如：
+
+```text
+arr[2] 表示 ["I", "like"] 这个子堆
+arr[3] 表示 ["small", "cats"] 这个子堆
+arr[1] 表示整句话 ["I", "like", "small", "cats"]
+```
+
+现在问一个问题：
+
+> query = "cats"，怎么从 root 找到它？
+
+TreeHeap route 的走法是：
+
+```text
+从 arr[1] 开始。
+
+看当前 node、left child、right child。
+
+如果 query 更像在 left 里，就走 left。
+如果 query 更像在 right 里，就走 right。
+如果当前 node 已经是答案，就 stop。
+```
+
+对 `"cats"` 来说，路线应该是：
+
+```text
+arr[1] -> right -> arr[3] -> right -> arr[7] -> stop
+```
+
+用动作表示：
+
+```text
+right, right, stop
+```
+
+如果 query 是 `"like"`，路线就是：
+
+```text
+arr[1] -> left -> arr[2] -> right -> arr[5] -> stop
+```
+
+动作是：
+
+```text
+left, right, stop
+```
+
+所以 TreeHeap route 的本质是：
+
+```text
+用一串 stop / left / right 动作，
+在堆地址里递归查找目标。
+```
+
+这和一个 `L x L` 矩阵完全不同。
+
+`L x L` 矩阵像这样：
+
+```text
+我要第 3 个输出，所以直接从第 0/1/2/3 个输入里加权拷贝。
+```
+
+它处理的是“序列位置表”。
+
+TreeHeap route 处理的是“树上的递归路径”。
+
+这就是为什么我们一直强调：
+
+```text
+矩阵可以有用，但不能冒充 TreeHeap route。
+```
+
+## route kernel 到底做什么
+
+上面说“更像在 left 里”，这句话要变成代码，就需要一个函数。
+
+这个函数就叫 route kernel。
+
+它的输入是：
+
+```text
+q          = 要找的东西，比如 "cats" 的向量
+arr[i]     = 当前子堆摘要
+arr[2i]    = left 子堆摘要
+arr[2i+1]  = right 子堆摘要
+```
+
+它的输出是三个分数：
+
+```text
+score_stop
+score_left
+score_right
+```
+
+然后取最大值：
+
+```text
+如果 score_left 最大，就走 left。
+如果 score_right 最大，就走 right。
+如果 score_stop 最大，就停下。
+```
+
+伪代码就是：
+
+```python
+i = 1
+
+while True:
+    q_vec = encode(query)
+
+    current = arr[i]
+    left    = arr[2 * i]
+    right   = arr[2 * i + 1]
+
+    score_stop, score_left, score_right = K(q_vec, current, left, right)
+
+    action = argmax([score_stop, score_left, score_right])
+
+    if action == "stop":
+        return arr[i]
+
+    if action == "left":
+        i = 2 * i
+
+    if action == "right":
+        i = 2 * i + 1
+```
+
+本科数据结构课里，这很像二叉树查找。
+
+不同点在于：
+
+```text
+普通二叉搜索树靠 key 的大小比较。
+TreeHeap route 靠 kernel 从向量状态里判断方向。
+```
+
+也就是说，TreeHeap 不是问：
+
+```text
+cats > like 吗？
+```
+
+而是问：
+
+```text
+query 和 left subheap 的状态更匹配，
+还是和 right subheap 的状态更匹配？
+```
+
+这就是为什么我们关心 `arr[i]` 到底怎么表示。
+
+如果 `arr[i]` 表示得好，kernel 就容易判断。
+
+如果 `arr[i]` 表示得差，kernel 就会迷路。
+
 ## 现在的结论先说清楚
 
 这次结论分两层。
@@ -81,9 +295,11 @@ naive random token sum compact state 会丢精度。
 
 换句话说，船已经出港了，但现在卡在“船舱怎么压缩物资还不丢关键物品”。
 
-## 什么叫 content-aware route
+## content-aware route 的实验版算法
 
-一个 TreeHeap route 的局部步骤是：
+上面是算法概念。
+
+这次实验里的 content-aware route，就是把它具体落成下面这个形式：
 
 ```text
 当前 node = i
@@ -147,6 +363,40 @@ query
 ```
 
 这就比较像真正的 TreeHeap 局部卷积了。
+
+用刚才的例子说：
+
+```text
+query = cats
+
+在 arr[1]：
+  left  = ["I", "like"]
+  right = ["small", "cats"]
+
+kernel 应该判断 cats 在 right 里，所以输出 right。
+
+到 arr[3]：
+  left  = ["small"]
+  right = ["cats"]
+
+kernel 应该输出 right。
+
+到 arr[7]：
+  当前就是 cats
+
+kernel 应该输出 stop。
+```
+
+所以这不是“一次分类”。
+
+它是一串局部判断组成的查找过程。
+
+这也是为什么整条 route exact 很苛刻：
+
+```text
+只要某一步 left/right/stop 错了，
+整条路径就错。
+```
 
 ## dense 版本怎么表示 subheap state
 
