@@ -307,6 +307,212 @@ InformationCollapseRoute
 选择一个最有用的信息粒度。
 ```
 
+## 语义前缀压缩：为什么这可能带来推理
+
+这里还要再加一层。
+
+如果 TreeHeap 只是把词放进树，它仍然不够。
+
+真正有价值的是：
+
+```text
+树的 internal node 不是随便分组，
+而是形成可迁移的语义前缀类。
+```
+
+例如：
+
+```text
+吃
+├─ 食物类
+│  ├─ 米饭
+│  ├─ 面条
+│  └─ 苹果
+├─ 药品类
+│  ├─ 阿莫西林
+│  └─ 布洛芬
+```
+
+如果模型只背 pair，它只能知道：
+
+```text
+吃 + 米饭
+吃 + 面条
+吃 + 苹果
+```
+
+但当新组合出现：
+
+```text
+吃 + 阿莫西林
+```
+
+它没有见过这个 pair。
+
+这时如果 TreeHeap 有语义前缀，它可以走另一条路：
+
+```text
+阿莫西林 -> 药品
+药品 -> 可摄入对象
+吃 接受 可摄入对象
+所以 吃 + 阿莫西林 可以成立
+```
+
+这不是枚举所有可能句子。
+
+这是用 internal node 做演绎迁移。
+
+所以 TreeHeap 的前缀压缩，不应该只是霍夫曼树那种频率压缩。
+
+它应该更像：
+
+```text
+按语义可推理性压缩。
+```
+
+也就是说，root / internal node 要尽量保存这样的东西：
+
+```text
+这个子堆属于什么语义类？
+这个语义类能参与哪些关系？
+这个关系能不能迁移到未见过的叶子？
+```
+
+这就把 TreeHeap route 的问题从：
+
+```text
+我该走 left 还是 right？
+```
+
+推进到：
+
+```text
+当前 Q 下，哪个语义前缀类最能解释这个问题？
+```
+
+## 一个最小 proof：吃阿莫西林
+
+为了不让这段只停留在理论，我做了一个很小的 toy proof。
+
+它不是自然语言理解实验。
+
+它只是检查：
+
+```text
+语义前缀结构是否能带来 pair memory 没有的演绎迁移。
+```
+
+toy ontology：
+
+```text
+rice        -> entity -> consumable -> food
+noodle      -> entity -> consumable -> food
+apple       -> entity -> consumable -> food
+amoxicillin -> entity -> consumable -> medicine
+ibuprofen   -> entity -> consumable -> medicine
+water       -> entity -> drinkable  -> beverage
+shirt       -> entity -> wearable   -> clothing
+car         -> entity -> drivable   -> vehicle
+```
+
+谓词规则：
+
+```text
+eat   accepts consumable
+take  accepts medicine
+drink accepts drinkable
+wear  accepts wearable
+drive accepts drivable
+visit accepts visitable
+```
+
+关键设置：
+
+```text
+训练集不包含 eat + amoxicillin。
+```
+
+但是训练集中有：
+
+```text
+eat + rice
+eat + noodle
+eat + apple
+take + amoxicillin
+```
+
+也就是说，模型见过：
+
+```text
+eat 和 consumable/food 的关系
+amoxicillin 和 medicine/consumable 的关系
+```
+
+但没有见过：
+
+```text
+eat + amoxicillin
+```
+
+对照组：
+
+```text
+pair_memory       只记见过的正例 pair
+pair_logistic     只用 verb-object pair id
+token_additive    只用 verb id + object id
+semantic_prefix   使用 object 的语义前缀 path
+```
+
+实验结果：
+
+| 模型 | test acc |
+|---|---:|
+| pair memory | `0.4` |
+| pair logistic | `0.4` |
+| token additive | `0.6` |
+| semantic prefix | `1.0` |
+
+关键例子：
+
+```text
+Question:
+  Can eat + amoxicillin be accepted without that pair in training?
+
+pair_memory:
+  gold = 1
+  pred = 0
+
+semantic_prefix:
+  path = [entity, consumable, medicine]
+  gold = 1
+  prob = 0.7088
+  pred = 1
+```
+
+这支持一个很窄的结论：
+
+```text
+如果 TreeHeap state 里有语义前缀类，
+那么它可以支持“未见叶子”的演绎迁移。
+```
+
+但边界也必须写清楚：
+
+```text
+这个 ontology 是手工给的；
+semantic prefix path 是监督的；
+这不证明模型已经能从自然语料中学出“药品类”；
+这不证明 WMT 翻译；
+这不证明自然语言理解。
+```
+
+它证明的是一个更基础的点：
+
+```text
+TreeHeap root/internal node 不应该退化成 word bag。
+它应该朝“可解码、可压缩、可迁移的语义前缀结构”发展。
+```
+
 ## route kernel 到底做什么
 
 上面说“当前信息是否足够、哪个分支信息增益更高”，这句话要变成代码，就需要一个函数。
