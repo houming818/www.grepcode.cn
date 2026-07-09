@@ -82,8 +82,11 @@ Echo 证明系统能把输入还原出来。它证明容量和稳定性，但不
 14. [基元与 plus：TreeHeap 有序性的来源](/spr/014-primitive-plus-order.html)
     把卷积问题继续下压到基元、plus、ordered orbit 和 mod base，说明为什么先找语义空间里的“1”和“+”。
 
-15. [primitive plus 实验：把 proof 变成可测的 TreeHeap toy](/spr/015-primitive-plus-probe.html)
+15. [primitive plus 实验：把 proof 变成可测的 TreeHeap toy](/spr/015-primitive-plus-probe.html)  
     用本科数学口径解释 P-MATH02 实验：arr[0]、plus、mod base、信息量增长、循环窗口和 kernel 匹配。
+
+16. [SPR-048 TreeHeap 私有编码：多头参数森林与串行推理](/spr/048-treeheap-private-codec-forest.html)  
+    从经典 Huffman 编码出发，定义 TreeHeap 参数森林、私有编码、并行多头和串行 kernel composition。
 
 ## 证据入口
 
