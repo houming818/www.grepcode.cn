@@ -94,6 +94,12 @@ Echo 证明系统能把输入还原出来。它证明容量和稳定性，但不
 18. [SPR-050 第一次真实语言生成：TreeHeap 从英文到中文](/spr/050-real-wmt-seq2seq-voyage.html)  
     首次真实 WMT 英中 seq2seq：TreeHeap encoder-decoder 生成中文，flat GRU baseline 对照。
 
+19. [SPR-051 P0 预训练后的第一次直接提问：失败比成功更有信息](/spr/051-p0-direct-qa-failure.html)  
+    P0 原始中文续写预训练后直接提问，训练损失下降但输出坍缩——这是一个被正面保存的负结果。
+
+20. [SPR-052 TreeHeap 终于参加了翻译考试，但还没有赢](/spr/052-treeheap-frontier-bottleneck.html)  
+    用四节点 Frontier 关闭叶子旁路，首次测量 TreeHeap 内部结构对 WMT 翻译的因果作用。
+
 ## 证据入口
 
 对应的 ARA 文件在仓库中：
