@@ -1,0 +1,383 @@
+---
+title: "[SPR-055] 让信息向 root 生长：TreeHeap 的多尺度 Mask 学习"
+date: 2026-07-14
+lastmod: 2026-07-14
+weight: 55
+author: Houming818 & Codex Review
+description: "普通 token echo 只奖励最短的局部复制路径。本文提出用不同深度的 TreeHeap 子堆遮挡和扰动，让模型有理由把局部规律逐层抽取到 parent、ancestor 和 root。"
+tags: [SPR, TreeHeap, ARA, S3, Encoder, Decoder, Mask, Hierarchy, Original Research]
+---
+
+# 让信息向 root 生长：TreeHeap 的多尺度 Mask 学习
+
+这篇文章先不宣布实验胜利。
+
+相反，我们想带着一点更具体的希望，重新提出一个问题：
+
+> 如果普通 echo 只要求模型恢复眼前的 token，那么模型为什么要费力把信息送到 root？
+
+这句话来自 Houming818 对当前实验的修正。它改变了我们看待 TreeHeap encoder 的方式。
+
+此前我们容易把注意力放在算子的形式上：FOLD 怎样计算，DETAIL 怎样保存，UNFOLD 怎样恢复。可是即使所有算子都在树上递归执行，只要训练问题太简单，模型仍然会选择最短的解题路线。
+
+这不一定说明 TreeHeap 没有能力。更可能说明：我们问的问题还不够深。
+
+---
+
+## 1. 当前模型为什么偏爱 detail
+
+假设一句话被写入一棵 TreeHeap：
+
+~~~text
+                    root
+                  /      \
+            subheap A    subheap B
+             /   \        /   \
+           x1    x2      x3    x4
+~~~
+
+普通 echo 的任务只是输入 x1、x2、x3、x4，再输出同样的 x1、x2、x3、x4。
+
+如果每个局部 detail 都能保存附近 token，模型就可以走一条很短的路：
+
+~~~text
+x1 -> detail1 -> x1
+x2 -> detail2 -> x2
+x3 -> detail3 -> x3
+x4 -> detail4 -> x4
+~~~
+
+这条路短、梯度直接、loss 下降快。
+
+相比之下，把信息先抽到 parent，再抽到 root，最后递归展开回来，需要经过更多卷积：
+
+~~~text
+token
+  -> local fold
+  -> parent fold
+  -> root
+  -> parent unfold
+  -> local unfold
+  -> token
+~~~
+
+如果两条路都能完成 echo，优化器没有理由主动选择更长的那条。
+
+因此，root 没有成为主要信息载体，并不令人意外。普通 echo 实际上只问了一个浅层问题：
+
+> 你能不能把刚刚看到的符号再写一遍？
+
+它没有问：
+
+> 当局部信息缺失时，你能否利用更大范围的结构推断它？
+
+---
+
+## 2. 不要强迫 root，应该给 root 一份工作
+
+一种直接做法是在公式里规定：没有 root 就不允许 decoder 工作。
+
+这样当然能让 root 参与，但它更像人为封路。模型使用 root，是因为程序员不准它走别的路，而不一定是因为数据中的规律需要 root。
+
+Houming818 提出的方向更自然：
+
+> 不要从结构上强迫 root 参与。通过扰动和 Mask 提出更深的问题，让局部 detail 无法单独回答，root 和上层卷积结果才有机会自然获得信息。
+
+也就是说，我们不预先规定 root 必须表示句意。
+
+我们只改变训练问题，让不同尺度的节点承担不同尺度的信息需求。
+
+---
+
+## 3. 从 Mask 一个词，到 Mask 一整个子堆
+
+考虑一句简单的话：
+
+~~~text
+今天 我 吃了 一碗 米饭
+~~~
+
+### 3.1 只遮挡一个 token
+
+~~~text
+今天 我 吃了 一碗 [MASK]
+~~~
+
+局部信息“一碗”已经提供了很强的提示。附近节点可能就能给出一个概率桶：
+
+| 候选 | 概率示意 |
+|---|---:|
+| 米饭 | 0.31 |
+| 面条 | 0.24 |
+| 粥 | 0.12 |
+| 药 | 0.03 |
+| 其他 | 0.30 |
+
+这主要训练局部共现。
+
+### 3.2 遮挡一个小 subheap
+
+~~~text
+今天 我 吃了 [一碗 米饭]
+~~~
+
+现在局部 detail 被整个拿走。模型需要结合“我”“吃了”和前后上下文，才能判断缺失部分大概是食物或用餐对象。
+
+这开始要求 parent 和 sibling 提供信息。
+
+### 3.3 遮挡更大的 subheap
+
+~~~text
+今天 我 [吃了 一碗 米饭]
+~~~
+
+模型必须从更高层状态判断：
+
+- 这里缺少一个事件；
+- 事件可能与“今天”和“我”有关；
+- 输出应当是一段动作描述，而不只是一个孤立名词。
+
+此时，靠近 root 的状态才真正获得了一份局部 detail 无法独立完成的工作。
+
+---
+
+## 4. TreeHeap Mask 不是普通随机遮字
+
+普通语言模型会随机遮掉若干 token。TreeHeap 可以做得更有结构，因为它已经拥有地址、路径和 subheap。
+
+我们可以直接使用 TreeHeap 代数中的操作构造扰动：
+
+| 扰动方式 | 操作对象 | 想检查的能力 |
+|---|---|---|
+| leaf mask | 单个叶子 | 局部共现 |
+| sibling mask | 一对孩子 | parent 是否保存摘要 |
+| subheap cut | 完整子堆 | ancestor 是否保存更大范围信息 |
+| detail dropout | 某层 detail | 粗粒度状态能否补回细节 |
+| subtree replacement | 用别的子堆替换 | 模型能否发现上下文不一致 |
+| address shift | detail 移到错误地址 | 路径和地址是否有真实作用 |
+| mirror perturbation | 子堆左右翻转 | 顺序与手性信息是否被编码 |
+
+这里最重要的是：扰动对象仍然是 TreeHeap 中的合法对象。
+
+不是先把树摊平成数组，再用另一套代数随便打乱；而是使用 CUT、MASK、REPLACE、SHIFT、MIRROR 等树上操作改变同一个数据结构。
+
+---
+
+## 5. 两种 Mask，回答两个不同问题
+
+### 5.1 压缩式 Mask
+
+Encoder 看过完整输入，但 decoder 随机拿不到某些 detail：
+
+~~~text
+完整句子
+  -> encoder
+  -> root + 多层 detail
+  -> 丢弃部分 detail
+  -> decoder 恢复原句
+~~~
+
+它研究的是：
+
+> 信息有没有从 leaf 向 parent 和 root 形成冗余摘要？
+
+如果丢掉局部 detail 后，上层状态仍能恢复一部分内容，说明信息确实向上抽取了。
+
+### 5.2 推断式 Mask
+
+Encoder 从一开始就看不到被遮挡内容：
+
+~~~text
+受损句子
+  -> encoder
+  -> TreeHeap
+  -> 预测缺失 subheap
+~~~
+
+它研究的是：
+
+> 模型是否从真实语料中学到了可以补全缺失信息的统计规律？
+
+这种任务不要求模型逐字恢复任意随机内容。正确输出是概率分布，而不是提前写好的唯一答案。
+
+压缩和推断都重要，但它们回答的是不同问题，实验必须分开报告。
+
+---
+
+## 6. 卷积怎样推动信息向上生长
+
+在每个内部节点，encoder 使用共享分析卷积核：
+
+$$
+p_i = K_{\mathrm{fold}}(h_{2i}, h_{2i+1})
+$$
+
+继续递归：
+
+$$
+p_{\operatorname{parent}(i)}
+=
+K_{\mathrm{fold}}(p_i,p_j)
+$$
+
+同一个 kernel 在不同地址和深度重复使用。因此，一条信息若要到达 root，必须经历多次相同类型的局部抽取。
+
+Decoder 使用共享合成卷积核：
+
+$$
+(\hat h_{2i},\hat h_{2i+1})
+=
+K_{\mathrm{unfold}}(p_i,d_i)
+$$
+
+Mask 训练产生的梯度会沿着递归链返回：
+
+~~~text
+缺失 token 的 loss
+  -> unfold kernel
+  -> ancestor state
+  -> fold kernel
+  -> 更低层输入
+~~~
+
+如果只 Mask 一个叶子，梯度可能主要停留在附近。
+
+如果 Mask 整个 subheap，局部节点已经没有答案，梯度必须要求更高层状态改善。这才是“把信息抽到离 root 更近的地方”的具体学习过程。
+
+---
+
+## 7. 不使用一锅炖的 Loss
+
+我们不打算一次把所有尺度混成一个难以解释的总 loss。
+
+更清晰的方法是让不同 batch 轮流提出不同深度的问题：
+
+~~~text
+batch 1  leaf mask
+batch 2  depth-1 subheap mask
+batch 3  depth-2 subheap mask
+batch 4  depth-3 subheap mask
+batch 5  detail dropout
+batch 6  subtree replacement
+~~~
+
+每个 batch 只计算受损区域的交叉熵：
+
+$$
+L_d
+=
+-\sum_{i\in M_d}
+\log P(x_i\mid H_{\setminus M_d})
+$$
+
+其中 $M_d$ 表示尺度为 $d$ 的被遮挡子堆。
+
+这样可以分别观察：
+
+- 哪一种扰动开始需要 root；
+- 哪一层信息最容易恢复；
+- 梯度能否通过递归卷积到达高层；
+- 不同 kernel 是否在不同尺度形成分工。
+
+我们不必一开始就知道 root 最终会表示“主谓宾”“主题”还是其他人类标签。只需要观察：随着问题尺度扩大，高层状态是否越来越有用。
+
+---
+
+## 8. 我们期待看到什么趋势
+
+这篇文章暂时没有新实验结果，因此下面是 Predict，不是结论。
+
+最关键的测量不是普通 echo 能否达到 100%，而是：
+
+$$
+\Delta L_{\mathrm{root}}(d)
+=
+L_d(H_{\mathrm{root}}=0)-L_d(H_{\mathrm{root}})
+$$
+
+其中 $d$ 是被遮挡子堆的尺度。
+
+我们期待：
+
+$$
+\Delta L_{\mathrm{root}}(d+1)
+>
+\Delta L_{\mathrm{root}}(d)
+$$
+
+用普通话说：
+
+> 遮挡范围越大，模型越应该依赖 root 和祖先卷积结果。
+
+具体趋势包括：
+
+1. leaf mask 主要依赖局部 detail；
+2. 小 subheap mask 开始依赖 parent 和 sibling；
+3. 大 subheap mask 对 root-zero 更敏感；
+4. 打乱 ancestor 地址会破坏深层恢复；
+5. detail-only 对照在深层 Mask 上明显落后；
+6. TreeHeap 在未训练深度仍能复用共享递归 kernel；
+7. shuffled corpus 会削弱推断式 Mask，因为真实共现规律被破坏。
+
+如果这些趋势没有出现，我们就应承认：当前 fold kernel 没有把数据规律逐层抽取到高层，或者当前树的组织方式不适合语料。
+
+---
+
+## 9. 为什么这条路值得开心一点
+
+前一阶段已经出现了一个积极信号：只使用 token echo loss，随机初始化的 WRITE、FOLD、DETAIL、UNFOLD 和 READ 可以共同形成一套模型自己读得懂的连续编码协议。
+
+它还很浅，甚至可能只是高效的局部抄写。
+
+但“模型能够形成自己的写法”与“模型已经形成世界模型”是两件不同的事。前者是后者可能需要的一块地基，不是终点。
+
+现在我们得到的不是一个漂亮但空泛的答案，而是一个更好的问题：
+
+~~~text
+不要再问：
+模型能不能抄回刚刚看到的 token？
+
+开始问：
+当一个完整子结构消失时，
+哪一层还保留了足够的信息来推断它？
+~~~
+
+如果信息真的能随着问题深度逐层向 root 生长，那么 TreeHeap 的 encoder/decoder 协议就不再只是一个按地址保存 token 的数组。
+
+它会开始成为一种分尺度观察世界、压缩规律并递归展开答案的结构。
+
+这次我们还没有结果。
+
+但船头终于对准了一个可以测量的方向，心情确实可以好一点。哈哈哈哈。
+
+---
+
+## 10. 当前声明边界
+
+本文记录的是 Houming818 提出的研究方向与待验证假设：
+
+> 当前普通 echo loss 太浅，无法要求高层节点保存信息。通过 TreeHeap-native 的多尺度 subheap Mask、detail dropout 和结构扰动，可以逐层增加任务所需的上下文范围；如果假设成立，信息和梯度将从局部 detail 向 parent、ancestor 与 root 汇聚。
+
+目前不能声称：
+
+- root 已经形成语义摘要；
+- 多尺度 Mask 一定能够产生世界模型；
+- TreeHeap 已经优于 Transformer、MLP 或其他结构；
+- masked token 的恢复等于理解或意识；
+- 人类语法标签一定会自然出现在内部节点。
+
+这些都需要后续 ARA、代码、干预实验和真实数据给出 evidence。
+
+---
+
+## 版权、原创与许可证
+
+Copyright (C) 2026 Houming818 and SameTime contributors.
+
+本文的核心研究判断，即“普通 echo 的问题尺度太浅，应使用 TreeHeap-native 的多尺度子堆扰动推动信息向 root 抽取”，由 Houming818 提出；Codex Review 参与数学整理、实验指标设计和文章编写。本文是 SameTime 项目的原创研究表达，不宣称发明 masked language modeling、denoising autoencoder、树卷积或多尺度分析等已有公共方法。
+
+> **SPDX-License-Identifier: GPL-3.0-only**  
+> **License: GNU General Public License v3.0 only**
+
+本文允许复制、修改和分发，但衍生版本必须继续遵守 GNU GPL v3，并保留版权、许可证、修改说明及来源声明。完整许可证文本见本站 [/LICENSE](/LICENSE)。
+
