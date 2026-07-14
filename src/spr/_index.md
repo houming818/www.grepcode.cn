@@ -100,6 +100,12 @@ Echo 证明系统能把输入还原出来。它证明容量和稳定性，但不
 20. [SPR-052 TreeHeap 终于参加了翻译考试，但还没有赢](/spr/052-treeheap-frontier-bottleneck.html)  
     用四节点 Frontier 关闭叶子旁路，首次测量 TreeHeap 内部结构对 WMT 翻译的因果作用。
 
+21. [SPR-053 TreeHeap 代数算子编解码：root 只要轮廓](/spr/053-treeheap-algebraic-operator-codec.html)  
+    将 TreeHeap 压缩重新解释为有损代数编解码，论证 root 天然丢失细节。
+
+22. [SPR-054 TreeHeap 多分辨率金字塔：root 看全局，子堆保存细节](/spr/054-treeheap-multiresolution-pyramid.html)  
+    三 seed × 100 万 block：冻结 root 后，带地址的低维 detail code 形成稳定渐进恢复曲线。
+
 ## 证据入口
 
 对应的 ARA 文件在仓库中：

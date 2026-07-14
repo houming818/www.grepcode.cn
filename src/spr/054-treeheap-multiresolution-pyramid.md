@@ -4,7 +4,7 @@ date: 2026-07-14
 lastmod: 2026-07-14
 weight: 54
 author: Houming818 & Codex Review
-description: "把语言折叠类比为图像缩放：冻结已经训练成功的 TreeHeap root compressor，用带地址的低维 detail code 逐层补回局部信息，并用率失真曲线验证它究竟是不是一种有效压缩。"
+description: "三 seed、每 seed 100 万真实文本 block 的实验表明：冻结 TreeHeap root 后，带地址的低维 detail code 可形成稳定的渐进恢复曲线；同时记录 flat 对照失败尾部与尚未完成的验证。"
 tags: [SPR, TreeHeap, ARA, S3, Multiresolution, Compression, Rate Distortion, Original Research]
 ---
 
@@ -257,10 +257,10 @@ S3-TREEHEAP-PYRAMID-C01
 当前状态：
 
 ```text
-designed / experiment pending
+supported mechanism / three-seed 1M-block proof
 ```
 
-它现在只是一个可检验的原创工程假设，不是实验结论。
+它已经得到三 seed 实验支持，但结论仅限于本文实现的激活空间 codec，不能外推为通用压缩或架构优越性。
 
 ---
 
@@ -268,16 +268,16 @@ designed / experiment pending
 
 ### P1：root 的旧能力必须完全保留
 
-冻结模型原来的验证 NLL 是：
+完整语料 checkpoint 原来的验证 NLL 是：
 
 ```text
 6.236525
 ```
 
-新模块不能偷偷改写 root：
+正式实验另取固定 audit 子集，在训练 detail codec 前后各测一次。新模块不能偷偷改写 root：
 
 $$
-|NLL_{new}-6.236525|<10^{-5}
+|NLL_{after}-NLL_{before}|<10^{-5}
 $$
 
 如果变化，说明代码存在旁路或错误。
@@ -370,7 +370,109 @@ detail k              0 / 8 / 16 / 32 / 64
 
 ---
 
-## 9. Toy：为什么逐层细节有意义
+## 9. 实验结果：金字塔成立了吗
+
+正式实验在 `io` 的 RTX 3090 上完成。三个随机种子分别是：
+
+```text
+71401 / 71402 / 71403
+```
+
+每个 seed 读取 `1,000,000` 个真实中文文本 block，并在 `8,192` 个 held-out block 上评估。训练期间，原 TreeHeap root encoder 和 next-token decoder 完全冻结。
+
+先给一张“体检报告”。指标方向如下：
+
+```text
+MSE             越低越好
+存储比例         越低越省容量
+Token Top-1     越高越好
+Sequence Exact  越高越好，要求64个位置全部恢复正确
+```
+
+| detail $k$ | TreeHeap存储 | Flat存储 | TreeHeap MSE | Flat MSE | Haar MSE | Token Top-1 | 64-token整段Exact |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 0 | 192 | 192 | 1.9334 | **1.9104** | 1.9110 | 6.50% | 0.00% |
+| 8 | 696 | 768 | **0.8803** | 1.8416 | 1.8232 | 51.05% | 0.00% |
+| 16 | 1,200 | 1,344 | **0.7622** | 1.7459 | 1.7471 | 76.84% | 0.00% |
+| 32 | 2,208 | 2,304 | **0.6516** | 1.7047 | 1.5979 | 95.01% | 5.99% |
+| 64 | 4,224 | 4,224 | **0.5526** | 1.6042 | 1.2881 | 99.64% | 82.68% |
+
+这张表可以分三步理解。
+
+### 9.1 只有 root 时，TreeHeap 没有神奇优势
+
+`k=0` 时只保存一个192维 root。TreeHeap MSE 是 `1.9334`，反而略差于 flat 和 Haar 的约 `1.91`。
+
+这很重要：实验没有证明“只要叫 TreeHeap 就一定更好”。一个只占原始容量 `1.56%` 的 root 主要保存预测下一个 token 所需的粗粒度信息，不能无损背下64个叶状态。
+
+### 9.2 加入带地址 detail 后，误差稳定下降
+
+三个 seed 都得到严格单调曲线：
+
+$$
+1.9334 > 0.8803 > 0.7622 > 0.6516 > 0.5526
+$$
+
+detail 宽度与恢复质量的 Spearman 相关系数在三个 seed 中都约为 `1.0`。`k=64` 只使用原始激活量的 `34.38%`，MSE 已降到 root-only 的 `28.6%`，超过了预注册的“至少减半”门槛。
+
+这里的 token 指标，是把重建叶向量放回冻结 encoder 的 embedding 坐标系，寻找最近 token。`k=64` 的平均 token Top-1 是 `99.64%`，64个位置全部正确的整段恢复率是 `82.68%`。
+
+### 9.3 地址不是装饰
+
+把已经学好的 detail code 循环移动到错误地址，`k=64` 的 MSE 从：
+
+```text
+0.5526 -> 3.3147
+```
+
+它不只是变差一点，而是比 root-only 还差。这说明 decoder 依赖“哪段细节属于哪个内部地址”。detail 是带地址的局部信息，不是可以随便交换的附加向量袋。
+
+### 9.4 stronger flat baseline 仍有失败尾部
+
+最初 smoke 使用固定 `256D` 隐层的 flat autoencoder。我们发现这会人为卡住大码率模型，于是在正式实验前主动中止，并改成拥有 `1/4/7/12/22` 个192维 latent 的 flat attention codec。它在多数档位还获得了比 TreeHeap略多的存储预算。
+
+正式 flat `k=64` 的三个 seed MSE 是：
+
+```text
+1.5245 / 1.3767 / 1.9113
+```
+
+TreeHeap 对应为：
+
+```text
+0.5526 / 0.5499 / 0.5554
+```
+
+TreeHeap 在本次对照中不仅均值更低，而且 seed 更稳定。但 flat 的第三个 seed 明显发生了 latent 学习失败，所以本文只能说：
+
+> 当前 TreeHeap pyramid 击败了本实验实现的同码率 flat attention codec 和固定 Haar codec。
+
+不能说：
+
+> TreeHeap 已经击败所有 autoencoder、Transformer 或所有可能的压缩算法。
+
+### 9.5 Predict 判定
+
+| Predict | 结果 | 判定 |
+|---|---:|---|
+| P1 root NLL不变 | audit NLL `6.2997973263 -> 6.2997973263`，参数指纹相同 | 通过 |
+| P2 MSE随容量单调下降 | 三个 seed 全部严格单调 | 通过 |
+| P3 Spearman至少0.9 | 三个 seed 均约1.0 | 通过 |
+| P4 k=64至少减半MSE | 降至root-only的28.6% | 通过 |
+| P5 地址破坏明显伤害 | MSE增加约500% | 通过 |
+| P6 击败已实现同码率对照 | k=8到64均优于flat/Haar | 有界通过 |
+
+因此，Claim `S3-TREEHEAP-PYRAMID-C01` 从 `experiment pending` 更新为：
+
+```text
+supported mechanism / three-seed 1M-block proof
+```
+
+仍未完成的部分包括：独立 random-pairing 训练、逐层 detail 消融、量化、熵编码以及更强的 flat/Transformer codec。尤其在逐层消融完成前，不能声称高层一定学习“全局语义”、低层一定学习“词面细节”。
+
+---
+
+## 10. Toy：为什么逐层细节有意义
 
 考虑一句短句：
 
@@ -410,7 +512,7 @@ the | cat | is | eating | rice
 
 ---
 
-## 10. 什么结果会否定它
+## 11. 什么结果会否定它
 
 以下任一情况都会让 Claim 被拒绝或缩小：
 
@@ -431,7 +533,7 @@ the | cat | is | eating | rice
 
 ---
 
-## 11. 哪些部分是我们的原创
+## 12. 哪些部分是我们的原创
 
 为了避免把已有数学重新命名为自己的发明，这里明确划界。
 
@@ -453,17 +555,19 @@ the | cat | is | eating | rice
 4. 设计 root 不回归、渐进恢复、地址破坏、同容量基线和层级消融；
 5. 登记可证伪 Claim `S3-TREEHEAP-PYRAMID-C01` 及其数值门槛。
 
-这是 SameTime 项目在现有数学基础上的原创架构假设与实验协议。截至本文发布时，它尚未通过实验，也不构成“世界首创”或专利新颖性检索结论。
+这是 SameTime 项目在现有数学基础上的原创架构假设与实验协议。本文报告的三 seed 结果支持其有限机制 Claim，但不构成“世界首创”、专利新颖性或通用架构优越性结论。
 
 ---
 
-## 12. ARA 与可复核材料
+## 13. ARA 与可复核材料
 
 正式 ARA：
 
 - [Multiresolution TreeHeap Pyramid](https://github.com/houming818/sametime/blob/main/ara/s3-generation/logic/multiresolution_treeheap_pyramid.md)
 - [S3 Claims Registry](https://github.com/houming818/sametime/blob/main/ara/s3-generation/logic/claims.md)
 - [上一轮全量实验分析](https://github.com/houming818/sametime/blob/main/ara/s3-generation/evidence/s3_residual_treeheap_forest/result_analysis.md)
+- [本次实验结果分析](https://github.com/houming818/sametime/blob/main/ara/s3-generation/evidence/s3_multiresolution_treeheap_pyramid/main_v2/result_analysis.md)
+- [本次原始汇总数据](https://github.com/houming818/sametime/blob/main/ara/s3-generation/evidence/s3_multiresolution_treeheap_pyramid/main_v2/summary.json)
 
 任何后续文章都必须同时报告通过和失败的 Predict，不允许只展示最好的一条曲线。
 
@@ -481,4 +585,3 @@ Copyright (C) 2026 Houming818 and SameTime contributors.
 本文允许复制、修改和分发，但衍生版本必须继续遵守 GNU GPL v3，并保留版权、许可证、修改说明及来源声明。完整许可证文本见本站 [/LICENSE](/LICENSE)。
 
 本文按“原样”提供，不附带任何明示或暗示担保。数学思想和事实本身不受版权垄断；本许可证适用于本文的原创文字、结构、表格、伪代码及其他可受版权保护的表达。
-
