@@ -4,7 +4,7 @@ date: 2026-07-14
 lastmod: 2026-07-14
 weight: 55
 author: Houming818 & Codex Review
-description: "普通 token echo 只奖励最短的局部复制路径。本文提出用不同深度的 TreeHeap 子堆遮挡和扰动，让模型有理由把局部规律逐层抽取到 parent、ancestor 和 root。"
+description: "真实中文实验表明，多尺度子堆 Mask 能让 root 获得样本相关信息，但 root 贡献随 Mask 深度严格下降；本文公开 5/6 Gate、反向结果与下一步修正。"
 tags: [SPR, TreeHeap, ARA, S3, Encoder, Decoder, Mask, Hierarchy, Original Research]
 ---
 
@@ -323,7 +323,210 @@ $$
 
 ---
 
-## 9. 为什么这条路值得开心一点
++
+## 9. 实验结果：root 被点亮了吗
+
+实验已经在 io 的 RTX 3090 上完成。
+
+两个模型都从相同随机初始化出发，使用相同的 100,000 个真实中文 token block、相同参数量和相同优化器：
+
+| 模型 | 训练问题 | 训练时间 |
+|---|---|---:|
+| Echo | 所有 detail 完整，恢复全部 token | 46.5 秒 |
+| Multiscale Mask | 移除随机子堆内部 detail，只恢复受损区域 | 51.0 秒 |
+
+两个模型都训练 3,125 step。Mask 模型的 WRITE、FOLD、DETAIL、UNFOLD、READ 五类算子都获得了有限非零梯度，因此 loss 确实通过了完整递归链路。
+
+### 9.1 普通 Echo 的 99.5% 是局部复制能力
+
+在 detail 完整时，普通 Echo 的 token Top-1 为：
+
+~~~text
+99.50%
+~~~
+
+但移除一个子堆内部的 detail 后，它迅速失效：
+
+| 被移除的 token 数 | Echo 恢复 Top-1 |
+|---:|---:|
+| 2 | 24.61% |
+| 4 | 3.32% |
+| 8 | 1.46% |
+| 16 | 0.78% |
+| 32 | 0.81% |
+
+这组数字支持本文最初的诊断：普通 echo 的问题太浅，模型主要学会了局部路径：
+
+~~~text
+token -> local detail -> token
+~~~
+
+它能精确抄写，却没有为 detail 缺失准备上层摘要。
+
+### 9.2 多尺度 Mask 改变了信息保存位置
+
+Mask 模型的受损区域恢复结果是：
+
+| 被移除的 token 数 | Mask NLL，越低越好 | Mask Top-1 | Echo Top-1 |
+|---:|---:|---:|---:|
+| 2 | 6.526 | 14.26% | 24.61% |
+| 4 | 7.277 | 8.69% | 3.32% |
+| 8 | 7.567 | 7.50% | 1.46% |
+| 16 | 7.843 | 6.42% | 0.78% |
+| 32 | 7.915 | 6.36% | 0.81% |
+
+只遮两个 token 时，Echo 的局部复制能力仍然更强。
+
+从 4 token 开始，Mask 模型明显更稳。遮掉 32 token 时，它的 Top-1 约为 Echo 的八倍。这说明训练问题确实改变了模型的信息布局：部分可恢复信息已经离开被删除的局部 detail，进入了更高层的 TreeHeap 状态。
+
+但 6.36% 仍然很低。这里的正确表述是“出现了上层信息信号”，而不是“已经能恢复半句话”。
+
+### 9.3 root 不是空开关
+
+为了判断上层信号是否真的进入 root，我们做了两种干预。
+
+第一种是把当前样本的 root 清零；第二种是换成另一个样本的 root。
+
+| Mask 大小 | 正常 NLL | Root 清零 NLL | 换错 Root NLL |
+|---:|---:|---:|---:|
+| 2 | 6.526 | 7.369 | 6.861 |
+| 4 | 7.277 | 7.775 | 7.623 |
+| 8 | 7.567 | 7.898 | 7.920 |
+| 16 | 7.843 | 8.131 | 8.194 |
+| 32 | 7.915 | 8.188 | 8.276 |
+
+在 32-token Mask 下：
+
+~~~text
+Root 清零：NLL 增加 0.273
+换错 Root：NLL 增加 0.361
+~~~
+
+错误 root 比零 root 更有破坏性。这说明 root 不是一个固定的开关，它携带了当前文本相关的信息。
+
+这是本轮最重要的正结果：
+
+> 多尺度 Mask 第一次让 root 获得了可干预、样本相关的因果信号。
+
+### 9.4 最重要的 Predict 反向了
+
+我们原本预测：
+
+~~~text
+Mask 越大
+  -> 局部信息越少
+  -> 模型越依赖 root
+~~~
+
+实际 root 清零造成的 NLL 增量为：
+
+| Mask 大小 | Root 贡献 |
+|---:|---:|
+| 2 | 0.843 |
+| 4 | 0.499 |
+| 8 | 0.330 |
+| 16 | 0.287 |
+| 32 | 0.273 |
+
+它严格递减，深度趋势的 Spearman 相关系数为：
+
+~~~text
+-1.0
+~~~
+
+所以 P3 没有“差一点通过”，而是方向完全相反。
+
+这说明当前 root 更像粗粒度的全局条件：它能帮助补一个小洞，却不足以展开一整棵缺失子树。Mask 越大，decoder 越容易退化为输出少数高频 token。
+
+在保存的样例中，32-token Mask 经常产生：
+
+~~~text
+10257 10257 10257 10257 ...
+~~~
+
+因此不能把 root 的因果信号解释成完整句法、语义或世界模型。
+
+### 9.5 为什么 5/6 Gate 通过仍然不能写成成功
+
+预注册结果如下：
+
+| Gate | 结果 |
+|---|---|
+| P1 深层 Mask 优于未训练 Mask 的 Echo | 通过 |
+| P2 span-32 的 root-zero 有明显伤害 | 通过 |
+| P3 root 贡献随 Mask 深度上升 | **失败，Spearman = -1.0** |
+| P4 Mask 训练比 Echo 更依赖 root | 通过 |
+| P5 换错 root 有明显伤害 | 通过 |
+| P6 所有递归算子都有梯度 | 通过 |
+
+P1 也必须谨慎解释。Echo 从未训练过 detail 缺失，因此它是机制对照，不是足够强的 Mask baseline。Mask 模型击败它，证明训练问题发生了作用；还不能证明 TreeHeap 优于 unigram、BoW、flat root 或 Transformer。
+
+同时，Mask 模型在 detail 完整时的普通 echo Top-1 只有 14.72%，远低于 Echo 模型的 99.50%。它用精确复制能力换取了受损情况下的稳定性，尚未同时掌握两种能力。
+
+---
+
+## 10. Claim 判决：部分支持
+
+本轮 Claim 更新为：
+
+~~~text
+partial support / upward signal found / positive-depth trend rejected
+~~~
+
+实验支持：
+
+1. 普通 echo 会优先形成局部 detail 捷径；
+2. 多尺度 Mask 能改变信息的保存位置；
+3. root 获得了可测量的样本相关信息；
+4. root 清零和换错都会伤害恢复；
+5. masked loss 能到达全部共享递归算子。
+
+实验不支持：
+
+1. Mask 越深，信息越向 root 汇聚；
+2. root 已能表示并展开完整子树；
+3. 当前恢复质量已经足够用于生成产品；
+4. root 已形成语义、世界知识或意识；
+5. TreeHeap 已优于通用神经网络基线。
+
+最准确的一句话是：
+
+> 我们让一部分信息离开了局部 detail，并点亮了 root；但当前 root 更像粗略的全局摘要，还不是能够展开整棵子树的高层编码。
+
+---
+
+## 11. 下一步：同时保住局部精度和上层摘要
+
+下一轮不应立刻扩大语料，而应修正训练问题。
+
+训练 batch 轮流进行：
+
+~~~text
+batch 1  普通 Echo
+batch 2  浅层 subheap Mask
+batch 3  中层 subheap Mask
+batch 4  深层 subheap Mask
+~~~
+
+这不是把多个 loss 全部相加，而是每个 batch 只回答一个清晰问题。目标是同时获得：
+
+~~~text
+detail 完整 -> 精确恢复
+detail 缺失 -> root 和 ancestor 提供概率恢复
+~~~
+
+还必须加入更强对照：
+
+- unigram 概率；
+- 当前 block 的词频或 BoW；
+- flat mean/root bottleneck；
+- position-aware flat bottleneck；
+- shuffled-root 和 shuffled-corpus。
+
+只有 TreeHeap 在相同状态预算下，既保住 echo，又在深层 subheap Mask 上击败这些对照，才有资格升级为结构优势 Claim。
+
+
+## 12. 为什么这条路仍然值得开心一点
 
 前一阶段已经出现了一个积极信号：只使用 token echo loss，随机初始化的 WRITE、FOLD、DETAIL、UNFOLD 和 READ 可以共同形成一套模型自己读得懂的连续编码协议。
 
@@ -352,7 +555,7 @@ $$
 
 ---
 
-## 10. 当前声明边界
+## 13. 当前声明边界
 
 本文记录的是 Houming818 提出的研究方向与待验证假设：
 
@@ -380,4 +583,3 @@ Copyright (C) 2026 Houming818 and SameTime contributors.
 > **License: GNU General Public License v3.0 only**
 
 本文允许复制、修改和分发，但衍生版本必须继续遵守 GNU GPL v3，并保留版权、许可证、修改说明及来源声明。完整许可证文本见本站 [/LICENSE](/LICENSE)。
-
