@@ -39,15 +39,11 @@ bootstrap 95% CI 跨过了 0
 
 模型有参数 $\theta$，输入为 $x$，目标为 $y$。训练先计算：
 
-$$
-L(\theta;x,y),
-$$
+$$ L(\theta;x,y), $$
 
 再用梯度下降更新参数：
 
-$$
-\theta \leftarrow \theta-\eta\nabla_\theta L.
-$$
+$$ \theta \leftarrow \theta-\eta\nabla_\theta L. $$
 
 Loss 的首要任务不是方便人阅读，而是告诉参数应该向哪个方向移动。例如语言模型常用交叉熵，状态修复常用 MSE。
 
@@ -98,24 +94,15 @@ ARA 所说的 Evidence 至少需要：
 
 我们希望正确答案概率越大越好。但直接连乘长句中所有正确 token 的概率，很快会变成接近零的小数：
 
-$$
-P(y_1,y_2,\ldots,y_T\mid x)
-=\prod_{t=1}^{T}P(y_t\mid y_{<t},x).
-$$
+$$ P(y_1,y_2,\ldots,y_T\mid x) =\prod_{t=1}^{T}P(y_t\mid y_{<t},x). $$
 
 对数把乘法变成加法：
 
-$$
-\log P(y\mid x)
-=\sum_{t=1}^{T}\log P(y_t\mid y_{<t},x).
-$$
+$$ \log P(y\mid x) =\sum_{t=1}^{T}\log P(y_t\mid y_{<t},x). $$
 
 因为概率不超过 1，其对数不大于 0。为了得到一个“越小越好”的正数，我们取负号，这就是负对数似然：
 
-$$
-\operatorname{NLL}
-=-\frac{1}{T}\sum_{t=1}^{T}\log P(y_t\mid y_{<t},x).
-$$
+$$ \operatorname{NLL} =-\frac{1}{T}\sum_{t=1}^{T}\log P(y_t\mid y_{<t},x). $$
 
 其中 `NLL` 是 **Negative Log-Likelihood**，中文通常叫“负对数似然”。
 
@@ -125,29 +112,19 @@ $$
 
 句子有三个正确 token，模型分别给出概率：
 
-$$
-0.5,\quad 0.25,\quad 0.1.
-$$
+$$ 0.5,\quad 0.25,\quad 0.1. $$
 
 采用自然对数时：
 
-$$
-\operatorname{NLL}
-=-\frac{\ln 0.5+\ln 0.25+\ln 0.1}{3}
-\approx 1.462.
-$$
+$$ \operatorname{NLL} =-\frac{\ln 0.5+\ln 0.25+\ln 0.1}{3} \approx 1.462. $$
 
 如果改进后的模型给出：
 
-$$
-0.8,\quad 0.6,\quad 0.4,
-$$
+$$ 0.8,\quad 0.6,\quad 0.4, $$
 
 则：
 
-$$
-\operatorname{NLL}\approx 0.551.
-$$
+$$ \operatorname{NLL}\approx 0.551. $$
 
 第二个模型给正确 token 的概率整体更高，所以 NLL 更低。
 
@@ -168,15 +145,11 @@ $$
 
 在 one-hot 正确标签下，分类交叉熵为：
 
-$$
-H(p,q)=-\sum_i p_i\log q_i.
-$$
+$$ H(p,q)=-\sum_i p_i\log q_i. $$
 
 正确分布 $p$ 只有正确 token 那一项为 1，于是它化简为：
 
-$$
-H(p,q)=-\log q_{\text{correct}}.
-$$
+$$ H(p,q)=-\log q_{\text{correct}}. $$
 
 因此，在我们当前的 token 预测实验中，“cross-entropy loss”和“平均 token NLL”通常是同一个量的两种说法。
 
@@ -194,9 +167,7 @@ $$
 
 困惑度（Perplexity，PPL）定义为：
 
-$$
-\operatorname{PPL}=\exp(\operatorname{NLL}).
-$$
+$$ \operatorname{PPL}=\exp(\operatorname{NLL}). $$
 
 它可以粗略理解为：模型每一步仿佛在多少个同等可能的候选之间犹豫。
 
@@ -239,9 +210,7 @@ PPL 也越低越好。但它仍受词表、分词器、语言和数据集影响�
 
 概率最高的 token 正好是真实 token，就算正确：
 
-$$
-\operatorname{top1}=\frac{\text{预测第一名正确的 token 数}}{\text{总 token 数}}.
-$$
+$$ \operatorname{top1}=\frac{\text{预测第一名正确的 token 数}}{\text{总 token 数}}. $$
 
 越高越好。它直观，但忽略概率质量：正确答案概率 `0.51` 和 `0.99` 都只记 1 分。
 
@@ -253,15 +222,11 @@ $$
 
 只有一整句或一个 block 的全部 token 都正确，才记 1：
 
-$$
-\operatorname{exact}=\frac{\text{完全正确的序列数}}{\text{总序列数}}.
-$$
+$$ \operatorname{exact}=\frac{\text{完全正确的序列数}}{\text{总序列数}}. $$
 
 它非常严格。假设每个 token 独立正确率为 $0.99$，64 token 全对的概率也只有：
 
-$$
-0.99^{64}\approx 0.526.
-$$
+$$ 0.99^{64}\approx 0.526. $$
 
 因此可能出现 token top-1 很高、sequence exact 仍明显较低的情况。
 
@@ -285,10 +250,7 @@ BLEU 越高，通常表示词组重合越多。但它有三个限制：
 
 TreeHeap 内部节点通常不是离散 token，而是 $d$ 维向量。预测状态 $\hat h$ 与真实状态 $h$ 的均方误差为：
 
-$$
-\operatorname{MSE}(\hat h,h)
-=\frac{1}{d}\sum_{j=1}^{d}(\hat h_j-h_j)^2.
-$$
+$$ \operatorname{MSE}(\hat h,h) =\frac{1}{d}\sum_{j=1}^{d}(\hat h_j-h_j)^2. $$
 
 MSE 越小，两个向量在欧氏坐标上越接近。它常用于：
 
@@ -301,11 +263,7 @@ MSE 越小，两个向量在欧氏坐标上越接近。它常用于：
 
 如果所有状态本来都接近零，一个永远输出零的模型也可能获得很小的 MSE。因此我们常使用归一化 MSE：
 
-$$
-\operatorname{NMSE}
-=\frac{\lVert \hat h-h\rVert_2^2}
-{\lVert h\rVert_2^2+\epsilon}.
-$$
+$$ \operatorname{NMSE} =\frac{\lVert \hat h-h\rVert_2^2} {\lVert h\rVert_2^2+\epsilon}. $$
 
 NMSE 把误差与目标自身能量比较，更容易跨深度比较。它仍不是语义指标：向量恢复得近，不保证 decoder 功能也恢复，所以还要测恢复后的 NLL 或准确率。
 
@@ -315,9 +273,7 @@ NMSE 把误差与目标自身能量比较，更容易跨深度比较。它仍不
 
 两个向量的余弦相似度为：
 
-$$
-\cos(a,b)=\frac{a\cdot b}{\lVert a\rVert_2\lVert b\rVert_2}.
-$$
+$$ \cos(a,b)=\frac{a\cdot b}{\lVert a\rVert_2\lVert b\rVert_2}. $$
 
 范围通常为 $[-1,1]$：
 
@@ -327,9 +283,7 @@ $$
 
 余弦距离常写成：
 
-$$
-d_{\cos}(a,b)=1-\cos(a,b).
-$$
+$$ d_{\cos}(a,b)=1-\cos(a,b). $$
 
 它适合检索和几何聚类，但会忽略模长。例如 $a$ 与 $100a$ 的余弦相似度仍为 1。历史 checkpoint 出现平均 cosine `0.985` 时，我们把它看作“状态可能过度坍缩”的警报，而不是模型很好。
 
@@ -343,9 +297,7 @@ $$
 
 概率分布 $p$ 的熵为：
 
-$$
-H(p)=-\sum_i p_i\log p_i.
-$$
+$$ H(p)=-\sum_i p_i\log p_i. $$
 
 当概率集中在一个候选上时，熵较低；当许多候选接近均匀时，熵较高。
 
@@ -355,15 +307,11 @@ $$
 
 两个概率分布 $p$ 与 $q$ 的 KL 散度为：
 
-$$
-D_{KL}(p\Vert q)=\sum_i p_i\log\frac{p_i}{q_i}.
-$$
+$$ D_{KL}(p\Vert q)=\sum_i p_i\log\frac{p_i}{q_i}. $$
 
 KL 越小，两个概率桶越接近。它不是普通距离，因为通常：
 
-$$
-D_{KL}(p\Vert q)\ne D_{KL}(q\Vert p).
-$$
+$$ D_{KL}(p\Vert q)\ne D_{KL}(q\Vert p). $$
 
 在 TreeHeap 干预实验中，可以比较正常输出分布与“交换子堆后”的输出分布。KL 很大说明概率桶发生明显变化，但仍需判断变化是否朝正确答案方向移动；因此 KL 常与 NLL delta 配合使用。
 
@@ -371,9 +319,7 @@ $$
 
 当前全量训练把语言预测与 detail 修复联合起来：
 
-$$
-L_{total}=L_{language}+\lambda L_{repair}.
-$$
+$$ L_{total}=L_{language}+\lambda L_{repair}. $$
 
 $L_{language}$ 是 token NLL，$L_{repair}$ 是状态 NMSE，$\lambda$ 是人为设定的权重。两项的数值单位和自然尺度不同，不能因为写在一个加法式里就把它们当作同一种误差。
 
@@ -385,12 +331,7 @@ $L_{language}$ 是 token NLL，$L_{repair}$ 是状态 NMSE，$\lambda$ 是人为
 
 早期 TreeHeap 讨论还使用过 InfoNCE。给定 query $q$、正确对象 $k^+$ 和一组候选 $k_j$，一种常见形式为：
 
-$$
-L_{InfoNCE}
-=-\log
-\frac{\exp(s(q,k^+)/\tau)}
-{\sum_j\exp(s(q,k_j)/\tau)}.
-$$
+$$ L_{InfoNCE} =-\log \frac{\exp(s(q,k^+)/\tau)} {\sum_j\exp(s(q,k_j)/\tau)}. $$
 
 $s$ 可以是点积或余弦相似度，$\tau$ 是温度。它把“正确配对应该比错误配对更相似”变成可微训练信号。
 
@@ -404,9 +345,7 @@ InfoNCE 的成败高度依赖负样本。把实际上合理的配对误当负样
 
 Margin 是正确候选分数与最强错误候选分数之差：
 
-$$
-\operatorname{margin}=s_{\text{correct}}-max_{j\ne correct}s_j.
-$$
+$$ \operatorname{margin}=s_{\text{correct}}-\max_{j\ne correct}s_j. $$
 
 正 margin 表示正确候选领先；越大通常越稳。但 margin 的绝对大小依赖评分尺度，必须在同一模型和任务内比较。
 
@@ -414,10 +353,7 @@ $$
 
 对每个 query 在候选库中检索最相近对象。如果排名第一的是对应目标，就命中：
 
-$$
-\operatorname{retrieval@1}
-=\frac{\text{第一名检索正确数}}{\text{query 总数}}.
-$$
+$$ \operatorname{retrieval@1} =\frac{\text{第一名检索正确数}}{\text{query 总数}}. $$
 
 它适合检查 TreeHeap 状态是否保留样本身份或关系。但必须和 BoW、随机 hash、flat embedding 等基线比较。`0.630` 本身无法说明 TreeHeap 有优势；若 BoW 是 `0.629`，只能称作几乎持平。
 
@@ -431,10 +367,7 @@ probe 能从内部状态读出一个属性，只说明信息与状态相关，�
 
 例如把 root 清零：
 
-$$
-\Delta_{root}
-=\operatorname{NLL}(root=0)-\operatorname{NLL}(normal).
-$$
+$$ \Delta_{root} =\operatorname{NLL}(root=0)-\operatorname{NLL}(normal). $$
 
 若 $\Delta_{root}>0$，清除 root 使预测变差，说明 root 对当前功能有因果贡献。数值越大，破坏通常越严重。
 
@@ -444,10 +377,7 @@ $$
 
 把 batch 中每个目标配上另一个样本的 source：
 
-$$
-\Delta_{source}
-=\operatorname{NLL}(shuffled\ source)-\operatorname{NLL}(correct\ source).
-$$
+$$ \Delta_{source} =\operatorname{NLL}(shuffled\ source)-\operatorname{NLL}(correct\ source). $$
 
 若差值接近零，decoder 可能主要依赖目标语言先验；若显著为正，说明输出确实依赖输入样本。
 
@@ -473,21 +403,15 @@ repaired   运行修复 kernel 后
 
 损伤量为：
 
-$$
-D=\operatorname{NLL}_{damaged}-\operatorname{NLL}_{clean}.
-$$
+$$ D=\operatorname{NLL}_{damaged}-\operatorname{NLL}_{clean}. $$
 
 修复量为：
 
-$$
-R=\operatorname{NLL}_{damaged}-\operatorname{NLL}_{repaired}.
-$$
+$$ R=\operatorname{NLL}_{damaged}-\operatorname{NLL}_{repaired}. $$
 
 恢复比例为：
 
-$$
-\operatorname{RecoveryFraction}=\frac{R}{D}.
-$$
+$$ \operatorname{RecoveryFraction}=\frac{R}{D}. $$
 
 例如：
 
@@ -499,9 +423,7 @@ repaired NLL = 6.22
 
 则语言能力的恢复比例约为：
 
-$$
-\frac{15.59-6.22}{15.59-5.69}\approx 94.6\%.
-$$
+$$ \frac{15.59-6.22}{15.59-5.69}\approx 94.6\%. $$
 
 超过 100% 有时也会出现，表示该批次上 repaired NLL 暂时低于 clean NLL。这通常来自采样噪声、正则化效果或评估方差，不能直接解释成“损坏后反而更聪明”。
 
@@ -521,9 +443,7 @@ NLL 之外，我们还记录：
 
 相邻 token 重复的比例：
 
-$$
-\frac{\#(y_t=y_{t-1})}{T-1}.
-$$
+$$ \frac{\#(y_t=y_{t-1})}{T-1}. $$
 
 过高可能表示模型陷入“我我我我”式循环，但无法捕捉较长周期的重复。
 
@@ -539,9 +459,7 @@ $$
 
 Spearman 相关系数比较两个变量的排名关系。例如深度增加时 NLL 是否单调变化：
 
-$$
-\rho\in[-1,1].
-$$
+$$ \rho\in[-1,1]. $$
 
 - $\rho\approx 1$：一个增大时另一个也按排名增大；
 - $\rho\approx -1$：一个增大时另一个按排名减小；
@@ -559,9 +477,7 @@ Spearman 适合只有少量深度点、且不假定线性关系的情况。但�
 
 用多个随机种子重复整个训练，报告均值和离散程度：
 
-$$
-\bar x=\frac{1}{n}\sum_i x_i.
-$$
+$$ \bar x=\frac{1}{n}\sum_i x_i. $$
 
 如果三个 seed 中只有一个成功，不能只报告那个成功值。
 
@@ -571,9 +487,7 @@ Bootstrap 从已有样本中有放回重采样，反复计算目标统计量，�
 
 例如同组交换与异组交换的损伤差为 `0.00187`，bootstrap 95% 区间为：
 
-$$
-[-0.00395,\ 0.00745].
-$$
+$$ [-0.00395,\ 0.00745]. $$
 
 区间跨过 0，表示当前样本不足以稳定判断差值方向。因此功能等价 Claim 没有得到支持。
 
