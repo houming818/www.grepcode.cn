@@ -12,7 +12,7 @@ tags: [SPR, TreeHeap, ARA, Echo, Lifting Scheme, Mask, Encoder, Decoder, Origina
 
 这篇文章要回答一个很具体的问题：
 
-> 一句话已经被 encoder 写进 TreeHeap，形成完整的 \(H_{state}\) 以后，如果把原始 token 和 leaf 读取通道全部遮住，还能不能只凭 \(H_{state}\) 把它恢复出来？
+> 一句话已经被 encoder 写进 TreeHeap，形成完整的 $H_{state}$ 以后，如果把原始 token 和 leaf 读取通道全部遮住，还能不能只凭 $H_{state}$ 把它恢复出来？
 
 答案是：
 
@@ -63,7 +63,7 @@ H_state
 
 原词在进入 encoder 以前就被删除了。
 
-因此，\(H_{state}\) 中没有原词的完整信息。模型只能学习条件概率：
+因此，$H_{state}$ 中没有原词的完整信息。模型只能学习条件概率：
 
 $$
 P(x_{\mathrm{mask}}\mid x_{\mathrm{visible}}).
@@ -161,7 +161,7 @@ root        0.0079%
 
 我们采用 lifting scheme，也就是可逆小波中常用的“预测与更新”结构。
 
-设左右子节点状态为 \(L\) 和 \(R\)，共享 predictor 为 \(P_\theta\)。
+设左右子节点状态为 $L$ 和 $R$，共享 predictor 为 $P_\theta$。
 
 先计算 detail：
 
@@ -177,11 +177,11 @@ $$
 
 其中：
 
-- \(D\) 是留在当前深度的带地址细节；
-- \(U\) 是唯一允许继续上传的 parent；
-- \(P_\theta\) 是所有节点、所有深度共享的卷积 kernel。
+- $D$ 是留在当前深度的带地址细节；
+- $U$ 是唯一允许继续上传的 parent；
+- $P_\theta$ 是所有节点、所有深度共享的卷积 kernel。
 
-当 \(P_\theta(L)=L\) 时：
+当 $P_\theta(L)=L$ 时：
 
 $$
 D=R-L,
@@ -210,7 +210,7 @@ D = 左右子树之间的差异
 
 ## 4. 为什么它可以严格逆运算
 
-decoder 从 \(U,D\) 恢复 \(L,R\)：
+decoder 从 $U,D$ 恢复 $L,R$：
 
 $$
 L=U-\frac12D,
@@ -236,7 +236,7 @@ D+P_\theta(L)
 =R.
 $$
 
-因此，只要 encoder 和 decoder 使用同一个 \(P_\theta\)，就有：
+因此，只要 encoder 和 decoder 使用同一个 $P_\theta$，就有：
 
 $$
 UNFOLD_\theta(FOLD_\theta(L,R))=(L,R).
@@ -244,9 +244,9 @@ $$
 
 这里有一个重要事实：
 
-> \(P_\theta\) 不需要线性，也不需要自己可逆。
+> $P_\theta$ 不需要线性，也不需要自己可逆。
 
-decoder 不是计算 \(P_\theta^{-1}\)，而是在恢复出 \(L\) 以后，再调用一次同一个 \(P_\theta(L)\)。
+decoder 不是计算 $P_\theta^{-1}$，而是在恢复出 $L$ 以后，再调用一次同一个 $P_\theta(L)$。
 
 这就像两个人使用同一本私人字典。字典内容可以通过数据学习，但写入和读出必须遵守同一个协议。
 
@@ -299,7 +299,7 @@ root + detail-4
 
 ### 6.1 演绎部分：代数保证闭包
 
-只要保存完整的 root 和 details，无论 \(P_\theta\) 的参数是什么，FOLD/UNFOLD 都应该闭合。
+只要保存完整的 root 和 details，无论 $P_\theta$ 的参数是什么，FOLD/UNFOLD 都应该闭合。
 
 我们用随机连续向量测试深度 1 到 6 的树：
 
@@ -313,7 +313,7 @@ root + detail-4
 
 ### 6.2 归纳部分：语料决定私人坐标系
 
-如果 Echo 永远精确，单独用 Echo loss 训练 \(P_\theta\) 是没有意义的。
+如果 Echo 永远精确，单独用 Echo loss 训练 $P_\theta$ 是没有意义的。
 
 因为任何 predictor 都会被自己的 UNFOLD 抵消：
 
@@ -350,7 +350,7 @@ $$
 
 predictor 的最大梯度范数为 0.50191，参数变化量为 16.13119。语料梯度确实改变了抽水 kernel。
 
-然后，我们使用这个**经过归纳学习的 \(P_\theta\)**，遮住全部 leaf，只凭训练形成的 \(H_{state}\) 逆运算：
+然后，我们使用这个**经过归纳学习的 $P_\theta$**，遮住全部 leaf，只凭训练形成的 $H_{state}$ 逆运算：
 
 | Echo 指标 | 结果 |
 |---|---:|
@@ -428,7 +428,7 @@ root 被删除后，Echo token accuracy 至少下降 10%
 不过可以保留一个更窄的结论：
 
 1. lifting FOLD/UNFOLD 已经闭合；
-2. 全部 leaf 被 mask 后，可以只凭 \(H_{state}\) 完整 Echo；
+2. 全部 leaf 被 mask 后，可以只凭 $H_{state}$ 完整 Echo；
 3. 每层 detail 都是地址敏感且有因果作用的；
 4. root 对整块闭合和 next-token 都有因果作用；
 5. 真实语料梯度能够训练 predictor；

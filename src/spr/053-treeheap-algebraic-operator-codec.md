@@ -31,15 +31,15 @@ Houming818 提出了两个比“再调一个模型”更根本的判断：
 
 地址规则是：
 
-\[
+$$
 \operatorname{left}(i)=2i,\qquad \operatorname{right}(i)=2i+1
-\]
+$$
 
 为了让错误可以被客观识别，我们构造一个简单的数论世界：
 
-\[
+$$
 A[2i]=2A[i],\qquad A[2i+1]=2A[i]+1
-\]
+$$
 
 若根节点为 1，合法状态就是 `[1,2,3,4,5,6,7]`。实验随机选择一段子堆，用 TreeHeap 原生算子破坏它：
 
@@ -52,17 +52,17 @@ SUBTREE_PLUS(address, depth, delta)
 
 ## 2. encoder 学习什么
 
-这里的参数 \(\theta\) 不是目标 TreeHeap，也不保存每一棵答案树。它是在所有节点上共享的小型识别 kernel：
+这里的参数 $\theta$ 不是目标 TreeHeap，也不保存每一棵答案树。它是在所有节点上共享的小型识别 kernel：
 
-\[
+$$
 K_\theta(H,i)\rightarrow\bigl(P(o),P(i),P(d),P(\delta)\bigr)
-\]
+$$
 
-- \(H\)：当前被破坏的完整 TreeHeap 状态；
-- \(i\)：kernel 正在观察的候选地址；
-- \(o\)：`mirror` 或 `plus`；
-- \(d\)：递归深度；
-- \(\delta\)：加法参数。
+- $H$：当前被破坏的完整 TreeHeap 状态；
+- $i$：kernel 正在观察的候选地址；
+- $o$：`mirror` 或 `plus`；
+- $d$：递归深度；
+- $\delta$：加法参数。
 
 kernel 读取当前节点及其父子违反数论规则的残差，并汇总各相对深度的子堆残差。它不输出 511 个新数，而是输出一张很短的维修工单：
 
@@ -75,16 +75,16 @@ delta    = -3
 
 概率桶坍缩后，固定 executor 执行逆操作：
 
-\[
+$$
 \hat H=E_{\text{TreeHeap}}(H,\hat o,\hat i,\hat d,\hat\delta)
-\]
+$$
 
-最后检查 \(\hat H\) 是否与原始合法 TreeHeap 逐节点完全相同。神经网络没有权限直接生成答案数组。
+最后检查 $\hat H$ 是否与原始合法 TreeHeap 逐节点完全相同。神经网络没有权限直接生成答案数组。
 
 | 对象 | 含义 | 是否学习 |
 |---|---|---|
-| \(H\) | 当前 TreeHeap 数据状态 | 每个样本不同 |
-| \(\theta\) | 识别操作程序的共享 kernel | 梯度学习 |
+| $H$ | 当前 TreeHeap 数据状态 | 每个样本不同 |
+| $\theta$ | 识别操作程序的共享 kernel | 梯度学习 |
 | 地址和算子 | `2i/2i+1`、mirror、subtree plus | 固定数学规则 |
 
 ## 3. 怎样避免背答案

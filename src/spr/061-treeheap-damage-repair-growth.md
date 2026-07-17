@@ -104,39 +104,39 @@ Houming818 从自我观察提出了另一种可能：
 
 > 回溯一个句子或一个刹那时，意识可能先出现一个相关性最高的轮廓，然后围绕这个轮廓构造细节。它不是机械地抽取“必然信息”，而是在当前背景下判断什么最重要。
 
-若把这个猜想转换成数学语言，每个局部节点应产生一个价值概率桶。设当前查询或背景为 \(q\)，局部状态为 \(H_{\text{local}}\)，候选处理方式为 \(a\)：
+若把这个猜想转换成数学语言，每个局部节点应产生一个价值概率桶。设当前查询或背景为 $q$，局部状态为 $H_{\text{local}}$，候选处理方式为 $a$：
 
-\[
+$$
 s_a=K_\theta(q,H_{\text{local}},a),
-\]
+$$
 
-\[
+$$
 p(a)=\operatorname{softmax}\left(\frac{s_a}{\tau}\right).
-\]
+$$
 
-候选 \(a\) 可以包括保留左侧、保留右侧、合成关系、停止收缩等操作。训练阶段先保持软分布：
+候选 $a$ 可以包括保留左侧、保留右侧、合成关系、停止收缩等操作。训练阶段先保持软分布：
 
-\[
+$$
 H_{\text{parent}}
 =
 \sum_a p(a)\,T_a(H_{\text{local}}).
-\]
+$$
 
 温度下降以后，分布才可能接近：
 
-\[
+$$
 a^*=\arg\max_a s_a.
-\]
+$$
 
 这里的“重要”不是人工语法标签，而是反事实价值：
 
-\[
+$$
 V(a)
 =
 \mathcal L_{\text{without }a}
 -
 \mathcal L_{\text{with }a}.
-\]
+$$
 
 去掉某部分后任务 Loss 增加得越多，它在当前背景下的上传价值越高。
 
@@ -173,15 +173,15 @@ TreeHeap 能否根据其他尺度和位置重新生成它？
 
 当前审计采用：
 
-\[
+$$
 \Delta L_{\text{ablation}}
 =
 L_{\text{damaged}}-L_{\text{clean}}.
-\]
+$$
 
-若 \(\Delta L\) 很大，我们知道模型依赖被消融状态。但这也可能意味着系统非常脆弱：一个节点损坏，整体立刻失效。
+若 $\Delta L$ 很大，我们知道模型依赖被消融状态。但这也可能意味着系统非常脆弱：一个节点损坏，整体立刻失效。
 
-若 \(\Delta L\) 很小，也有两种解释：
+若 $\Delta L$ 很小，也有两种解释：
 
 1. 模型从未使用这个节点；
 2. 其他节点包含冗余，能够替代它。
@@ -190,21 +190,21 @@ L_{\text{damaged}}-L_{\text{clean}}.
 
 因此下一阶段必须把三个状态分开：
 
-\[
+$$
 L_{\text{clean}},
 \qquad
 L_{\text{damaged}},
 \qquad
 L_{\text{repaired}}.
-\]
+$$
 
-- \(L_{\text{clean}}\)：完整 TreeHeap 的任务损失；
-- \(L_{\text{damaged}}\)：破坏局部状态后、尚未修复的损失；
-- \(L_{\text{repaired}}\)：运行修复 kernel 后的损失。
+- $L_{\text{clean}}$：完整 TreeHeap 的任务损失；
+- $L_{\text{damaged}}$：破坏局部状态后、尚未修复的损失；
+- $L_{\text{repaired}}$：运行修复 kernel 后的损失。
 
 定义修复率：
 
-\[
+$$
 \rho
 =
 \frac{
@@ -212,13 +212,13 @@ L_{\text{damaged}}-L_{\text{repaired}}
 }{
 L_{\text{damaged}}-L_{\text{clean}}+\epsilon
 }.
-\]
+$$
 
 | 修复率 | 含义 |
 |---:|---|
-| \(\rho=0\) | 没有修回任何损失 |
-| \(\rho=0.5\) | 修复了一半损失 |
-| \(\rho=1\) | 回到完整状态的任务水平 |
+| $\rho=0$ | 没有修回任何损失 |
+| $\rho=0.5$ | 修复了一半损失 |
+| $\rho=1$ | 回到完整状态的任务水平 |
 
 这条曲线才是“可损后生长”的直接评价。
 
@@ -228,19 +228,19 @@ L_{\text{damaged}}-L_{\text{clean}}+\epsilon
 
 现有 learned lifting FOLD 写成：
 
-\[
+$$
 D=R-P_\theta(L),
-\]
+$$
 
-\[
+$$
 U=L+A_\phi(D).
-\]
+$$
 
-其中 \(U\) 是上传的粗状态，\(D\) 是留在当前地址的 detail。完整的 root 与所有 addressed detail 仍然构成闭合的 \(H_{\text{state}}\)。
+其中 $U$ 是上传的粗状态，$D$ 是留在当前地址的 detail。完整的 root 与所有 addressed detail 仍然构成闭合的 $H_{\text{state}}$。
 
 当某个 detail 损坏时，旧做法是清零并直接观察 Loss。新的做法需要先预测缺失残差：
 
-\[
+$$
 \hat D
 =
 G_\psi
@@ -250,23 +250,23 @@ H_{\text{sibling}},\,
 \text{path},\,
 W
 \right),
-\]
+$$
 
 其中：
 
-- \(U\) 提供更高层轮廓；
+- $U$ 提供更高层轮廓；
 - sibling 提供同一局部的横向约束；
 - path 告诉模型缺失发生在什么地址；
-- \(W\) 是已学习的世界模型或上下文状态；
-- \(G_\psi\) 是共享的 repair kernel。
+- $W$ 是已学习的世界模型或上下文状态；
+- $G_\psi$ 是共享的 repair kernel。
 
 随后执行 UNFOLD：
 
-\[
+$$
 (\hat L,\hat R)
 =
 \operatorname{UNFOLD}(U,\hat D).
-\]
+$$
 
 如果更低层仍有缺损，同一个过程继续递归：
 
@@ -415,9 +415,9 @@ FEEDBACK
 
 破坏目标 subheap 后，必须满足：
 
-\[
+$$
 L_{\text{damaged}}>L_{\text{clean}}.
-\]
+$$
 
 否则可能只是模型从未使用该位置，不能称为修复。
 
@@ -425,11 +425,11 @@ L_{\text{damaged}}>L_{\text{clean}}.
 
 运行 repair kernel 后：
 
-\[
+$$
 L_{\text{repaired}}<L_{\text{damaged}}.
-\]
+$$
 
-并预注册最低修复率 \(\rho\)。
+并预注册最低修复率 $\rho$。
 
 ### P3：修复必须使用跨尺度信息
 
@@ -511,13 +511,13 @@ wrong-address transplantation
 
 因此下一步不应继续只比较 root zero 或 detail zero 的一次性 Loss。消融仍然必要，但它只负责确认“损伤真实发生”。核心指标必须变成：
 
-\[
+$$
 \text{Damage}
 \rightarrow
 \text{Repair}
 \rightarrow
 \text{Recovered capability}.
-\]
+$$
 
 TreeHeap 真正值得追求的，也许不是一个永不缺失的完美容器，而是一种能够在缺失中继续生长的结构。
 
