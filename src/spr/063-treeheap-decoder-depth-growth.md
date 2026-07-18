@@ -4,8 +4,8 @@ date: 2026-07-18
 lastmod: 2026-07-18
 weight: 63
 author: Houming818 & Codex Review
-description: "从删除式消融转向递归深度剂量实验：逐层增加 TreeHeap 的可读子结构，观察 Decoder 的 Loss 是否形成结构特有的生长曲线，并用等节点 Flat、随机树、乱边和未见深度外推排除单纯信息量增加。"
-tags: [SPR, TreeHeap, ARA, Decoder, Recursion, Depth, Ablation, Causal Inference, Emergence]
+description: "从删除式消融转向递归深度剂量实验：用约150字长文本构造二叉到八叉 TreeHeap，观察 Decoder 的 Loss 是否随递归深度形成结构特有的生长曲线，并用等节点 Flat、随机树、乱边、未见深度和未见叉数排除单纯信息量增加。"
+tags: [SPR, TreeHeap, ARA, Decoder, Recursion, Depth, Branching Factor, Ablation, Causal Inference, Emergence]
 ---
 
 # 不再只会拆模型：用递归深度观察 TreeHeap Decoder 的能力生长
@@ -322,6 +322,224 @@ $$G_d=L_{d-1}-L_d$$
 
 ---
 
+
+## 5.1 为什么需要约 150 字的长文本
+
+八个 leaf 适合讲原理，却不适合检验递归是否真的参与了语言解码。
+
+因为八个 leaf 的二叉树只有三层。decoder 即使背下一组有限模式，也可能看起来像学会了递归。
+
+新的主实验应使用约 150 个汉字的连续文本，例如：
+
+```text
+夏天傍晚，河岸边的风从树林里穿过。孩子们收起风筝，
+老人坐在石阶上聊天，远处的公交车刚刚亮起车灯……
+```
+
+实际样本需要来自 held-out 真实语料，而不是反复使用人工写的一段话。
+
+这里必须同时报告两个长度：
+
+- 原始中文字符数；
+- tokenizer 切分后的 BPE token 数，也就是实际 TreeHeap leaf 数。
+
+“约 150 字”是给人阅读的样本尺度；真正决定树高的是 leaf 数 $N$。
+
+长文本带来三个价值：
+
+1. 树能够自然形成多层递归，而不是只有两三步；
+2. root、粗粒度 parent 和细粒度 leaf 之间出现足够大的压缩距离；
+3. decoder 必须处理跨句和长程信息，局部 token 词袋更难解释全部结果。
+
+主任务可以使用“前 150 字编码，预测随后一小段真实文本”的 future-span NLL。这样 target 不在 source 里，避免把完整原句直接复制给 decoder。
+
+---
+
+## 5.2 不只改变深度，还要改变树的分支数
+
+Houming818 进一步提出：同一段约 150 字的文本，可以分别构造成二叉、三叉，一直到八叉 TreeHeap。
+
+这里的“度”容易与图论中的节点总度数混淆。本文统一使用：
+
+```text
+k 叉树 / branching factor k
+```
+
+表示每个 parent 最多接收 $k$ 个 children。
+
+固定 leaf 数为 $N$ 时，平衡 k 叉树的近似深度为：
+
+$$D_k=\lceil\log_k N\rceil$$
+
+假设 $N=150$，不同分支数的自然深度约为：
+
+| 分支数 k | 自然递归深度 | 完整树可容纳的 leaf 上界 |
+|---:|---:|---:|
+| 2 | 8 | 256 |
+| 3 | 5 | 243 |
+| 4 | 4 | 256 |
+| 5 | 4 | 625 |
+| 6 | 3 | 216 |
+| 7 | 3 | 343 |
+| 8 | 3 | 512 |
+
+这张表说明：
+
+- 二叉树路径较长，每次 FOLD 只合并少量邻居；
+- 八叉树路径较短，每次 FOLD 必须压缩更大的局部范围；
+- 四叉和五叉可能具有相同整数深度，但每个 parent 的信息负担不同；
+- 递归深度不是手工指定的标签，而是 leaf 数和分支规则共同产生的结果。
+
+实验不应该真的创建 625 个位置再用零填满。
+
+更合理的实现是 ragged balanced tree：
+
+```text
+每次从左到右
+最多取 k 个有效 child
+用同一个 FOLD kernel 合成 parent
+最后一组不足 k 个时使用 mask
+继续递归，直到只剩 root
+```
+
+这样只计算有效节点，并把每层有效节点数写进 Evidence。
+
+---
+
+## 5.3 为什么 k=2 到 k=8 是一条新的观察轴
+
+原来的深度剂量实验固定树结构，只改变 decoder 读到哪一层。
+
+现在我们得到两个变量：
+
+$$L(k,d)=\operatorname{NLL}(\text{k叉TreeHeap读取到深度d})$$
+
+其中：
+
+- $k$ 控制每次 FOLD 的局部压缩范围；
+- $d$ 控制 decoder 已经递归读取了多少层；
+- $L(k,d)$ 测量该条件下的预测损失。
+
+对同一段文本，可以画出多条曲线：
+
+```text
+k=2  二叉树深度曲线
+k=3  三叉树深度曲线
+...
+k=8  八叉树深度曲线
+```
+
+我们暂时不预测“叉数越大越好”或“二叉一定最好”。
+
+这正是实验要回答的问题。
+
+可能出现：
+
+- 小 $k$ 路径太长，信息经过多次压缩后衰减；
+- 大 $k$ 单次合并负担太重，parent 难以保存局部关系；
+- 中间某个 $k$ 在压缩率和局部表达之间形成更好的平衡；
+- 所有 $k$ 表现相同，说明当前 decoder 主要读取内容容量，而非树形递归。
+
+---
+
+## 5.4 必须使用同一个可变叉数 FOLD kernel
+
+如果二叉树、三叉树和八叉树各自拥有一套独立参数，就无法判断差异来自树结构还是参数数量。
+
+因此应定义一个最多支持八个 child 的共享 kernel：
+
+$$h_{parent}=F_\theta(h_1+e_1,\ldots,h_k+e_k,mask)$$
+
+其中：
+
+- $F_\theta$ 在所有深度和所有 $k$ 上共享；
+- $e_i$ 表示 child slot，而不是绝对 token 位置；
+- 不存在的 child 由 mask 排除；
+- $\theta$ 的参数量不随 $k$ 增加。
+
+decoder 的 READ kernel 同样共享：
+
+$$q_{d+1}=R_\phi(q_d,S_{k,d})$$
+
+于是改变 $k$ 和 $d$ 时，变化的是 TreeHeap 的递归组织方式，不是偷偷增加一套模型。
+
+更强的外推测试可以只训练：
+
+```text
+k = 2, 4, 8
+```
+
+再冻结参数，测试未见过的：
+
+```text
+k = 3, 5, 6, 7
+```
+
+如果中间叉数仍形成连续、合理的 Loss 曲线，说明 kernel 学到的可能是可组合规则，而不是记住三个树型编号。
+
+---
+
+## 5.5 不同叉数之间怎样公平比较
+
+同样的 depth，在不同 $k$ 下代表完全不同的信息量。
+
+例如：
+
+```text
+二叉树展开两层，最多看到 4 个 frontier 节点
+八叉树展开两层，最多看到 64 个 frontier 节点
+```
+
+因此不能只比较相同的 $d$。
+
+我们需要同时按三种横轴画图：
+
+1. 递归深度 $d$；
+2. 可见 frontier 节点数；
+3. 压缩比例。
+
+定义压缩比例：
+
+$$\rho_{k,d}=\frac{N_{frontier}(k,d)}{N_{leaf}}$$
+
+公平结论应该优先比较相近的 $\rho$、节点预算和 FLOPs。
+
+例如：
+
+```text
+二叉 depth 4，得到 16 个 frontier state
+四叉 depth 2，同样得到 16 个 frontier state
+八叉 depth 1，得到 8 个 state，作为最近的可用预算点
+```
+
+它们可能暴露近似数量的 frontier state。只有在这种等预算位置比较，才能判断哪种递归组织更有效。
+
+---
+
+## 5.6 更新后的实验矩阵
+
+主实验不再只是一条 depth 曲线，而是一张矩阵：
+
+| 变量 | 取值 |
+|---|---|
+| 文本长度 | 约 150 中文字符，并记录实际 BPE leaf 数 |
+| 分支数 | $k=2,3,4,5,6,7,8$ |
+| 读取深度 | $d=0,1,\ldots,D_k$ |
+| 结构条件 | learned TreeHeap、Random Tree、Shuffled Links、Flat、Repeated Root |
+| 参数 | FOLD 与 READ 在所有 $k,d$ 共享 |
+| 任务 | held-out future-span NLL，另报告自由生成样例 |
+| 重复 | 至少三个 seed |
+
+这套设计允许同时回答：
+
+1. 增加递归深度是否持续提供信息？
+2. 同等压缩率下，哪种分支数更有效？
+3. learned TreeHeap 是否优于随机树和扁平 memory？
+4. 未见深度和未见叉数能否外推？
+5. decoder 的能力曲线是否真的随递归结构生长？
+
+---
+
 ## 6. 仅仅看到 Loss 下降，仍然不能证明 TreeHeap
 
 深度增加时，decoder 通常会看到更多节点。
@@ -548,13 +766,14 @@ S3-DECODER-DEPTH-GROWTH-C01
 
 Claim：
 
-> 在相同节点、参数、训练数据和 READ 计算预算下，共享 kernel 递归读取合法 TreeHeap frontier，应形成优于 Random Tree、Flat Nodes、Shuffled Links 和 Repeated Root 的深度-Loss 生长曲线；该规律应部分外推到训练未见的更深递归。
+> 对约 150 字的真实长文本，在相同节点、参数、训练数据和 READ 计算预算下，同一组可变叉数 FOLD/READ kernel 递归读取二叉到八叉合法 TreeHeap frontier，应形成优于 Random Tree、Flat Nodes、Shuffled Links 和 Repeated Root 的深度-Loss 生长曲线；该规律应部分外推到训练未见的更深递归和未见叉数。
 
-这条 Claim 包含三个不同层次：
+这条 Claim 包含四个不同层次：
 
 1. decoder 能从增加的层级获得信息；
 2. 收益来自 TreeHeap 结构，不只是更多节点；
 3. 收益来自共享递归规律，不只是记住训练深度。
+4. 同一套算子能够处理不同分支数，而不是为每种树单独训练模型。
 
 三层必须分开报告。
 
@@ -600,13 +819,25 @@ $$\frac{Gain_{Tree}-Gain_{Shuffled}}{Gain_{Tree}}\ge 0.5$$
 0.02 NLL
 ```
 
-### P5：共享参数检查
+### P5：未见叉数外推
 
-所有深度必须使用同一组 READ kernel 参数。
+只用 $k=2,4,8$ 参与训练，冻结参数后测试 $k=3,5,6,7$。
 
-如果每层有独立参数，P4 不成立，实验不得宣称递归外推。
+至少两个未见叉数在等压缩率位置继续优于各自的 Random Tree 或 Flat 对照：
 
-### P6：重复性
+```text
+0.02 NLL
+```
+
+若只在训练见过的三个叉数有效，不能宣称 kernel 学到了可变叉数规则。
+
+### P6：共享参数检查
+
+所有深度和所有叉数必须使用同一组 FOLD/READ kernel 参数。
+
+如果每层或每种叉数有独立参数，P4/P5 不成立，实验不得宣称递归或叉数外推。
+
+### P7：重复性
 
 至少运行三个 seed。
 
@@ -651,6 +882,12 @@ $$\frac{Gain_{Tree}-Gain_{Shuffled}}{Gain_{Tree}}\ge 0.5$$
 结论：
 
 > 共享 READ kernel 出现了可重复应用的递归规律。
+
+### 情况 G：未见深度有效，但未见叉数失败
+
+结论：
+
+> 模型可能学会了固定树型上的递归，还没有学会可变分支数的通用 FOLD/READ 协议。
 
 即使出现情况 F，也不能自动宣称：
 
