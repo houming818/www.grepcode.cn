@@ -18,23 +18,15 @@ tags: [SPR, TreeHeap, ARA, Private Protocol, Encoder, Decoder, Lifting, Multi-He
 
 给定输入字符串 $X$ 和目标字符串 $Y$，encoder 把输入写入一个 TreeHeap 状态：
 
-$$
-H=E_\theta(X)
-$$
+$$H=E_\theta(X)$$
 
 decoder 只能读取这个状态，并生成输出概率：
 
-$$
-P(Y\mid X)=D_\phi(H)
-$$
+$$P(Y\mid X)=D_\phi(H)$$
 
 训练只使用最终输出的交叉熵：
 
-$$
-L(\theta,\phi)
-=
--\sum_t \log P_{\theta,\phi}(y_t\mid X,y_{<t})
-$$
+$$L(\theta,\phi)=-\sum_t \log P_{\theta,\phi}(y_t\mid X,y_{<t})$$
 
 梯度同时修改 $E_\theta$ 和 $D_\phi$。只要 encoder 写出的状态能被 decoder 正确读取，loss 就会下降。内部编码不需要像自然语言，也不需要让人类看懂。
 
@@ -55,23 +47,15 @@ $$
 
 一次局部 FOLD 接收左右两个状态 $a,r$，产生一个继续向上传播的 parent $p$，以及保留在当前地址的 detail $d$：
 
-$$
-p=a+U_\theta(r)
-$$
+$$p=a+U_\theta(r)$$
 
-$$
-d=r-P_\theta(p)
-$$
+$$d=r-P_\theta(p)$$
 
 decoder 使用相反方向的运算恢复 children：
 
-$$
-r=d+P_\theta(p)
-$$
+$$r=d+P_\theta(p)$$
 
-$$
-a=p-U_\theta(r)
-$$
+$$a=p-U_\theta(r)$$
 
 同一组共享 kernel 在整棵树上递归调用：
 
@@ -192,15 +176,11 @@ token embedding
 
 每个 head 有独立参数，并在相同 TreeHeap 地址上建立自己的状态：
 
-$$
-H^{(m)}=E_{\theta_m}(X),\qquad m=1,\ldots,M
-$$
+$$H^{(m)}=E_{\theta_m}(X),\qquad m=1,\ldots,M$$
 
 decoder 联合读取所有 head：
 
-$$
-P(Y\mid X)=D_\phi\left(H^{(1)},\ldots,H^{(M)}\right)
-$$
+$$P(Y\mid X)=D_\phi\left(H^{(1)},\ldots,H^{(M)}\right)$$
 
 所有 head 共用一个最终 seq2seq loss。没有“语法 head loss”“主题 head loss”或者人工分工。
 
@@ -208,7 +188,7 @@ $$
 
 ### C. Flat sequence baseline
 
-保留 token 顺序和相同 decoder，但 encoder 不使用父子地址、递归 FOLD 或 addressed detail。参数量和训练 FLOPs应尽量与 TreeHeap 匹配。
+保留 token 顺序和相同 decoder，但 encoder 不使用父子地址、递归 FOLD 或 addressed detail。参数量和训练 FLOPs 应尽量与 TreeHeap 匹配。
 
 ### D. 小型 Transformer baseline
 
@@ -265,9 +245,7 @@ E2 -> D1
 
 记正常 loss 为 $L_0$，干预后的 loss 为 $L_I$：
 
-$$
-\Delta L_I=L_I-L_0
-$$
+$$\Delta L_I=L_I-L_0$$
 
 只有当结构干预稳定产生正的 $\Delta L_I$，才能说对应结构参与了协议。
 
@@ -347,4 +325,3 @@ TreeHeap 在匹配预算下持续落后且没有外推或效率收益。
 ```
 
 协议内部可以保持沉默。结果必须公开说话。
-
