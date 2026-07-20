@@ -5,7 +5,7 @@ lastmod: 2026-07-20
 weight: 64
 author: Houming818 & Codex Review
 description: "TreeHeap 私有协议三 seed 正式实验结果：结构因果性和 encoder-decoder 私有配对成立，但多头收益与 flat 性能优势未成立。"
-tags: [SPR, TreeHeap, ARA, Private Protocol, Encoder, Decoder, Lifting, Multi-Head]
+tags: [SPR, TreeHeap, ARA, Private Protocol, Encoder, Decoder, Lifting, Multi-Head, Transformer]
 ---
 
 # TreeHeap 私有协议实验：协议成立，性能优势未成立
@@ -323,7 +323,7 @@ TreeHeap 在匹配预算下持续落后且没有外推或效率收益。
 
 这里的固定总宽度很重要。h4 不是偷偷使用四倍内存，而是把同一份 64 维通信预算拆成四份。这样才能测试“多个私有协议 head 的组合”本身是否有价值。
 
-本轮没有加入 Transformer。原因不是回避对比，而是预注册时已经规定：Stage A 先选择 TreeHeap 内部的 winner；只有 TreeHeap 多头机制先通过，Stage B 才和参数、FLOPs 匹配的 Transformer 交战。
+原始 Stage A 没有加入 Transformer。原因不是回避对比，而是预注册时规定先选择 TreeHeap 内部的 winner。正式结果出来后，我们接受读者提出的异议：flat GRU 只是最低可行基线，不能代表成熟架构。因此又独立预注册并执行了 C02 小型 Transformer reality check。它作为追加实验单独判决，不倒过来修改 Stage A 的门槛。
 
 ---
 
@@ -349,7 +349,51 @@ BLEU-4 也没有反转这个判断。四种模型的 BLEU 都只有约 5 分，�
 
 ---
 
-## 12. 第二张体检表：它到底有没有使用 TreeHeap
+## 12. 加测小型 Transformer：结果出现反转
+
+追加实验沿用完全相同的 WMT 切分和三个 seed。Transformer 使用 2 层 encoder、2 层 decoder、4 个 attention head、256 维状态和 512 维前馈层，共 `27,278,337` 个参数，与 TreeHeap h1 只差 `1.236%`。
+
+我们运行了两种配方：
+
+```text
+same recipe：和旧实验相同，4 epoch、AdamW、固定 lr=0.002
+standard recipe：8 epoch、warmup、cosine decay、dropout=0.1、label smoothing=0.1
+```
+
+结果如下：
+
+| 模型 | NLL ↓ | BLEU-4 ↑ | 每个 seed 平均训练时间 |
+|---|---:|---:|---:|
+| flat GRU | **6.0401** | **5.3530** | 111.6 秒 |
+| TreeHeap h1 | 6.1231 | 4.9719 | 405.4 秒 |
+| Transformer same recipe | 6.4423 ± 0.0062 | 2.9422 ± 0.1529 | **52.2 秒** |
+| Transformer standard recipe | 6.5330 ± 0.0043 | 2.8941 ± 0.1916 | 100.8 秒 |
+
+这一次 TreeHeap h1 明显胜过两个小 Transformer：
+
+```text
+相对 same-recipe Transformer：NLL 优势 0.3192
+相对 standard-recipe Transformer：NLL 优势 0.4099
+BLEU-4 优势：约 2 分
+```
+
+因此，“TreeHeap 只是在树上更慢地实现一个更差模型”这个最悲观判断，没有得到这次小 Transformer 实验的支持。至少在 30K 数据和约 27M 参数下，TreeHeap 的任务质量处于 flat GRU 与小 Transformer 之间。
+
+但这里绝不能偷换成“TreeHeap 达到了 Transformer top model”：
+
+1. flat GRU 仍然是质量第一名；
+2. TreeHeap h1 比 flat 慢约 3.63 倍，比 same-recipe Transformer 慢约 7.77 倍；
+3. 所谓 standard recipe 反而比 same recipe 差，说明它不是已经调到最优的强基线；
+4. standard Transformer 到第 8 epoch 时验证 NLL 还在下降，尚不能声称收敛；
+5. 本轮没有公开强 checkpoint，也不是标准榜单测试。
+
+所以 C02 的窄结论是：
+
+> **TreeHeap 通过了本次约 27M 小 Transformer 对照，但仍未达到“行业 top model”证明标准。**
+
+---
+
+## 13. 第二张体检表：它到底有没有使用 TreeHeap
 
 任务分数没有赢，不代表 TreeHeap 一定没被使用。我们保持模型参数不变，只破坏 H_state 的某一部分，再观察 NLL 增量：
 
@@ -380,7 +424,7 @@ $\Delta L$ 越大，说明被破坏的部分对输出越重要。
 
 ---
 
-## 13. 第三张体检表：encoder 和 decoder 是否形成私有配对
+## 14. 第三张体检表：encoder 和 decoder 是否形成私有配对
 
 三个 seed 分别训练出了三对 encoder 和 decoder。原配正常使用，然后把不同 seed 的双方交叉连接。
 
@@ -406,7 +450,7 @@ TreeHeap 干预有效：说明该协议实际经过 root、detail 和递归配�
 
 ---
 
-## 14. 预注册判决
+## 15. 预注册判决
 
 | Gate | 结果 | 判决依据 |
 |---|---|---|
@@ -435,7 +479,7 @@ ara/s3-generation/evidence/s3_private_protocol_battle_full/
 
 ---
 
-## 15. 为什么这次不再走迷宫
+## 16. 为什么这次不再走迷宫
 
 这一轮只回答一个问题：
 
