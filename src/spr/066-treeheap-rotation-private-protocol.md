@@ -1,11 +1,12 @@
 ---
-title: "[SPR-065] TreeHeap 旋转私有协议：秩序不是假设，而是幸存结果"
+title: "[SPR-066] TreeHeap 旋转私有协议：秩序不是假设，而是幸存结果"
 date: 2026-07-21
 lastmod: 2026-07-21
-weight: 65
+weight: 66
 author: Houming818 & Codex Review
 description: "从指数旋转的内存风险，到固定容量 subheap 自旋，再到 8 个随机种子的结构选择实验：TreeHeap 如何把旋转变成可学习、可逆、可证伪的私有协议。"
 tags: [SPR, TreeHeap, ARA, Rotation, Private Protocol, Encoder, Decoder, Fixed Memory, Subheap]
+aliases: ["/spr/065-treeheap-rotation-private-protocol.html"]
 ---
 
 # TreeHeap 旋转私有协议：秩序不是假设，而是幸存结果
