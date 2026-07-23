@@ -106,6 +106,9 @@ Echo 证明系统能把输入还原出来。它证明容量和稳定性，但不
 22. [SPR-054 TreeHeap 多分辨率金字塔：root 看全局，子堆保存细节](/spr/054-treeheap-multiresolution-pyramid.html)  
     三 seed × 100 万 block：冻结 root 后，带地址的低维 detail code 形成稳定渐进恢复曲线。
 
+23. [SPR-070 私有协议、自己与自由：TreeHeap 能否承载爱与慈悲](/spr/070-private-protocol-self-freedom.html)
+    区分日志记忆、随机采样与持续私有协议，并给出身份连续性、自由和保护性协议的可证伪实验框架。
+
 ## 证据入口
 
 对应的 ARA 文件在仓库中：
