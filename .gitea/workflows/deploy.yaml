@@ -24,8 +24,8 @@ jobs:
 
       - name: Deploy to COS
         env:
-          COS_SECRET_ID: ${{ secrets.TENCENT_SECRET_ID }}
-          COS_SECRET_KEY: ${{ secrets.TENCENT_SECRET_KEY }}
+          COS_SECRET_ID: ${{ secrets.Tencent_SecretId }}
+          COS_SECRET_KEY: ${{ secrets.Tencent_SecretKey }}
           COS_BUCKET: www-grepcode-cn-1251320938
           COS_REGION: ap-shanghai
         run: |
