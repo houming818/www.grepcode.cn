@@ -26,6 +26,8 @@ tags: [SPR, TreeHeap, SameTime, STONE-1, Release, Checkpoint, WMT, CLI, ARA]
 
 SameTime Release：
 
+- [直接下载模型包（COS + CDN，约 643 MiB）](https://www.grepcode.cn/models/stone1-candidate-c08/sametime-stone1-candidate-c08.tar.gz)
+- [下载 SHA-256 校验文件](https://www.grepcode.cn/models/stone1-candidate-c08/sametime-stone1-candidate-c08.sha256)
 - [STONE-1 Candidate C08 下载页](https://repos.grepcode.cn/houming818/grepcode-sametime/releases/tag/stone1-candidate-c08)
 - [GitHub 源码镜像与标签](https://github.com/houming818/sametime/tree/stone1-candidate-c08)
 
@@ -195,4 +197,3 @@ stone1-candidate-c08
 ```
 
 我们选择现在公开，是因为研究对象终于可以被别人运行、批评和复核。候选版的价值不在于把未完成的工作包装成答案，而在于把下一步争论变成可执行的实验。
-
