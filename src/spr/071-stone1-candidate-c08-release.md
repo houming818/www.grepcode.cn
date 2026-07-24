@@ -1,45 +1,58 @@
 ---
-title: "[SPR-071] STONE-1 Candidate C08 发布：第一个可以下载运行的 TreeHeap 翻译模型"
+title: "[SPR-071] STONE-1 Candidate C08：第一个可公开下载的 TreeHeap 模型"
 date: 2026-07-24
 lastmod: 2026-07-24
 weight: 71
 author: Houming818 & Codex Review
-description: "SameTime 首次公开可执行的固定根 TreeHeap 翻译 checkpoint、CLI、校验文件和完整实验边界；它是 STONE-1 候选版，不是完成声明。"
-tags: [SPR, TreeHeap, SameTime, STONE-1, Release, Checkpoint, WMT, CLI, ARA]
+description: "SameTime 首次通过对象存储与 CDN 公开 TreeHeap checkpoint、tokenizer 和 CLI；本文说明下载、运行方法、实验结果以及尚未通过的 STONE-1 Gate。"
+tags: [SPR, TreeHeap, SameTime, STONE-1, Checkpoint, CDN, WMT, CLI, ARA]
 ---
 
-# STONE-1 Candidate C08 发布：第一个可以下载运行的 TreeHeap 翻译模型
+# STONE-1 Candidate C08：第一个可公开下载的 TreeHeap 模型
 
-今天，我们把 **SameTime STONE-1 Candidate C08** 的源码、checkpoint、tokenizer、命令行程序和实验记录一起公开。
+SameTime 现在有了第一个可以被外部读者直接下载、运行和审核的 TreeHeap 模型：
 
-这是第一个可以由读者下载并实际输入英文句子的 TreeHeap 翻译候选版。它不是概念图，也不是只在训练脚本里存在的指标。
+> **STONE-1 Candidate C08**
 
-但请先看清名称：
+它是一个英译中的研究原型。它可以读取英文句子，在固定容量的 TreeHeap 中递归编码，再生成中文。
 
-> **Candidate 表示候选版。我们没有宣布 `STONE-1: COMPLETE`。**
+请特别注意名称中的 **Candidate**：
 
-当前结果已经跨过预先登记的单种子产品阈值，但多随机种子稳定性、正式延迟统计和同一 checkpoint 的完整结构因果审计仍未完成。
+> 这是 STONE-1 候选版，不是 `STONE-1: COMPLETE`。
+
+我们公开它，是为了让研究从“只能看文章和指标”前进到“任何人都可以运行 checkpoint”。公开下载不等于 Claim 已经完成。
 
 ---
 
-## 1. 下载
+## 1. 公网下载地址
 
-SameTime Release：
+模型文件放在腾讯云对象存储，通过 `www.grepcode.cn` 的 CDN 公开分发。
 
-- [直接下载模型包（COS + CDN，约 643 MiB）](https://www.grepcode.cn/models/stone1-candidate-c08/sametime-stone1-candidate-c08.tar.gz)
+- [下载模型包，约 643 MiB](https://www.grepcode.cn/models/stone1-candidate-c08/sametime-stone1-candidate-c08.tar.gz)
 - [下载 SHA-256 校验文件](https://www.grepcode.cn/models/stone1-candidate-c08/sametime-stone1-candidate-c08.sha256)
-- [STONE-1 Candidate C08 下载页](https://repos.grepcode.cn/houming818/grepcode-sametime/releases/tag/stone1-candidate-c08)
-- [GitHub 源码镜像与标签](https://github.com/houming818/sametime/tree/stone1-candidate-c08)
+- [查看 GitHub 公开源码和版本标签](https://github.com/houming818/sametime/tree/stone1-candidate-c08)
 
-发布包：
+研发使用的 Gitea 位于局域网，不是公共发布站点，因此本文不提供 Gitea 下载链接。
+
+模型包的公开信息：
 
 ```text
-sametime-stone1-candidate-c08.tar.gz
+文件：sametime-stone1-candidate-c08.tar.gz
 大小：673,397,070 bytes
 SHA-256：78b11e04ff94a54c559084c3ed7a65458bed4c9f6fcef102fcbe66f0bb9e570f
 ```
 
-压缩包包含：
+Linux 下可以这样检查文件：
+
+```bash
+sha256sum sametime-stone1-candidate-c08.tar.gz
+```
+
+只有输出与上面的 SHA-256 完全一致，才能确认下载文件没有损坏或被替换。
+
+---
+
+## 2. 压缩包里有什么
 
 ```text
 encoder-growth-step62500.pt
@@ -51,36 +64,61 @@ LICENSE
 SHA256SUMS
 ```
 
-训练语料没有随包再发布。源码和模型包使用 GPL-3.0，模型没有生产可用性保证。
+其中：
+
+- `encoder-growth-step62500.pt`：把英文 token 递归压入 TreeHeap 的 encoder；
+- `decoder-eos-tail.pt`：从 TreeHeap 多层状态生成中文的 decoder；
+- `sp-bpe-massive.model`：32K 词表的 SentencePiece tokenizer；
+- `MODEL_CARD.md`：用途、限制和训练信息；
+- `SHA256SUMS`：包内文件的独立校验值。
+
+训练语料没有包含在发布包中。源码和模型包使用 GPL-3.0，没有生产可用性保证。
 
 ---
 
-## 2. 它到底是什么
+## 3. 这个模型怎样工作
 
-C08 是一个英译中的研究 POC。输入英文 SentencePiece token 后，系统执行：
+C08 不是把整句直接塞进一个普通数组，然后给数组换一个 TreeHeap 名字。
+
+它的主要数据流是：
 
 ```text
-英文 token
-  -> 写入固定 64-leaf TreeHeap
-  -> encoder 从 leaf 向 root 递归 FOLD
-  -> 保存 root 和六层有地址的 detail
-  -> decoder 按多个分辨率读取 H_state
+英文句子
+  -> SentencePiece token
+  -> 写入固定 64 个 leaf
+  -> 从 leaf 向 root 递归 FOLD
+  -> 形成 root 和六层有地址的 detail
+  -> decoder 读取多个分辨率的 H_state
   -> 自回归生成中文 token
 ```
 
-短句不会改变树根的位置。空余 leaf 使用重复 EOS 填充，而且 EOS 对 encoder 可见。这相当于给模型一张固定尺寸的纸：句子变短时，不重新裁纸，而是在剩余位置写入统一的结束符。
+### 固定 64-leaf 是什么意思
 
-本次发布冻结了已经训练好的 C04 encoder，只训练 C08 decoder。decoder 在六个可见深度上都保留至少 2% 的读取权重，防止梯度通道在训练早期彻底关闭。
+无论输入句子有 12 个 token 还是 30 个 token，物理树根都不移动。
 
-这里的 2% 不是“正确答案”，而是一根最低水压管。它保证 decoder 有机会收到来自深层节点的学习信号；各层真正贡献多少，仍由训练决定。
+短句没有用完的 leaf 使用重复 EOS 填充。EOS 是“序列已经结束”的统一标记。它类似固定尺寸表格里的空白栏位：表格坐标不变，模型可以学习哪些位置已经超出正文。
+
+### 2% depth floor 是什么意思
+
+decoder 可以在 root 停止，也可以继续向更深层读取细节。
+
+早期实验发现，如果完全交给优化器选择，decoder 很容易只读 root，深层路径因为没有梯度而永久关闭。C08 因此给每个可见深度至少 2% 的读取概率。
+
+这 2% 像一根最低水压管：
+
+- 它不规定哪一层一定正确；
+- 它只保证每一层都有机会收到梯度；
+- 剩余读取权重仍由训练学习。
+
+本次发布使用冻结的 C04 encoder，只训练 C08 decoder。这样可以把“encoder 写入了什么”和“decoder 能否读出来”分开检查。
 
 ---
 
-## 3. 正式测试结果
+## 4. 正式测试结果
 
-正式任务在 io 的 RTX 3090 上执行，C08 decoder 使用一百万对 WMT-massive 英中样本训练 15,625 个更新步。
+C08 在 io 的 RTX 3090 上运行，decoder 使用一百万对 WMT-massive 英中样本训练 15,625 个更新步。
 
-| 指标 | 测试结果 | 趋势 |
+| 指标 | 测试结果 | 方向 |
 |---|---:|---|
 | Test NLL | 3.4517 | 越低越好 |
 | Token BLEU-4 | 13.8713 | 越高越好 |
@@ -90,42 +128,47 @@ C08 是一个英译中的研究 POC。输入英文 SentencePiece token 后，系
 
 ### NLL 是什么
 
-NLL 可以粗略理解为“模型对正确下一个 token 有多意外”。正确 token 的预测概率越高，NLL 越低。
+NLL 可以理解为：模型看到正确答案时有多意外。
 
-NLL 不能单独代表翻译质量。模型可能词序自然却翻错关系，也可能意思接近但选词不同。因此我们同时报告 BLEU、非空率、重复率，并公开实际输出。
+如果正确的下一个 token 得到更高概率，NLL 就会下降。但 NLL 不是完整的翻译质量评价。一个模型可能语句通顺却翻错人物、数字或关系。
 
 ### BLEU-4 是什么
 
-BLEU-4 检查生成文本中的 1 到 4 token 片段与参考译文有多少重合。13.87 说明模型已经不是随机吐字，但距离可靠翻译仍很远。
+BLEU-4 比较生成句子和参考译文中的 1 到 4 token 片段。
+
+`13.8713` 说明模型已经不是随机吐字，也能生成部分正确短语；但它距离可靠翻译仍然很远。
 
 ---
 
-## 4. 实际能说出什么
+## 5. 一个真实输出
 
-对下面的输入：
+输入：
 
 ```text
 Artificial intelligence can help people understand the world.
 ```
 
-记录的 checkpoint 输出：
+这个 checkpoint 的输出：
 
 ```text
 聪明人可以理解世界。
 ```
 
-它抓住了“智能、帮助理解世界”的轮廓，但把“人工智能”错误压缩成了“聪明人”。这正好说明当前状态：
+它保留了“智能帮助理解世界”的大致轮廓，却把“人工智能”错译成了“聪明人”。
 
-- 模型能够生成通顺的中文短句；
-- 模型能够恢复部分语义轮廓；
-- 模型仍会错译实体、关系、数字、修饰语和罕见词；
-- 它不是通用问答模型，也没有资格用于生产翻译。
+这个例子很好地说明了模型目前的能力边界：
+
+- 已经能够生成通顺的中文短句；
+- 能恢复一部分语义轮廓；
+- 仍会错译实体、关系、数字、名称和修饰语；
+- 不是通用问答模型；
+- 不适合生产翻译或高风险场景。
 
 ---
 
-## 5. 如何运行
+## 6. 如何运行
 
-解压发布包，在对应标签的 SameTime 仓库中安装 PyTorch 和 SentencePiece，然后运行：
+首先下载并解压模型包，再检出 SameTime 的对应 GitHub 标签。安装 PyTorch 和 SentencePiece 后运行：
 
 ```bash
 python3 ara/s3-generation/src/treeheap_fixed_root_cli.py translate \
@@ -145,55 +188,80 @@ python3 ara/s3-generation/src/treeheap_fixed_root_cli.py translate \
   --interactive
 ```
 
+这不是在线聊天服务。CLI 在运行机器本地加载 checkpoint 并执行推理。
+
 ---
 
-## 6. 这次真正证明了什么
+## 7. C08 支持了什么
 
-截至 C08，证据支持以下较窄结论：
+当前 evidence 支持以下较窄结论：
 
-1. 固定 64-leaf framing 可以完成真实英中语料上的训练和非 teacher-forcing 生成；
-2. 重复 EOS 尾部比确定性随机 token 尾部更容易形成稳定协议；
-3. 冻结 encoder 后，带 2% 深度下限的 decoder 可以跨过当前单种子产品阈值；
-4. SameTime 已经具备可复现 checkpoint、CLI 和模型包，不再只是实验草图。
+1. 固定 64-leaf TreeHeap 可以在真实英中语料上训练；
+2. 模型可以进行非 teacher-forcing 生成；
+3. 重复 EOS 比确定性随机 token 尾部更容易形成固定 framing 协议；
+4. 冻结 encoder 后，带深度下限的 decoder 能学习使用多层 `H_state`；
+5. checkpoint、tokenizer、CLI 和原始 evidence 已经可以独立分发和复核。
 
-我们暂时不能据此声称：
+但 C08 没有证明：
 
 - TreeHeap 已经优于 Transformer；
-- EOS 是普适的噪声修复算法；
-- decoder 已自然学会最佳停止深度；
-- TreeHeap 私有协议已经完成；
-- STONE-1 已通过。
+- EOS 是通用噪声修复方法；
+- decoder 可以在没有最低水压时自然维持深层读取；
+- 模型已经获得通用世界知识；
+- STONE-1 已经完成。
 
-特别是，当 EOS-trained decoder 切回 clean masked input 时，验证 NLL 恶化 0.3256。这说明它学到的是一种**固定 framing 协议**，不是可以修复任意尾部噪声的通用能力。
-
----
-
-## 7. STONE-1 还缺哪三项
-
-把候选版升级为正式里程碑，至少还要关闭三个 Gate：
-
-1. **三种子稳定性**：不是只在一颗随机种子上达到阈值；
-2. **正式延迟 P50**：把模型加载和纯生成耗时分开测量；
-3. **同 checkpoint 结构审计**：破坏左右地址、递归 detail 或读取深度后，性能必须按预测下降。
-
-第三项尤其重要。一个模型把向量放在树形数组里，不等于它真的利用了树。只有结构干预能稳定改变结果，我们才有资格说 TreeHeap 参与了计算。
+EOS-trained decoder 切回 clean masked 输入时，验证 NLL 恶化 `0.3256`。这意味着它学到的是特定输入约定，不是可以处理任意尾部形式的通用修复能力。
 
 ---
 
-## 8. 如何审核
+## 8. 为什么仍叫 Candidate
 
-完整 Claim、实验设计、反证条件和原始 evidence 位于 SameTime：
+STONE-1 正式完成至少还缺三项：
+
+1. **三种子稳定性**：不是只有一次训练达到指标；
+2. **正式推理 P50**：把模型加载时间与纯生成时间分开统计；
+3. **同 checkpoint 结构审计**：破坏左右地址、递归 detail 或读取深度后，性能必须按照预注册预测下降。
+
+第三项很重要。把参数存进树形数组并不能自动证明模型利用了树。只有结构干预产生稳定、可重复的损失，TreeHeap 的因果作用才成立。
+
+---
+
+## 9. 公开发布架构
+
+这次发布把三个职责分开：
+
+```text
+GitHub
+  -> 公开源码、版本标签和 CLI
+
+腾讯云对象存储
+  -> 保存大体积 checkpoint 和校验文件
+
+www.grepcode.cn CDN
+  -> 向公众提供下载
+```
+
+博客部署使用独立的站点文件清单，只删除已经从站点中移除的 HTML 和静态资源，不清理 `/models/`。因此删除旧博客时，线上 HTML 仍会同步删除，而模型文件不会被下一次博客部署误删。
+
+这种分离也明确了安全边界：内网 Gitea 负责研发协作，不承担公网下载。
+
+---
+
+## 10. 如何审核
+
+公开源码中的关键材料：
 
 ```text
 ara/s3-generation/logic/stone1_fixed_root_noise_repair.md
 ara/s3-generation/evidence/s3_stone1_fixed_root_noise_repair/
 ara/s3-generation/src/treeheap_fixed_root_cli.py
+release/stone1-candidate-c08/MODEL_CARD.md
 ```
 
-发布标签：
+GitHub 标签：
 
 ```text
 stone1-candidate-c08
 ```
 
-我们选择现在公开，是因为研究对象终于可以被别人运行、批评和复核。候选版的价值不在于把未完成的工作包装成答案，而在于把下一步争论变成可执行的实验。
+这次发布的意义不是宣布 TreeHeap 已经成功，而是把一个长期研究对象变成了别人真正能够下载、运行、质疑和复测的软件。
