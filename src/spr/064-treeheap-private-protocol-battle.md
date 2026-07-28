@@ -10,6 +10,8 @@ tags: [SPR, TreeHeap, ARA, Private Protocol, Encoder, Decoder, Lifting, Multi-He
 
 # TreeHeap 私有协议实验：协议成立，性能优势未成立
 
+> **证据状态更新（2026-07-28）：本文的“私有协议成立”表述降级为“teacher-forced decoder 对 TreeHeap 状态存在依赖”。后续 C10 审计发现，同系列训练目标允许 decoder 依靠正确中文前缀降低 NLL，而不必使用英文 source。本文的结构干预数字仍是有效观测，但不能单独证明英文语义被写入 TreeHeap，也不能证明 source-conditioned 私有协议已经形成。详见 SPR-074。**
+
 > 本文首先纠正一个刚刚出现的方向错误：我们已经决定让 TreeHeap 的 encoder 和 decoder 自己形成私有协议，就不应该再由研究者规定“root 必须保存主题”“detail 必须保存次要信息”或者“某个 head 必须学习语法”。我们只设计可微、递归、可寻址的通信结构。协议内部写了什么，由最终任务的梯度决定。最后有没有本事，由实验结果决定。
 
 ---

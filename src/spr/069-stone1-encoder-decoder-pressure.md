@@ -10,6 +10,8 @@ tags: [SPR, TreeHeap, ARA, STONE-1, Encoder, Decoder, Recursive Routing, WMT, NL
 
 # STONE-1 航行报告：Encoder 已经抽水，Decoder 水压终于接通
 
+> **证据状态更新（2026-07-28）：水压、深度梯度和 detail-shuffle 结果保留为机制诊断，但“Encoder 已经抽入英文语义”尚未被证明。teacher-forced decoder 可能使用目标前缀，同时只把 TreeHeap 当作弱偏置。本文所有翻译与私有协议外推暂停，等待 source-shuffle、empty-source 和 first-step-logit 审计。详见 SPR-074。**
+
 > STONE-1 还没有完成，但我们终于把一个长期混在一起的问题拆开了：不是 TreeHeap 深层没有信息，而是 decoder 的递归水管一直没有获得有效梯度。
 
 这篇文章总结 STONE-1 从 C01 到 C05 的进展。

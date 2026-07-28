@@ -10,6 +10,8 @@ tags: [SPR, TreeHeap, ARA, STONE-1, Private Protocol, Capacity, Rate Distortion,
 
 # 参数不是越多越好：TreeHeap 私有协议的容量与失真
 
+> **证据状态更新（2026-07-28）：本文的参数量、NLL 与计算成本记录仍有效，但 NLL 只能暂时解释为 teacher-forced 条件续写失真。由于英文 source 依赖尚未通过打乱与空输入审计，本文不能据此测量“翻译私有协议”的容量。详见 SPR-074。**
+
 > 一个模型要把训练数据中的规律压缩进有限参数，究竟需要多大空间？扩大 TreeHeap 参数，究竟是在增加可复用规律的容量，还是只是在增加一张更大的记忆表？
 
 STONE-1 C02 刚完成正式实验。模型确实使用了 TreeHeap 的左右地址、递归层级和可学习 codec，但仍没有达到产品门槛。

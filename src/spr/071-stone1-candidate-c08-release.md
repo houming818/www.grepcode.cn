@@ -10,6 +10,8 @@ tags: [SPR, TreeHeap, SameTime, STONE-1, Checkpoint, CDN, WMT, CLI, ARA]
 
 # STONE-1 Candidate C08：第一个可公开下载的 TreeHeap 模型
 
+> **发布状态更新（2026-07-28）：该下载包保留为可复现实验制品，但暂停称为“英译中模型候选”。后续同族 C10 checkpoint 在三个无关英文输入上生成了近乎相同的“一带一路”循环；代码审计发现 teacher forcing 与可见 EOS 尾部可能掩盖 source 忽略。C08/C09 必须通过新的条件依赖审计后，才能恢复 STONE-1 候选或完成状态。详见 SPR-074。**
+
 SameTime 现在有了第一个可以被外部读者直接下载、运行和审核的 TreeHeap 模型：
 
 > **STONE-1 Candidate C08**

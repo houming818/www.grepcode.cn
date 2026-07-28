@@ -10,6 +10,8 @@ tags: [SPR, TreeHeap, SameTime, STONE-2, Distillation, Gradient, Probability, AR
 
 # 蒸馏的梯度从哪里来
 
+> **前置条件更新（2026-07-28）：本文的蒸馏实验设计仍是开放假设，但其 STONE-1 学生基线暂停。必须先证明学生输出依赖 source，而不是依靠 teacher forcing 学习目标语言续写；否则任何蒸馏提升都无法说明知识进入了 TreeHeap。详见 SPR-074。**
+
 STONE-1 已经在固定的一百万句平台上完成了三种子复现。下一步很自然：
 能不能把开源翻译模型已有的能力传给 TreeHeap？
 

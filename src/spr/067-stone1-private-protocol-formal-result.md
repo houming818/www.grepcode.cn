@@ -10,6 +10,8 @@ tags: [SPR, TreeHeap, ARA, STONE-1, Private Protocol, WMT, Encoder, Decoder, NLL
 
 # STONE-1 正式体检：树地址成立，私有协议尚未学会
 
+> **证据状态更新（2026-07-28）：STONE-1 的完成判定与“英文语义进入 TreeHeap”的推断暂停。C10 代码审计发现，teacher forcing 和大面积可见 EOS 尾部没有被既有 gate 排除。地址交换造成 NLL 损伤，仍能证明 decoder 使用了某些树状态；它不能单独证明这些状态携带英文条件语义。详见 SPR-074。**
+
 > 这是一篇正式实验报告，也是一份“架构体检单”。STONE-1 在 io 的 RTX 3090 上连续运行约 7.57 小时，完成了 3 种结构方案、3 颗随机种子、共 9 次训练。程序没有崩溃，checkpoint 和 CLI 都成功产出，但核心 Claim 没有通过。更准确地说：**模型确实依赖 TreeHeap 的左右地址和层级秩序；然而当前的可学习方向 gate 没有形成比固定结构更好的 encoder-decoder 私有协议。**
 
 这不是“TreeHeap 已经失败”，也不是“再多跑几天就一定成功”。它把两个长期混在一起的问题第一次拆开了：
