@@ -24,6 +24,17 @@ https://github.com/houming818/sametime
 
 这套研究现在按 ARA（Architecture / Reasoning / Artifact）方式整理：每个结论都要有证据，每个强 claim 都要有反证标准。
 
+## TreeHeap 论文特别篇
+
+如果你第一次接触 TreeHeap，建议先读下面四篇，而不是从 SPR-001 顺序翻完整实验史：
+
+1. [SPR-077：TreeHeap 为什么不是把数组画成一棵树](/spr/077-treeheap-paper-origin-and-evolution.html)
+2. [SPR-078：一个句子怎样进入 TreeHeap](/spr/078-treeheap-paper-math-and-dataflow.html)
+3. [SPR-079：三种子 WMT 与双向 Dreams](/spr/079-treeheap-paper-evidence-and-dreams.html)
+4. [SPR-080：Claim 边界、否证条件与复现入口](/spr/080-treeheap-paper-boundaries-and-reproduction.html)
+
+完整中文论文保存在 [SameTime 开放仓库](https://github.com/houming818/sametime/blob/main/ara/papers/treeheap_emergent_protocol.zh.md)。
+
 ## 当前结论
 
 SPR 目前不能简单写成“路径即语义”。更准确的判断是：
