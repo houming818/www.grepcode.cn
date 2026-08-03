@@ -75,9 +75,7 @@ TreeHeap 只参与了 context 的计算。输出过程本身仍然是一台普�
 
 每一步执行的是一个确定函数：
 
-$$
-(h_t, y_{t-1}, C_t) \longmapsto y_t
-$$
+$$ (h_t, y_{t-1}, C_t) \longmapsto y_t $$
 
 其中 $h_t$ 是 GRU hidden state，$y_{t-1}$ 是上一个 token，$C_t$ 是重新从同一棵 TreeHeap 读出的 context。
 
@@ -140,9 +138,7 @@ source H_state
 
 TreeHeap encoder 的完整状态应写成：
 
-$$
-H = \left(r, \{d_k\}, \{g_k\}, \{m_k\}\right)
-$$
+$$ H = \left(r, \{d_k\}, \{g_k\}, \{m_k\}\right) $$
 
 其中：
 
@@ -157,35 +153,23 @@ $$
 
 因此，新 decoder 不应直接让 root 输出所有 token，也不应反复读取同一个摘要。它应该先预测目标 TreeHeap 的完整状态：
 
-$$
-H_{target} = K_{\theta}(H_{source})
-$$
+$$ H_{target} = K_{\theta}(H_{source}) $$
 
 然后执行：
 
-$$
-Y = \operatorname{UNFOLD}(H_{target})
-$$
+$$ Y = \operatorname{UNFOLD}(H_{target}) $$
 
 ## 6. 不重新发明 split：复用现有 TreeHeap 逆运算
 
 当前 encoder 已经有一套严格的 FOLD/UNFOLD 方程。给定 parent、detail 和 gate，可以恢复左右子节点：
 
-$$
-a = p - U(d)
-$$
+$$ a = p - U(d) $$
 
-$$
-\hat{b} = d + P(a)
-$$
+$$ \hat{b} = d + P(a) $$
 
-$$
-left = g \cdot a + (1-g)\cdot\hat{b}
-$$
+$$ left = g \cdot a + (1-g)\cdot\hat{b} $$
 
-$$
-right = g \cdot\hat{b} + (1-g)\cdot a
-$$
+$$ right = g \cdot\hat{b} + (1-g)\cdot a $$
 
 这里：
 
@@ -232,10 +216,7 @@ source tokens
 
 所有目标位置同时计算交叉熵：
 
-$$
-L_{token} = \frac{1}{128}\sum_{i=1}^{128}
-CE\left(W_o z_i, y_i\right)
-$$
+$$ L_{token} = \frac{1}{128}\sum_{i=1}^{128} CE\left(W_o z_i, y_i\right) $$
 
 $z_i$ 是第 $i$ 个目标 leaf。梯度路径为：
 

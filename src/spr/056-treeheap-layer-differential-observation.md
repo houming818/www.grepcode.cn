@@ -50,9 +50,7 @@ TreeHeap 的 encoder 和 decoder 可以形成一套私有编码协议。
 
 共享 FOLD kernel 从左右子节点递归计算父节点：
 
-$$
-z_i^{(d+1)}=K_\theta\left(z_{2i}^{(d)},z_{2i+1}^{(d)},e_d\right).
-$$
+$$ z_i^{(d+1)}=K_\theta\left(z_{2i}^{(d)},z_{2i+1}^{(d)},e_d\right). $$
 
 其中，$e_d$ 是深度坐标。所有地址使用同一个 $K_\theta$，不是每个位置单独记一张参数表。
 
@@ -206,9 +204,7 @@ B：小明爱吃土豆。
 
 两句话只改变一个概念。对每个深度、每个地址计算：
 
-$$
-\Delta_i^{(d)}=H_i^{(d)}(B)-H_i^{(d)}(A).
-$$
+$$ \Delta_i^{(d)}=H_i^{(d)}(B)-H_i^{(d)}(A). $$
 
 如果 TreeHeap encoder 真正利用树结构，那么差分不应该平均污染整棵树。我们预测它主要分布在：
 
@@ -234,10 +230,7 @@ root 的较粗变化
 
 设被替换 token 的祖先路径为 $P$，全树节点集合为 $V$。差分能量集中率定义为：
 
-$$
-R_{path}=\frac{\sum_{i\in P}\left\|\Delta_i\right\|_2^2}
-{\sum_{j\in V}\left\|\Delta_j\right\|_2^2}.
-$$
+$$ R_{path}=\frac{\sum_{i\in P}\left\|\Delta_i\right\|_2^2} {\sum_{j\in V}\left\|\Delta_j\right\|_2^2}. $$
 
 如果 $R_{path}$ 很高，说明变化确实沿结构路径传播，而不是无地址地扩散。
 
@@ -245,9 +238,7 @@ $$
 
 不同深度不必保存相同含义。我们记录每层的相对差分：
 
-$$
-D_d=\frac{1}{|V_d|}\sum_{i\in V_d}\left\|\Delta_i^{(d)}\right\|_2.
-$$
+$$ D_d=\frac{1}{|V_d|}\sum_{i\in V_d}\left\|\Delta_i^{(d)}\right\|_2. $$
 
 低层可能表现为具体 token 替换；高层可能只表现为“食物类别内部发生变化”。这里不要求高层重新说出“土豆”二字。
 
@@ -264,11 +255,7 @@ $$
 
 如果多个句式中的差分方向显著一致，才说明 encoder 抽取了可迁移关系：
 
-$$
-cos(\Delta_{小明},\Delta_{小红})
->
-cos(\Delta_{小明},\Delta_{随机替换}).
-$$
+$$ cos(\Delta_{小明},\Delta_{小红}) > cos(\Delta_{小明},\Delta_{随机替换}). $$
 
 ### 7.4 子堆因果替换
 
@@ -298,19 +285,13 @@ D：Xiaoming likes eating potatoes.
 
 中文与英文可以拥有不同的私有编码坐标。我们不要求两棵树的原始 state 完全相等，而是学习一个受控对齐映射 $M$：
 
-$$
-M\Delta_{zh}\approx\Delta_{en}.
-$$
+$$ M\Delta_{zh}\approx\Delta_{en}. $$
 
 其中：
 
-$$
-\Delta_{zh}=H(小明爱吃土豆)-H(小明爱吃米饭),
-$$
+$$ \Delta_{zh}=H(小明爱吃土豆)-H(小明爱吃米饭), $$
 
-$$
-\Delta_{en}=H(Xiaoming\ likes\ potatoes)-H(Xiaoming\ likes\ rice).
-$$
+$$ \Delta_{en}=H(Xiaoming\ likes\ potatoes)-H(Xiaoming\ likes\ rice). $$
 
 如果对齐后的真实概念差分明显优于随机替换差分，就说明两套私有编码都捕获了同一种世界变化。
 

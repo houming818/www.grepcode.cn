@@ -64,13 +64,9 @@ H_src = root + details
 
 英文 token embedding 先放在叶子。每两个相邻状态记为 (L,R)，共享 predictor (P_θ) 计算：
 
-$$
-D=R-P_\theta(L),
-$$
+$$ D=R-P_\theta(L), $$
 
-$$
-U=L+\frac12D.
-$$
+$$ U=L+\frac12D. $$
 
 其中：
 
@@ -91,9 +87,7 @@ $$
 
 最终的英文表示不是一个 root 向量，而是：
 
-$$
-H_{src}=(root,D^{(5)},D^{(4)},\ldots,D^{(1)}).
-$$
+$$ H_{src}=(root,D^{(5)},D^{(4)},\ldots,D^{(1)}). $$
 
 root 提供大范围轮廓，detail 保留各个地址上没有被父节点完全表达的差异。
 
@@ -103,21 +97,13 @@ root 提供大范围轮廓，detail 保留各个地址上没有被父节点完�
 
 在深度 (d) 的节点 (v)，stop kernel 根据中文查询状态、节点状态和深度计算：
 
-$$
-p_{stop}(v,t)
-=
-\sigma K_{stop}(q_t,H_v,d).
-$$
+$$ p_{stop}(v,t) = \sigma K_{stop}(q_t,H_v,d). $$
 
 一部分概率停在当前节点，当前节点的信息进入中文 context；剩余概率继续向左右孩子展开：
 
-$$
-m_{stop}=m_v p_{stop},
-$$
+$$ m_{stop}=m_v p_{stop}, $$
 
-$$
-m_{expand}=m_v(1-p_{stop}).
-$$
+$$ m_{expand}=m_v(1-p_{stop}). $$
 
 branch kernel 再把 (m_{expand}) 分给 left 与 right。这个过程一直递归到所有概率已经停下，或者走到叶子。
 
@@ -134,17 +120,11 @@ root             0.20
 
 这些节点的加权和形成当前 source context，再与中文 decoder state 一起计算下一个 token：
 
-$$
-p(y_t\mid y_{<t},H_{src}).
-$$
+$$ p(y_t\mid y_{<t},H_{src}). $$
 
 训练时只有普通翻译损失：
 
-$$
-L_{S2}
-=
--\sum_t\log p(y_t\mid y_{<t},H_{src}).
-$$
+$$ L_{S2} = -\sum_t\log p(y_t\mid y_{<t},H_{src}). $$
 
 没有任何老师告诉 READ “这里应该停在 root”或“这里应该向左”。如果不同深度的读取规律形成，只能来自翻译 loss 的梯度。
 
@@ -212,9 +192,7 @@ NLL 是模型给正确中文 token 分配的负对数概率。正确答案概率
 
 ### 5.2 PPL：越小越好
 
-$$
-PPL=e^{NLL}.
-$$
+$$ PPL=e^{NLL}. $$
 
 它可以粗略理解为：模型在每一步还像是在多少个候选之间犹豫。它不是候选数的字面值，但越小通常越好。
 
@@ -238,9 +216,7 @@ $$
 
 递归 READ 比 root-only 改善：
 
-$$
-5.4337-5.0903=0.3434.
-$$
+$$ 5.4337-5.0903=0.3434. $$
 
 这说明一个 root 不够；读取 addressed details 明显有价值。
 
@@ -250,9 +226,7 @@ $$
 
 flat sequence 仍然领先递归 TreeHeap：
 
-$$
-5.0903-4.8103=0.2800.
-$$
+$$ 5.0903-4.8103=0.2800. $$
 
 BLEU-4 也低 0.641。TreeHeap 目前获得的是“存在性”，不是“优越性”。
 

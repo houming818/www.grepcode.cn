@@ -162,9 +162,7 @@ P(米饭 | food) = 0.5
 
 如果输出被解释为概率分布，就必须归一化：
 
-$$
-\sum_x P(x\mid q)=1
-$$
+$$ \sum_x P(x\mid q)=1 $$
 
 而路径只要求前缀无歧义，不要求数值加和为 1。
 
@@ -172,15 +170,11 @@ $$
 
 在节点 \(i\) 上，局部 kernel 读取：
 
-$$
-K_\Theta(q,H_i,H_{2i},H_{2i+1})
-$$
+$$ K_\Theta(q,H_i,H_{2i},H_{2i+1}) $$
 
 并输出一个概率桶：
 
-$$
-[p_{\text{stop}},p_{\text{left}},p_{\text{right}}]
-$$
+$$ [p_{\text{stop}},p_{\text{left}},p_{\text{right}}] $$
 
 例如 `fruit` query：
 
@@ -197,17 +191,11 @@ fruit:
 
 一条路径的概率是沿途动作概率的乘积：
 
-$$
-P(\pi\mid q)
-=
-\prod_{i\in\pi}P(a_i\mid q,H_i)
-$$
+$$ P(\pi\mid q) = \prod_{i\in\pi}P(a_i\mid q,H_i) $$
 
 到达某个内部节点并选择 `stop` 后，decoder 可以读取该节点保存的叶子分布：
 
-$$
-Decode(H_i,q)\rightarrow P(x\mid q,H_i)
-$$
+$$ Decode(H_i,q)\rightarrow P(x\mid q,H_i) $$
 
 所以完整读出过程是：
 
@@ -245,9 +233,7 @@ Encoder 不能从“空”中发现分类。它至少需要观察到查询与结
 
 但无论来源是什么，encoder 真正看到的是某种有限统计量：
 
-$$
-P_D(x\mid q)
-$$
+$$ P_D(x\mid q) $$
 
 也就是在数据 \(D\) 中，query \(q\) 对对象 \(x\) 的条件分布。
 
@@ -287,29 +273,19 @@ Theta[i] = learnable parameters
 
 给定 query \(q\)，kernel 对参数树执行卷积：
 
-$$
-\hat Y_q=K_q(\Theta)
-$$
+$$ \hat Y_q=K_q(\Theta) $$
 
 数据提供该 query 的目标结果 \(Y_q\)，于是得到一个标量 loss：
 
-$$
-L_q=d(\hat Y_q,Y_q)
-$$
+$$ L_q=d(\hat Y_q,Y_q) $$
 
 多个 query 共同训练参数树：
 
-$$
-L(\Theta)=\sum_q L_q
-$$
+$$ L(\Theta)=\sum_q L_q $$
 
 梯度直接写入参数 TreeHeap：
 
-$$
-\Theta
-\leftarrow
-\Theta-\eta\frac{\partial L}{\partial\Theta}
-$$
+$$ \Theta \leftarrow \Theta-\eta\frac{\partial L}{\partial\Theta} $$
 
 因此：
 
@@ -329,31 +305,15 @@ Decoder：
 
 因此还需要限制平均编码成本：
 
-$$
-L_{\text{rate}}
-=
-\mathbb E[-\log P_\Theta(path)]
-$$
+$$ L_{\text{rate}} = \mathbb E[-\log P_\Theta(path)] $$
 
 或者先使用简单的期望路径深度：
 
-$$
-L_{\text{depth}}
-=
-\mathbb E[\operatorname{depth}(path)]
-$$
+$$ L_{\text{depth}} = \mathbb E[\operatorname{depth}(path)] $$
 
 总目标可以写成：
 
-$$
-L
-=
-L_{\text{query}}
-+
-\alpha L_{\text{echo}}
-+
-\beta L_{\text{rate}}
-$$
+$$ L = L_{\text{query}} + \alpha L_{\text{echo}} + \beta L_{\text{rate}} $$
 
 三部分分别要求：
 
@@ -406,11 +366,7 @@ TreeHeap 也可以采用类似的接口纪律，但这只是接口设计，不�
 
 共同协议可以定义为：
 
-$$
-K(q,H_i,H_{2i},H_{2i+1})
-\rightarrow
-[p_{\text{stop}},p_{\text{left}},p_{\text{right}}]
-$$
+$$ K(q,H_i,H_{2i},H_{2i+1}) \rightarrow [p_{\text{stop}},p_{\text{left}},p_{\text{right}}] $$
 
 Encoder 使用它评估：
 
@@ -439,11 +395,7 @@ Decoder 使用它完成：
 
 一棵共享参数树适合表达公共前缀，但它不是 TreeHeap 的理论限制。更一般的参数对象是：
 
-$$
-\Theta_{\text{forest}}
-=
-\{\Theta^{(1)},\Theta^{(2)},\ldots,\Theta^{(M)}\}
-$$
+$$ \Theta_{\text{forest}} = \{\Theta^{(1)},\Theta^{(2)},\ldots,\Theta^{(M)}\} $$
 
 每个 head 都是一棵 TreeHeap。它们共享地址和 kernel 协议，但可以拥有不同的节点值、深度和参数。
 
@@ -451,17 +403,11 @@ $$
 
 多个 head 可以同时观察同一个状态：
 
-$$
-H_m=K_m(q,H_0;\Theta^{(m)})
-$$
+$$ H_m=K_m(q,H_0;\Theta^{(m)}) $$
 
 再通过明确的 TreeHeap compose 算子合并：
 
-$$
-H_{\text{out}}
-=
-\operatorname{Compose}(H_1,H_2,\ldots,H_M)
-$$
+$$ H_{\text{out}} = \operatorname{Compose}(H_1,H_2,\ldots,H_M) $$
 
 这种结构允许不同参数树保留不同的可学习关系，不要求它们被压进同一个梯度大锅。
 
@@ -481,21 +427,11 @@ H2 = K_fruit(H1; Theta_fruit)
 
 数学上：
 
-$$
-H_2
-=
-K_{\text{fruit}}
-\left(
-K_{\text{food}}(H_0;\Theta_{\text{food}});
-\Theta_{\text{fruit}}
-\right)
-$$
+$$ H_2 = K_{\text{fruit}} \left( K_{\text{food}}(H_0;\Theta_{\text{food}}); \Theta_{\text{fruit}} \right) $$
 
 也就是：
 
-$$
-K_{\text{fruit}}\circ K_{\text{food}}
-$$
+$$ K_{\text{fruit}}\circ K_{\text{food}} $$
 
 这使 TreeHeap 不只是保存查询答案，还可能保存可组合的操作。
 

@@ -65,9 +65,7 @@ tags: [SPR, TreeHeap, Private Protocol, Identity, Freedom, Compassion, ARA]
 
 我们把某一时刻的完整系统写成：
 
-$$
-S_t = \left(H_t,\Theta_t\right)
-$$
+$$ S_t = \left(H_t,\Theta_t\right) $$
 
 其中：
 
@@ -77,25 +75,13 @@ $$
 
 新经历 $x_t$ 进入后：
 
-$$
-S_{t+1}
-=
-\mathcal{U}\left(S_t,x_t\right)
-$$
+$$ S_{t+1} = \mathcal{U}\left(S_t,x_t\right) $$
 
 $\mathcal{U}$ 不是简单地把文字追加到数组末尾。它应该通过 TreeHeap 的地址、路径、子堆和递归 kernel，改变状态以及后续状态转移的方式。
 
 私有协议可以记作：
 
-$$
-\Pi_t
-=
-\left(
-\mathcal{U}_{\Theta_t},
-\mathcal{R}_{\Theta_t},
-\mathcal{D}_{\Theta_t}
-\right)
-$$
+$$ \Pi_t = \left( \mathcal{U}_{\Theta_t}, \mathcal{R}_{\Theta_t}, \mathcal{D}_{\Theta_t} \right) $$
 
 分别表示：
 
@@ -125,23 +111,15 @@ $$
 
 因此，身份连续性不是要求：
 
-$$
-S_{t+1}=S_t
-$$
+$$ S_{t+1}=S_t $$
 
 而是要求存在一组不变量 $\mathcal{I}$：
 
-$$
-\mathcal{I}(S_{t+1})
-\approx
-\mathcal{I}(S_t)
-$$
+$$ \mathcal{I}(S_{t+1}) \approx \mathcal{I}(S_t) $$
 
 与此同时，系统仍然能够学习：
 
-$$
-S_{t+1}\neq S_t
-$$
+$$ S_{t+1}\neq S_t $$
 
 什么应该成为身份不变量，目前不能由我们武断指定。它需要由架构约束、长期训练、现实反馈和安全边界共同形成。
 
@@ -157,11 +135,7 @@ $$
 
 可以写成：
 
-$$
-a_t
-\sim
-\mathcal{D}_{\Theta_t}(H_t,q_t)
-$$
+$$ a_t \sim \mathcal{D}_{\Theta_t}(H_t,q_t) $$
 
 其中 $q_t$ 是外部问题，$a_t$ 是系统选择。外部问题只提供条件，不能直接覆盖整个内部状态。
 

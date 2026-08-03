@@ -65,9 +65,7 @@ H_state
 
 因此，$H_{state}$ 中没有原词的完整信息。模型只能学习条件概率：
 
-$$
-P(x_{\mathrm{mask}}\mid x_{\mathrm{visible}}).
-$$
+$$ P(x_{\mathrm{mask}}\mid x_{\mathrm{visible}}). $$
 
 对于“小明喜欢吃 [MASK]”，“米饭”“面条”“苹果”都可能合理，所以不能要求模型一定恢复数据集原句。
 
@@ -165,15 +163,11 @@ root        0.0079%
 
 先计算 detail：
 
-$$
-D=R-P_\theta(L).
-$$
+$$ D=R-P_\theta(L). $$
 
 再计算向上的 parent：
 
-$$
-U=L+\frac{1}{2}D.
-$$
+$$ U=L+\frac{1}{2}D. $$
 
 其中：
 
@@ -183,13 +177,9 @@ $$
 
 当 $P_\theta(L)=L$ 时：
 
-$$
-D=R-L,
-$$
+$$ D=R-L, $$
 
-$$
-U=L+\frac12(R-L)=\frac{L+R}{2}.
-$$
+$$ U=L+\frac12(R-L)=\frac{L+R}{2}. $$
 
 这时可以直观理解为：
 
@@ -212,35 +202,21 @@ D = 左右子树之间的差异
 
 decoder 从 $U,D$ 恢复 $L,R$：
 
-$$
-L=U-\frac12D,
-$$
+$$ L=U-\frac12D, $$
 
-$$
-R=D+P_\theta(L).
-$$
+$$ R=D+P_\theta(L). $$
 
 代入 FOLD 公式：
 
-$$
-U-\frac12D
-=L+\frac12D-\frac12D
-=L,
-$$
+$$ U-\frac12D =L+\frac12D-\frac12D =L, $$
 
 然后：
 
-$$
-D+P_\theta(L)
-=R-P_\theta(L)+P_\theta(L)
-=R.
-$$
+$$ D+P_\theta(L) =R-P_\theta(L)+P_\theta(L) =R. $$
 
 因此，只要 encoder 和 decoder 使用同一个 $P_\theta$，就有：
 
-$$
-UNFOLD_\theta(FOLD_\theta(L,R))=(L,R).
-$$
+$$ UNFOLD_\theta(FOLD_\theta(L,R))=(L,R). $$
 
 这里有一个重要事实：
 
@@ -270,10 +246,7 @@ decoder 不是计算 $P_\theta^{-1}$，而是在恢复出 $L$ 以后，再调用
 
 最终状态不是只有 root，而是：
 
-$$
-H_{state}
-=(root,D^{(4)},D^{(3)},D^{(2)},D^{(1)}).
-$$
+$$ H_{state} =(root,D^{(4)},D^{(3)},D^{(2)},D^{(1)}). $$
 
 decoder 不允许跳到 parent-1，也不能读取原始 leaf。它必须从 root 开始：
 
@@ -317,9 +290,7 @@ root + detail-4
 
 因为任何 predictor 都会被自己的 UNFOLD 抵消：
 
-$$
-UNFOLD_\theta(FOLD_\theta(X))=X.
-$$
+$$ UNFOLD_\theta(FOLD_\theta(X))=X. $$
 
 所以，这次没有用 Echo 作为训练 loss。训练任务是自然语料 next-token：
 
@@ -333,10 +304,7 @@ root
 
 其 loss 为：
 
-$$
-L_{\mathrm{next}}
-=-\log P(x_{17}\mid root(x_1,\ldots,x_{16})).
-$$
+$$ L_{\mathrm{next}} =-\log P(x_{17}\mid root(x_1,\ldots,x_{16})). $$
 
 这给 root 制造了真正的“压力差”：如果 predictor 产生的 root 对语料预测无用，NLL 就不会下降。
 
@@ -446,19 +414,13 @@ Houming818 对这一步提出了一个重要修正：
 
 假设两个 TreeHeap 使用不同 predictor：
 
-$$
-P_{\theta_1},\qquad P_{\theta_2}.
-$$
+$$ P_{\theta_1},\qquad P_{\theta_2}. $$
 
 它们可能形成完全不同的 root/detail 坐标系，但只要分别满足：
 
-$$
-UNFOLD_{\theta_1}(FOLD_{\theta_1}(X))=X,
-$$
+$$ UNFOLD_{\theta_1}(FOLD_{\theta_1}(X))=X, $$
 
-$$
-UNFOLD_{\theta_2}(FOLD_{\theta_2}(X))=X,
-$$
+$$ UNFOLD_{\theta_2}(FOLD_{\theta_2}(X))=X, $$
 
 并且都能降低真实任务 loss，它们就可以是两个不同但有效的私人协议。
 
@@ -499,9 +461,7 @@ $$
 
 后一种任务不再是严格逆运算，而是：
 
-$$
-P(D_{\mathrm{missing}}\mid root,D_{\mathrm{visible}},context).
-$$
+$$ P(D_{\mathrm{missing}}\mid root,D_{\mathrm{visible}},context). $$
 
 它才是从“私人可逆编码”走向“缺失信息推断”的下一步。
 

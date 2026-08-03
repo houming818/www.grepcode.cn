@@ -46,9 +46,7 @@ STONE-1 已经在固定的一百万句平台上完成了三种子复现。下一
 
 交叉熵在输出 logits 上产生：
 
-$$
-\frac{\partial L}{\partial z}=p-y
-$$
+$$ \frac{\partial L}{\partial z}=p-y $$
 于是“米饭”获得负梯度，概率会被提高；“面条”获得正梯度，概率会被
 压低。梯度再经过 decoder、不同深度的读取概率、`H_state` 和递归 FOLD
 回到 encoder。
@@ -65,14 +63,10 @@ $$
 
 对应损失：
 
-$$
-L=-\sum_i q_i\log p_i
-$$
+$$ L=-\sum_i q_i\log p_i $$
 梯度为：
 
-$$
-\frac{\partial L}{\partial z}=p-q
-$$
+$$ \frac{\partial L}{\partial z}=p-q $$
 只要教师分布 \(q\) 已经保存，loss 和梯度就是确定的。这里的不确定性
 描述候选答案之间的权重，不表示计算过程随机。
 
@@ -128,18 +122,10 @@ TreeHeap。教师只离线生成候选字符串和候选分数：
 
 对应公式：
 
-$$
-L_A=CE(y,p)
-$$
-$$
-L_B=0.5CE(y,p)+0.5CE(y_1,p)
-$$
-$$
-L_C=0.5CE(y,p)+0.5\sum_k q_k CE(y_k,p)
-$$
-$$
-L_D=0.5CE(y,p)+0.5\sum_k \operatorname{shuffle}(q)_k CE(y_k,p)
-$$
+$$ L_A=CE(y,p) $$
+$$ L_B=0.5CE(y,p)+0.5CE(y_1,p) $$
+$$ L_C=0.5CE(y,p)+0.5\sum_k q_k CE(y_k,p) $$
+$$ L_D=0.5CE(y,p)+0.5\sum_k \operatorname{shuffle}(q)_k CE(y_k,p) $$
 D 很重要。它保留相同句子和相同计算量，只破坏教师对候选的排序。如果
 C 和 D 没有差别，就不能说教师的不确定性携带了有用知识。
 

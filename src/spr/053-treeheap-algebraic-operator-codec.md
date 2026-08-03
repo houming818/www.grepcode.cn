@@ -31,15 +31,11 @@ Houming818 提出了两个比“再调一个模型”更根本的判断：
 
 地址规则是：
 
-$$
-\operatorname{left}(i)=2i,\qquad \operatorname{right}(i)=2i+1
-$$
+$$ \operatorname{left}(i)=2i,\qquad \operatorname{right}(i)=2i+1 $$
 
 为了让错误可以被客观识别，我们构造一个简单的数论世界：
 
-$$
-A[2i]=2A[i],\qquad A[2i+1]=2A[i]+1
-$$
+$$ A[2i]=2A[i],\qquad A[2i+1]=2A[i]+1 $$
 
 若根节点为 1，合法状态就是 `[1,2,3,4,5,6,7]`。实验随机选择一段子堆，用 TreeHeap 原生算子破坏它：
 
@@ -54,9 +50,7 @@ SUBTREE_PLUS(address, depth, delta)
 
 这里的参数 $\theta$ 不是目标 TreeHeap，也不保存每一棵答案树。它是在所有节点上共享的小型识别 kernel：
 
-$$
-K_\theta(H,i)\rightarrow\bigl(P(o),P(i),P(d),P(\delta)\bigr)
-$$
+$$ K_\theta(H,i)\rightarrow\bigl(P(o),P(i),P(d),P(\delta)\bigr) $$
 
 - $H$：当前被破坏的完整 TreeHeap 状态；
 - $i$：kernel 正在观察的候选地址；
@@ -75,9 +69,7 @@ delta    = -3
 
 概率桶坍缩后，固定 executor 执行逆操作：
 
-$$
-\hat H=E_{\text{TreeHeap}}(H,\hat o,\hat i,\hat d,\hat\delta)
-$$
+$$ \hat H=E_{\text{TreeHeap}}(H,\hat o,\hat i,\hat d,\hat\delta) $$
 
 最后检查 $\hat H$ 是否与原始合法 TreeHeap 逐节点完全相同。神经网络没有权限直接生成答案数组。
 

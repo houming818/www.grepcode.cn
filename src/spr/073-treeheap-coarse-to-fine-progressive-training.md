@@ -69,33 +69,23 @@ leaf       补齐具体字词
 
 设只读取 root 时，模型输出一组词表 logits：
 
-$$
-z_0 = f_0(H_{\mathrm{root}})
-$$
+$$ z_0 = f_0(H_{\mathrm{root}}) $$
 
 开放第一个深度后，不重新推翻 root 的结果，而是学习一个修正量：
 
-$$
-z_1 = z_0 + \Delta z_1
-$$
+$$ z_1 = z_0 + \Delta z_1 $$
 
 继续开放更深层：
 
-$$
-z_d = z_0 + \sum_{k=1}^{d}\Delta z_k
-$$
+$$ z_d = z_0 + \sum_{k=1}^{d}\Delta z_k $$
 
 最终概率仍然是普通 softmax：
 
-$$
-p_d(y_t)=\operatorname{softmax}(z_d)
-$$
+$$ p_d(y_t)=\operatorname{softmax}(z_d) $$
 
 每个深度仍使用相同的 token 交叉熵：
 
-$$
-L_d=-\frac{1}{N}\sum_{t=1}^{N}\log p_d(y_t)
-$$
+$$ L_d=-\frac{1}{N}\sum_{t=1}^{N}\log p_d(y_t) $$
 
 这里没有发明新的“轮廓 loss”。区别只在于：TreeHeap 把最终预测拆成 root 的初始判断和每一层 detail 的残差修正。
 
@@ -129,17 +119,13 @@ $$
 
 ### 5.1 固定验证集 NLL
 
-$$
-L_d^{\mathrm{valid}}
-$$
+$$ L_d^{\mathrm{valid}} $$
 
 它回答：使用 root 到 depth $d$ 时，模型在未参与梯度更新的数据上表现如何。
 
 ### 5.2 新增深度的边际收益
 
-$$
-G_d=L_{d-1}^{\mathrm{valid}}-L_d^{\mathrm{valid}}
-$$
+$$ G_d=L_{d-1}^{\mathrm{valid}}-L_d^{\mathrm{valid}} $$
 
 如果 $G_d>0$，新深度提供了可泛化信息；如果长期接近零，该层可能暂时没有训练价值。
 

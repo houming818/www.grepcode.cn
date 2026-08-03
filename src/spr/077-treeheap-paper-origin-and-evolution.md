@@ -85,9 +85,7 @@ Houming818 用 `321` 与 `123` 提出了位权问题。数字顺序之所以有�
 
 类比到句子，可以让 token 向量 $s_i$ 与角色基 $e_r$ 做外积：
 
-$$
-T=\sum_i s_i\otimes e_{r_i}
-$$
+$$ T=\sum_i s_i\otimes e_{r_i} $$
 
 这样，`cat` 放进 SUBJECT 槽和 OBJECT 槽会得到不同张量。
 
@@ -138,9 +136,7 @@ ball + hand -> basketball
 
 最简单的 parent 是两个 child 求和或平均：
 
-$$
-parent=\frac{left+right}{2}
-$$
+$$ parent=\frac{left+right}{2} $$
 
 它能缩小节点数量，却会混淆左右次序和子堆身份。Decoder 无法知道被平均掉的差异来自哪里。
 
@@ -157,9 +153,7 @@ Decoder 需要时还能取回 detail
 
 所以完整 TreeHeap 状态不是 root：
 
-$$
-H=\left(root,\ all\ details,\ masks\right)
-$$
+$$ H=\left(root,\ all\ details,\ masks\right) $$
 
 ## 7. 为什么还需要 Butterfly
 

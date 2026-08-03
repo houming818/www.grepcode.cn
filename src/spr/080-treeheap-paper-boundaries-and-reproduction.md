@@ -219,9 +219,7 @@ ARA 不能保证研究者不犯错。它只保证错误可以被定位，并且�
 
 保持 checkpoint、kernel、调用次数和验证句相同，只替换地址配对图。对每个句子计算：
 
-$$
-\Delta L_i=L_i(wrong\ topology)-L_i(native)
-$$
+$$ \Delta L_i=L_i(wrong\ topology)-L_i(native) $$
 
 不能再拿不同数量的验证样本做差。
 

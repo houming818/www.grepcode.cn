@@ -46,9 +46,7 @@ sequence exact     = 100%
 
 如果 encoder 将整句话写成 TreeHeap，那么两个状态之间应该存在某种变化：
 
-$$
-\Delta H=H_{土豆}-H_{红薯}.
-$$
+$$ \Delta H=H_{土豆}-H_{红薯}. $$
 
 但 Houming818 很快指出，这不应该只是：
 
@@ -91,17 +89,11 @@ C + R_C ─> APPLY ─> predicted H_D ─> Decoder ─> D
 
 数学形式是：
 
-$$
-R_{AB}=DIFF(W,H_A,H_B),
-$$
+$$ R_{AB}=DIFF(W,H_A,H_B), $$
 
-$$
-R_C=TRANSPORT(W,R_{AB},H_A,H_C),
-$$
+$$ R_C=TRANSPORT(W,R_{AB},H_A,H_C), $$
 
-$$
-\hat H_D=APPLY(H_C,R_C).
-$$
+$$ \hat H_D=APPLY(H_C,R_C). $$
 
 我们还预先给出了：
 
@@ -301,9 +293,7 @@ Houming818 对这次实验的总结是：
 
 如果 encoder 和 decoder 使用自己的私有协议，那么：
 
-$$
-H_B-H_A
-$$
+$$ H_B-H_A $$
 
 依赖当前坐标系。对 hidden space 做一个保持功能不变的非线性重参数化，裸差分的方向就可能改变。
 
@@ -446,11 +436,7 @@ token概率桶
 
 FOLD 是多对一，因此 UNFOLD 不能是假装精确的逆函数：
 
-$$
-P(h_l,h_r\mid h_p,C)
-=
-UNFOLD(h_p,C).
-$$
+$$ P(h_l,h_r\mid h_p,C) = UNFOLD(h_p,C). $$
 
 它必须输出多种可能性，等待源语言、目标前缀和更大上下文进入后再坍缩。
 

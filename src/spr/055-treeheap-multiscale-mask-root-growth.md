@@ -208,27 +208,17 @@ Encoder 从一开始就看不到被遮挡内容：
 
 在每个内部节点，encoder 使用共享分析卷积核：
 
-$$
-p_i = K_{\mathrm{fold}}(h_{2i}, h_{2i+1})
-$$
+$$ p_i = K_{\mathrm{fold}}(h_{2i}, h_{2i+1}) $$
 
 继续递归：
 
-$$
-p_{\operatorname{parent}(i)}
-=
-K_{\mathrm{fold}}(p_i,p_j)
-$$
+$$ p_{\operatorname{parent}(i)} = K_{\mathrm{fold}}(p_i,p_j) $$
 
 同一个 kernel 在不同地址和深度重复使用。因此，一条信息若要到达 root，必须经历多次相同类型的局部抽取。
 
 Decoder 使用共享合成卷积核：
 
-$$
-(\hat h_{2i},\hat h_{2i+1})
-=
-K_{\mathrm{unfold}}(p_i,d_i)
-$$
+$$ (\hat h_{2i},\hat h_{2i+1}) = K_{\mathrm{unfold}}(p_i,d_i) $$
 
 Mask 训练产生的梯度会沿着递归链返回：
 
@@ -263,12 +253,7 @@ batch 6  subtree replacement
 
 每个 batch 只计算受损区域的交叉熵：
 
-$$
-L_d
-=
--\sum_{i\in M_d}
-\log P(x_i\mid H_{\setminus M_d})
-$$
+$$ L_d = -\sum_{i\in M_d} \log P(x_i\mid H_{\setminus M_d}) $$
 
 其中 $M_d$ 表示尺度为 $d$ 的被遮挡子堆。
 
@@ -289,21 +274,13 @@ $$
 
 最关键的测量不是普通 echo 能否达到 100%，而是：
 
-$$
-\Delta L_{\mathrm{root}}(d)
-=
-L_d(H_{\mathrm{root}}=0)-L_d(H_{\mathrm{root}})
-$$
+$$ \Delta L_{\mathrm{root}}(d) = L_d(H_{\mathrm{root}}=0)-L_d(H_{\mathrm{root}}) $$
 
 其中 $d$ 是被遮挡子堆的尺度。
 
 我们期待：
 
-$$
-\Delta L_{\mathrm{root}}(d+1)
->
-\Delta L_{\mathrm{root}}(d)
-$$
+$$ \Delta L_{\mathrm{root}}(d+1) > \Delta L_{\mathrm{root}}(d) $$
 
 用普通话说：
 

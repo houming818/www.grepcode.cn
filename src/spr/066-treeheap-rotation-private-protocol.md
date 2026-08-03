@@ -50,15 +50,11 @@ aliases: ["/spr/065-treeheap-rotation-private-protocol.html"]
 
 最初的递归构造可以写成：
 
-$$
-H_{n+1}=\operatorname{CAT}\left(H_n,R_n(H_n)\right)
-$$
+$$ H_{n+1}=\operatorname{CAT}\left(H_n,R_n(H_n)\right) $$
 
 其中，$R_n$ 是第 $n$ 轮旋转，`CAT` 把原树和旋转后的树连接起来。若每一轮都保留两个副本，逻辑候选数近似翻倍：
 
-$$
-N_n \approx 2^n N_0
-$$
+$$ N_n \approx 2^n N_0 $$
 
 这很诱人。递归 16 次，就能描述两百多万个逻辑候选。但如果把每个候选都实体化，内存同样会迅速耗尽。一个“搜索很快”的算法，如果靠无限复制内存换取速度，并不是真正的低成本推理。
 
@@ -88,9 +84,7 @@ $$
 
 新的架构只有一条硬规则：系统启动时获得容量为 $C$ 的节点池，此后任何旋转都必须留在同一空间内。
 
-$$
-R_{S,\phi}:\mathcal{H}_C\rightarrow\mathcal{H}_C
-$$
+$$ R_{S,\phi}:\mathcal{H}_C\rightarrow\mathcal{H}_C $$
 
 $S$ 是已有 subheap，$\phi$ 是一个有限、合法、可逆的地址置换。旋转前后必须满足：
 
@@ -112,31 +106,21 @@ R_inverse(R(H)) = H
 
 正常地址顺序是 `[A, B, C]`，mirror 后是 `[A, C, B]`。设局部卷积 kernel 为：
 
-$$
-u=w_0 A+w_L B+w_R C
-$$
+$$ u=w_0 A+w_L B+w_R C $$
 
 镜像后，同一个 kernel 看到的是：
 
-$$
-u'=w_0 A+w_L C+w_R B
-$$
+$$ u'=w_0 A+w_L C+w_R B $$
 
 数据没有被复制，变化的是“哪个状态位于 left，哪个状态位于 right”。随后用逆置换把结果写回原坐标。这样，旋转就不再是扩容器，而是一个**固定内存中的观察坐标变换**。
 
 整棵树上的传播写成：
 
-$$
-H_{t+1}=\operatorname{ApplyAllSubheaps}
-\left(H_t,K_\theta,R,g\right)
-$$
+$$ H_{t+1}=\operatorname{ApplyAllSubheaps} \left(H_t,K_\theta,R,g\right) $$
 
 其中 $K_\theta$ 是共享局部 kernel，$g$ 是是否启用某个旋转的 gate。经过 $t$ 轮，信息大约传播 $t$ 个结构跳数。增长的是感受野，不是节点池：
 
-$$
-\text{space}=O(C),\qquad
-\text{time}=O(T_{\max}C\cdot \operatorname{cost}(K))
-$$
+$$ \text{space}=O(C),\qquad \text{time}=O(T_{\max}C\cdot \operatorname{cost}(K)) $$
 
 $C$ 和 $T_{\max}$ 都是硬上限。达到上限仍然没有答案，就返回 `UNRESOLVED`。拿不到的解不是系统故障，而是接受有限算力的客观边界。
 
@@ -154,21 +138,15 @@ R：合法的结构旋转算子
 
 encoder 可以执行一段旋转程序，再通过 FOLD 把输入写进 $H_{state}$：
 
-$$
-H_{state}=E_{\theta_E}(X;R_1,\ldots,R_m)
-$$
+$$ H_{state}=E_{\theta_E}(X;R_1,\ldots,R_m) $$
 
 decoder 不需要让人类看懂中间状态，只要能学习对应的逆程序，再用 UNFOLD 读回目标：
 
-$$
-\hat X=D_{\theta_D}(H_{state};R_1^{-1},\ldots,R_m^{-1})
-$$
+$$ \hat X=D_{\theta_D}(H_{state};R_1^{-1},\ldots,R_m^{-1}) $$
 
 训练损失可以只看最终 echo：
 
-$$
-L_{echo}=\lVert \hat X-X\rVert_2^2
-$$
+$$ L_{echo}=\lVert \hat X-X\rVert_2^2 $$
 
 这像每个人不同的笔迹。纸上的轨迹可以不同，但只要写和读形成了稳定配对，协议就能工作。私有协议不是“无法验证”，因为我们仍能检查：原配是否成功、交叉配对是否失败、破坏一个旋转是否增大损失、地址和内存是否保持合法。
 
@@ -207,9 +185,7 @@ decoder 只有 6 个可训练 gate logit。它不知道正确程序，只能通�
 
 如果 encoder 使用任意可逆置换 $R$，decoder 使用精确逆变换 $R^{-1}$，那么：
 
-$$
-R^{-1}(R(H))=H
-$$
+$$ R^{-1}(R(H))=H $$
 
 不论 $R$ 是否保留父子关系，echo 都可以是零误差。因此：
 
@@ -243,10 +219,7 @@ $$
 
 子节点与父节点相关：
 
-$$
-x_{child}=\rho x_{parent}+\sqrt{1-\rho^2}\,\epsilon,
-\qquad \rho=0.92
-$$
+$$ x_{child}=\rho x_{parent}+\sqrt{1-\rho^2}\,\epsilon, \qquad \rho=0.92 $$
 
 父子边保存了可用于预测的信息。破坏边会让局部 decoder 更难工作。
 

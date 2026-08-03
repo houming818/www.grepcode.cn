@@ -40,9 +40,7 @@ tags: [SPR, TreeHeap, ARA, Butterfly, XOR, Long-Range, Reversible, Gradient, Exp
 
 当前 lifting TreeHeap 可以保存：
 
-$$
-H_{state}=\left(root,details,addresses\right)
-$$
+$$ H_{state}=\left(root,details,addresses\right) $$
 
 只要这些状态完整，FOLD/UNFOLD 可以做到数值闭合。
 
@@ -50,9 +48,7 @@ $$
 
 例如：
 
-$$
-relation(x_0,x_7)
-$$
+$$ relation(x_0,x_7) $$
 
 可能需要同时观察两个遥远 leaf。即使 root 和 details 没有丢失它们，decoder 仍然需要一条合适的计算路径把它们放到同一个局部 kernel 中。
 
@@ -70,9 +66,7 @@ $$
 
 一个直接方案是让 query 对所有 TreeHeap 节点做一次全局 softmax：
 
-$$
-C=\sum_i softmax(QK_i^T)V_i
-$$
+$$ C=\sum_i softmax(QK_i^T)V_i $$
 
 这样梯度很容易到达所有节点，但 READ 已经变成了 flat attention。树只负责提前制造一批向量，最终查询仍然是全局比较。
 
@@ -103,9 +97,7 @@ running cat is
 
 假设每个节点一轮只能与固定数量 $k$ 的邻居通信。经过 $t$ 轮，它最多影响大约 $k^t$ 个节点。要覆盖长度为 $N$ 的空间，至少需要：
 
-$$
-t=\Omega(\log_k N)
-$$
+$$ t=\Omega(\log_k N) $$
 
 因此，在不使用全连接的前提下，不能要求任意两个节点都一跳相遇。真正合理的目标是：
 
@@ -128,9 +120,7 @@ $$
 
 第 $s$ 轮，让节点 $i$ 与下面的地址通信：
 
-$$
-partner_s(i)=i\operatorname{XOR}2^s
-$$
+$$ partner_s(i)=i\operatorname{XOR}2^s $$
 
 三轮分别是：
 
@@ -154,28 +144,17 @@ $$
 
 最小的确定性 kernel 可以写成：
 
-$$
-c=\frac{a+b}{\sqrt{2}}
-$$
+$$ c=\frac{a+b}{\sqrt{2}} $$
 
-$$
-d=\frac{a-b}{\sqrt{2}}
-$$
+$$ d=\frac{a-b}{\sqrt{2}} $$
 
 它可以精确逆运算：
 
-$$
-a=\frac{c+d}{\sqrt{2}},\qquad
-b=\frac{c-d}{\sqrt{2}}
-$$
+$$ a=\frac{c+d}{\sqrt{2}},\qquad b=\frac{c-d}{\sqrt{2}} $$
 
 并保持总能量：
 
-$$
-\lVert a\rVert^2+\lVert b\rVert^2
-=
-\lVert c\rVert^2+\lVert d\rVert^2
-$$
+$$ \lVert a\rVert^2+\lVert b\rVert^2 = \lVert c\rVert^2+\lVert d\rVert^2 $$
 
 因此，在纯线性合同中，它不会自然放大或缩小 norm。它也是正交变换，反向梯度拥有相同的范数保持性质。
 
@@ -231,9 +210,7 @@ leaf softmax
 
 Butterfly 每轮只有 $N/2$ 次二节点操作，总操作数为：
 
-$$
-\frac{N}{2}\log_2N
-$$
+$$ \frac{N}{2}\log_2N $$
 
 它没有构造 $N\times N$ 的 token 对矩阵。
 
@@ -263,9 +240,7 @@ $$
 
 随机生成长度 32 的 token array，并给模型一个地址查询 $q$。输出位置 $i$ 的目标是：
 
-$$
-target[i]=source[i\operatorname{XOR}q]
-$$
+$$ target[i]=source[i\operatorname{XOR}q] $$
 
 训练只使用二进制中含一个或两个 `1` 的查询。测试使用从未见过的三位及以上组合，包括：
 
@@ -359,9 +334,7 @@ vs
 
 词表大小为 64，随机猜测准确率约为：
 
-$$
-\frac{1}{64}=1.5625\%
-$$
+$$ \frac{1}{64}=1.5625\% $$
 
 所以 adjacent-only 基本停留在随机水平。它虽然和 Butterfly 具有相同参数量和相同递归轮数，却始终重复相邻配对，无法把遥远地址的信息送到目标位置。
 

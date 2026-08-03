@@ -29,9 +29,7 @@ leaf
 
 如果记 leaf 为 $H_D$，那么：
 
-$$
-H_{d-1}=F_\theta(H_d),\qquad d=D,D-1,\ldots,1
-$$
+$$ H_{d-1}=F_\theta(H_d),\qquad d=D,D-1,\ldots,1 $$
 
 同一个 $F_\theta$ 在不同深度重复调用。这部分是真递归。
 
@@ -51,9 +49,7 @@ levels = [
 
 旧 READ 做的是：
 
-$$
-q_{d+1}=R_\phi(q_d,\,[h_{d,1},h_{d,2},\ldots,h_{d,n_d}])
-$$
+$$ q_{d+1}=R_\phi(q_d,\,[h_{d,1},h_{d,2},\ldots,h_{d,n_d}]) $$
 
 其中方括号只是当前层的平铺数组。`dose` 增加一层，本质上只是再读取一个不同长度的数组。
 
@@ -170,27 +166,19 @@ detail：留在 child 或 edge 上的预测残差
 
 定义 children 为 $c_1,\ldots,c_k$。先计算 parent：
 
-$$
-s_p=U_\theta(c_1,\ldots,c_k)
-$$
+$$ s_p=U_\theta(c_1,\ldots,c_k) $$
 
 再由 parent 和 slot 预测每个 child：
 
-$$
-\hat c_j=P_\phi(s_p,e_j)
-$$
+$$ \hat c_j=P_\phi(s_p,e_j) $$
 
 细节残差为：
 
-$$
-r_j=c_j-\hat c_j
-$$
+$$ r_j=c_j-\hat c_j $$
 
 于是 child 可以恢复为：
 
-$$
-\tilde c_j=P_\phi(s_p,e_j)+r_j
-$$
+$$ \tilde c_j=P_\phi(s_p,e_j)+r_j $$
 
 这里的 `coarse` 被抽到 parent，`detail residual` 没有硬塞进 root，而是保存在对应的边上。
 
@@ -224,9 +212,7 @@ $$
 
 Transformer/ResNet 残差大致是：
 
-$$
-x_{l+1}=x_l+f_l(x_l)
-$$
+$$ x_{l+1}=x_l+f_l(x_l) $$
 
 它提供接近恒等映射的信息与梯度通道，使深层网络不必在每一层重新创造输入。参考 [Deep Residual Learning](https://arxiv.org/abs/1512.03385)。
 

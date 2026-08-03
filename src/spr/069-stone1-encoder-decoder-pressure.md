@@ -68,18 +68,11 @@ STONE-1 不是“代码能跑”的里程碑，而是这三类证据必须同时
 
 一棵二叉 TreeHeap 的叶子保存局部 token 状态：
 
-$$
-H^{(0)}_1,H^{(0)}_2,\ldots,H^{(0)}_n
-$$
+$$ H^{(0)}_1,H^{(0)}_2,\ldots,H^{(0)}_n $$
 
 相邻左右节点经过同一个局部 FOLD kernel：
 
-$$
-\left(H^{(d+1)}_i,D^{(d)}_i\right)
-=
-\operatorname{FOLD}_{\theta}
-\left(H^{(d)}_{2i},H^{(d)}_{2i+1}\right)
-$$
+$$ \left(H^{(d+1)}_i,D^{(d)}_i\right) = \operatorname{FOLD}_{\theta} \left(H^{(d)}_{2i},H^{(d)}_{2i+1}\right) $$
 
 这里：
 
@@ -100,14 +93,7 @@ leaf → parent → grandparent → root
 
 完整状态不是只有 root：
 
-$$
-H_{\text{state}}
-=
-\left(
-H_{\text{root}},
-D^{(0)},D^{(1)},\ldots,D^{(L-1)}
-\right)
-$$
+$$ H_{\text{state}} = \left( H_{\text{root}}, D^{(0)},D^{(1)},\ldots,D^{(L-1)} \right) $$
 
 因此，讨论 TreeHeap 时必须区分：
 
@@ -307,21 +293,15 @@ route mass = [0, 0, 0, 0, 0, 1]
 
 递归臂的 valid NLL 改善：
 
-$$
-4.6301-3.5496=1.0805
-$$
+$$ 4.6301-3.5496=1.0805 $$
 
 最终递归臂相对 root 对照的 Test NLL 优势：
 
-$$
-3.5149-3.4636=0.0513
-$$
+$$ 3.5149-3.4636=0.0513 $$
 
 BLEU-4 提升：
 
-$$
-13.9564-13.5999=0.3565
-$$
+$$ 13.9564-13.5999=0.3565 $$
 
 提升不算巨大，但方向一致：NLL、PPL、BLEU 和重复率都更好。
 

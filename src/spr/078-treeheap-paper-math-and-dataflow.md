@@ -25,9 +25,7 @@ tags: [SPR, TreeHeap, Paper, Mathematics, Lifting, Butterfly, Encoder, Decoder]
 
 回归方程：
 
-$$
-y=wx+b
-$$
+$$ y=wx+b $$
 
 里面的 $w,b$ 是长期学习参数，$x$ 是当前输入，$y$ 是当前输出。
 
@@ -35,17 +33,13 @@ TreeHeap 也必须做同样区分。
 
 共享参数记作 $\theta$：
 
-$$
-\theta=\{embedding,Butterfly,FOLD,READ,GRU,output\}
-$$
+$$ \theta=\{embedding,Butterfly,FOLD,READ,GRU,output\} $$
 
 它们保存在 checkpoint 中，被全部训练样本共同使用。
 
 一个具体句子 $x$ 经过这些参数后，形成临时状态：
 
-$$
-H_\theta(x)=\left(root_x,details_x,masks_x\right)
-$$
+$$ H_\theta(x)=\left(root_x,details_x,masks_x\right) $$
 
 $H_\theta(x)$ 随句子改变，不是另一份模型参数。
 
@@ -68,9 +62,7 @@ H(x)：这套规则对当前句子的实例化
 
 对有效位置：
 
-$$
-x_i=E_{src}(w_i)
-$$
+$$ x_i=E_{src}(w_i) $$
 
 当前实现没有额外的位置 embedding。位置差异来自：
 
@@ -84,41 +76,29 @@ $$
 
 设 TreeHeap 有 $N=2^D$ 个 leaf。第 $s$ 轮中，地址 $i$ 与地址
 
-$$
-j=i\oplus2^s
-$$
+$$ j=i\oplus2^s $$
 
 通信。
 
 一对状态 $(a,b)$ 的可学习 kernel 为：
 
-$$
-b'=b+\alpha_s\tanh(F_\theta(a))
-$$
+$$ b'=b+\alpha_s\tanh(F_\theta(a)) $$
 
-$$
-a'=a+\alpha_s\tanh(G_\theta(b'))
-$$
+$$ a'=a+\alpha_s\tanh(G_\theta(b')) $$
 
 这里 $F_\theta,G_\theta$ 是共享的小型非线性网络。所有地址使用同一套 kernel，不为每一对节点单独学习一张表。
 
 逆运算按相反顺序计算：
 
-$$
-a=a'-\alpha_s\tanh(G_\theta(b'))
-$$
+$$ a=a'-\alpha_s\tanh(G_\theta(b')) $$
 
-$$
-b=b'-\alpha_s\tanh(F_\theta(a))
-$$
+$$ b=b'-\alpha_s\tanh(F_\theta(a)) $$
 
 所以 Butterfly 可以改变坐标，又不要求丢失输入。
 
 每轮有 $N/2$ 对，共有 $\log_2N$ 轮：
 
-$$
-\text{pair operations}=\frac{N}{2}\log_2N
-$$
+$$ \text{pair operations}=\frac{N}{2}\log_2N $$
 
 这是 $O(N\log N)$ 的稀疏通信，不分配 $N\times N$ 的稠密注意力矩阵。
 
@@ -126,13 +106,9 @@ $$
 
 Butterfly 之后，TreeHeap 开始逐层 FOLD。对于左右状态 $(l,r)$：
 
-$$
-d=r-P_\theta(l)
-$$
+$$ d=r-P_\theta(l) $$
 
-$$
-p=l+U_\theta(d)
-$$
+$$ p=l+U_\theta(d) $$
 
 其中：
 
@@ -143,9 +119,7 @@ $$
 
 当前 Update 为：
 
-$$
-U_\theta(d)=0.5d+0.5\tanh(\widetilde U_\theta(d))
-$$
+$$ U_\theta(d)=0.5d+0.5\tanh(\widetilde U_\theta(d)) $$
 
 可学习部分从零初始化。训练开始时，它等价于稳定的 $0.5d$ 更新；训练随后可以改变信息如何向 parent 上导。
 
@@ -153,15 +127,11 @@ $$
 
 已知 parent $p$ 与 detail $d$：
 
-$$
-l=p-U_\theta(d)
-$$
+$$ l=p-U_\theta(d) $$
 
 再计算：
 
-$$
-r=d+P_\theta(l)
-$$
+$$ r=d+P_\theta(l) $$
 
 就能恢复左右状态。
 
@@ -183,24 +153,15 @@ Decoder 每生成一个 token，都从 root 开始分配概率质量。
 
 对节点 $n_i^{(k)}$，计算停止概率：
 
-$$
-p_{stop}(i,k,t)=
-\sigma\left(S_\theta\left[q(h_t),n_i^{(k)}+e_k\right]\right)
-$$
+$$ p_{stop}(i,k,t)= \sigma\left(S_\theta\left[q(h_t),n_i^{(k)}+e_k\right]\right) $$
 
 如果不停止，剩余质量进入左右 child：
 
-$$
-p(c\mid i,t)=
-\operatorname{softmax}_c
-\left(\frac{B_\theta(h_t)^\top n_c}{\sqrt m}\right)
-$$
+$$ p(c\mid i,t)= \operatorname{softmax}_c \left(\frac{B_\theta(h_t)^\top n_c}{\sqrt m}\right) $$
 
 到达节点 $i$ 的质量为 $m_i$ 时：
 
-$$
-m_i^{stop}+m_{left}+m_{right}=m_i
-$$
+$$ m_i^{stop}+m_{left}+m_{right}=m_i $$
 
 所以概率没有在递归过程中凭空增加。所有停止节点的加权和形成当前上下文 $c_t$。
 
@@ -208,15 +169,11 @@ $$
 
 Decoder 把上一个目标 token、当前 TreeHeap context 和历史隐状态放进 GRU：
 
-$$
-h_{t+1}=GRU([E_{tgt}(y_t),c_t],h_t)
-$$
+$$ h_{t+1}=GRU([E_{tgt}(y_t),c_t],h_t) $$
 
 再输出词表概率：
 
-$$
-p(y_{t+1})=softmax(W_o[h_{t+1},c_t])
-$$
+$$ p(y_{t+1})=softmax(W_o[h_{t+1},c_t]) $$
 
 训练时使用 teacher forcing：第 $t$ 步输入真实的 $y_t$。自由生成时，输入模型自己上一步选择的 token。
 
@@ -224,9 +181,7 @@ $$
 
 唯一语言目标是目标 token 的交叉熵：
 
-$$
-\mathcal L=-\sum_t\log p_\theta(y_t\mid y_{<t},H_\theta(x))
-$$
+$$ \mathcal L=-\sum_t\log p_\theta(y_t\mid y_{<t},H_\theta(x)) $$
 
 如果正确 token 的概率太低，loss 就升高。反向传播依次经过：
 
@@ -258,9 +213,7 @@ $$
 
 Butterfly 是 $O(N\log N)$，FOLD/UNFOLD 是 $O(N)$。当前 recursive READ 每个输出时间步会访问总计小于 $2N$ 个节点，所以生成约为：
 
-$$
-O(TN)
-$$
+$$ O(TN) $$
 
 其中 $T$ 是输出长度。
 

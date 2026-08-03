@@ -106,27 +106,17 @@ C02 使用一百万对真实英中训练句、三颗随机种子，比较三种 
 
 设 C 是模型容量，D 是模型压缩数据规律后的失真，NLL 是本实验的主要失真指标：
 
-$$
-\min_{\theta} D(\mathrm{data},\mathrm{model}_{\theta})
-\quad
-\mathrm{subject\ to}
-\quad
-|\theta| \le C
-$$
+$$ \min_{\theta} D(\mathrm{data},\mathrm{model}_{\theta}) \quad \mathrm{subject\ to} \quad |\theta| \le C $$
 
 它问的是：在容量有限时，模型最多能把输出分布逼近到什么程度？
 
 当前 learned TreeHeap 的平均 NLL 是 4.0538 nats/token。换成二进制信息单位：
 
-$$
-\frac{4.0538}{\ln 2} \approx 5.85\ \mathrm{bits/token}
-$$
+$$ \frac{4.0538}{\ln 2} \approx 5.85\ \mathrm{bits/token} $$
 
 STONE-1 的 NLL 门槛 3.90 对应：
 
-$$
-\frac{3.90}{\ln 2} \approx 5.63\ \mathrm{bits/token}
-$$
+$$ \frac{3.90}{\ln 2} \approx 5.63\ \mathrm{bits/token} $$
 
 当前还差约 0.22 bits/token。这些失真可能来自容量不足、训练不足、数据问题或协议缺陷。只扩大模型，不能自动区分它们。
 

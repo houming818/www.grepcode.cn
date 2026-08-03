@@ -42,15 +42,11 @@ kernel-guided soft plus 能不能训练？
 
 线性回归是：
 
-$$
-\hat y = Wx + b
-$$
+$$ \hat y = Wx + b $$
 
 MLP 是：
 
-$$
-\hat y = f_\theta(x)
-$$
+$$ \hat y = f_\theta(x) $$
 
 这类模型的核心是：
 
@@ -75,11 +71,7 @@ $$
 
 如果 TreeHeap 公式只是：
 
-$$
-H_{t+1}
-=
-\sum_a p(a \mid H_t,x_t)\operatorname{Plus}_a(H_t,x_t)
-$$
+$$ H_{t+1} = \sum_a p(a \mid H_t,x_t)\operatorname{Plus}_a(H_t,x_t) $$
 
 那还不够。
 
@@ -103,9 +95,7 @@ TreeHeap 里的地址不应该只是数字。
 
 它应该是路径：
 
-$$
-a \in \{L,R\}^{*}
-$$
+$$ a \in \{L,R\}^{*} $$
 
 例如：
 
@@ -140,9 +130,7 @@ address_id
 
 而应该看：
 
-$$
-K_\theta(\pi(a), \operatorname{subheap}(H,a), x)
-$$
+$$ K_\theta(\pi(a), \operatorname{subheap}(H,a), x) $$
 
 其中：
 
@@ -183,24 +171,11 @@ d in {L, R}
 
 那么递归 plus 应该是：
 
-$$
-\operatorname{Plus}^{tree}_{d::a'}(H,x)
-=
-\operatorname{rebuild}
-(
-root(H),
-\operatorname{Plus}^{tree}_{a'}(child_d(H),x),
-child_{\bar d}(H)
-)
-$$
+$$ \operatorname{Plus}^{tree}_{d::a'}(H,x) = \operatorname{rebuild} ( root(H), \operatorname{Plus}^{tree}_{a'}(child_d(H),x), child_{\bar d}(H) ) $$
 
 终止条件是：
 
-$$
-\operatorname{Plus}^{tree}_{\epsilon}(H,x)
-=
-\operatorname{merge}(H,x)
-$$
+$$ \operatorname{Plus}^{tree}_{\epsilon}(H,x) = \operatorname{merge}(H,x) $$
 
 白话说：
 
@@ -217,17 +192,7 @@ right 子树保持不变；
 
 所以 C05 的候选公式应该写成：
 
-$$
-H_{t+1}
-=
-\sum_{a \in A(H_t)}
-\operatorname{softmax}_a
-\left(
-K_\theta(\pi(a), \operatorname{subheap}(H_t,a), x_t)
-\right)
-\cdot
-\operatorname{Plus}^{tree}_{\phi,a}(H_t,x_t)
-$$
+$$ H_{t+1} = \sum_{a \in A(H_t)} \operatorname{softmax}_a \left( K_\theta(\pi(a), \operatorname{subheap}(H_t,a), x_t) \right) \cdot \operatorname{Plus}^{tree}_{\phi,a}(H_t,x_t) $$
 
 这个式子里必须有三件东西：
 

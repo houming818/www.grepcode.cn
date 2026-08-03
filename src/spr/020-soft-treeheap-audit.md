@@ -18,9 +18,7 @@ Soft TreeHeap 是它的概率提升。
 
 也就是说，原来 hard 操作是：
 
-$$
-H_{\text{next}} = H \oplus_a x
-$$
+$$ H_{\text{next}} = H \oplus_a x $$
 
 意思是：
 
@@ -30,9 +28,7 @@ $$
 
 Soft 以后变成：
 
-$$
-H_{\text{next}} = \sum_a p(a \mid H, x) \cdot (H \oplus_a x)
-$$
+$$ H_{\text{next}} = \sum_a p(a \mid H, x) \cdot (H \oplus_a x) $$
 
 翻译成人话：
 
@@ -44,15 +40,11 @@ $$
 
 如果训练到最后：
 
-$$
-p(LL)=1.0,\quad p(\text{other})=0.0
-$$
+$$ p(LL)=1.0,\quad p(\text{other})=0.0 $$
 
 那么 Soft TreeHeap 就坍缩回 hard 操作：
 
-$$
-H_{\text{next}} = H \oplus_{LL} x
-$$
+$$ H_{\text{next}} = H \oplus_{LL} x $$
 
 这个设计是为了让梯度进入 TreeHeap。
 
@@ -152,15 +144,11 @@ loss 算出来以后，能不能真的改到 TreeHeap 的写入 kernel 和 plus 
 
 数学上就是看：
 
-$$
-\left\lVert\frac{\partial L}{\partial K_{\text{write}}}\right\rVert > 0
-$$
+$$ \left\lVert\frac{\partial L}{\partial K_{\text{write}}}\right\rVert > 0 $$
 
 以及：
 
-$$
-\left\lVert\frac{\partial L}{\partial \text{Plus}}\right\rVert > 0
-$$
+$$ \left\lVert\frac{\partial L}{\partial \text{Plus}}\right\rVert > 0 $$
 
 类比线性回归：
 
@@ -298,11 +286,7 @@ LL, LR, RL, RR
 
 然后用 Soft Plus 生成：
 
-$$
-H_{\text{next}}
-=
-\sum_a p(a) \cdot \text{Plus}_a(H, key)
-$$
+$$ H_{\text{next}} = \sum_a p(a) \cdot \text{Plus}_a(H, key) $$
 
 loss 会比较：
 
@@ -427,9 +411,7 @@ key > root_key  -> 往右
 
 先看第一个：
 
-$$
-\operatorname{root\_diff} = \operatorname{key} - \operatorname{root\_key}
-$$
+$$ \operatorname{root\_diff} = \operatorname{key} - \operatorname{root\_key} $$
 
 如果：
 
@@ -465,9 +447,7 @@ root_side
 
 于是：
 
-$$
-\operatorname{root\_alignment} = \operatorname{root\_diff} \cdot \operatorname{root\_side}
-$$
+$$ \operatorname{root\_alignment} = \operatorname{root\_diff} \cdot \operatorname{root\_side} $$
 
 如果 key=5，root_key=8，目标确实在左边：
 
@@ -498,9 +478,7 @@ root_alignment = (-3) * (-1) = 3
 
 第二个公式：
 
-$$
-\operatorname{child\_alignment} = \operatorname{diff} \cdot \operatorname{child\_side}
-$$
+$$ \operatorname{child\_alignment} = \operatorname{diff} \cdot \operatorname{child\_side} $$
 
 作用类似，只是它看的是更下面一层 child 的方向。
 

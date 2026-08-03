@@ -24,25 +24,15 @@ tags: [SPR, TreeHeap, Butterfly, PrivateProtocol, ViewpointDrift, Dreams, Gramma
 
 Butterfly 中间态：
 
-$$
-H^{(0)},H^{(1)},\ldots,H^{(D)}
-$$
+$$ H^{(0)},H^{(1)},\ldots,H^{(D)} $$
 
 不是多条已经成形的自然语言 string，而是同一个输入的多个潜在坐标状态。当前程序也没有把这些状态平行送给 Decoder，而是串行计算：
 
-$$
-H^{(D)}
-=
-B_{D-1}\circ\cdots\circ B_1\circ B_0(H^{(0)})
-$$
+$$ H^{(D)} = B_{D-1}\circ\cdots\circ B_1\circ B_0(H^{(0)}) $$
 
 只有这个统一干涉态继续进入 FOLD：
 
-$$
-H_{\mathrm{state}}
-=
-\operatorname{FOLD}(H^{(D)})
-$$
+$$ H_{\mathrm{state}} = \operatorname{FOLD}(H^{(D)}) $$
 
 因此，我们观察的是一块不断旋转的内部画板，不是让 Decoder 在许多独立句子中挑一条。
 
@@ -50,21 +40,15 @@ $$
 
 设 Encoder 产生状态 $H$，Decoder 为 $D$。如果内部存在一个可逆变换 $A$：
 
-$$
-H'=A(H)
-$$
+$$ H'=A(H) $$
 
 并且 Decoder 同时学会：
 
-$$
-D'(H')=D(A^{-1}H')
-$$
+$$ D'(H')=D(A^{-1}H') $$
 
 那么：
 
-$$
-D'(H')=D(H)
-$$
+$$ D'(H')=D(H) $$
 
 外部功能可以完全不变，但内部坐标已经改变。
 
@@ -243,9 +227,7 @@ Decoder 的输出模式在漂移
 
 在 Butterfly 每个串行阶段后记录：
 
-$$
-H_i^{(0)},H_i^{(1)},\ldots,H_i^{(D)}
-$$
+$$ H_i^{(0)},H_i^{(1)},\ldots,H_i^{(D)} $$
 
 探针采用只读的 detach。只有最终状态进入 FOLD，中间态不进入 Decoder、不计算额外 Loss，也不改变梯度。
 
@@ -262,24 +244,11 @@ heldout：只用于验证
 
 在 calibration 上求正交 Procrustes 对齐：
 
-$$
-A^*
-=
-\underset{A^\top A=I}{\arg\min}
-\left\|
-X_{\mathrm{cal}}A-Y_{\mathrm{cal}}
-\right\|_F
-$$
+$$ A^* = \underset{A^\top A=I}{\arg\min} \left\| X_{\mathrm{cal}}A-Y_{\mathrm{cal}} \right\|_F $$
 
 然后只在 heldout 上计算未对齐状态误差、对齐后状态误差和 alignment gain：
 
-$$
-\text{gain}
-=
-1-
-\frac{\text{aligned NRMSE}}
-     {\text{raw NRMSE}}
-$$
+$$ \text{gain} = 1- \frac{\text{aligned NRMSE}} {\text{raw NRMSE}} $$
 
 若在同一批数据上拟合和评分，灵活的变换可能伪造一致性，所以禁止这样做。
 

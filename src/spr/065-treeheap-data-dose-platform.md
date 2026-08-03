@@ -57,15 +57,11 @@ baseline 的成熟度
 
 NLL 是 Negative Log-Likelihood，负对数似然。对每个目标 token，模型会给整个词表分配概率。如果正确 token 的概率是 $p_t$，平均 NLL 为：
 
-$$
-\operatorname{NLL}=-\frac{1}{T}\sum_{t=1}^{T}\log p_t
-$$
+$$ \operatorname{NLL}=-\frac{1}{T}\sum_{t=1}^{T}\log p_t $$
 
 越低越好。常见的 PPL，也就是困惑度，为：
 
-$$
-\operatorname{PPL}=e^{\operatorname{NLL}}
-$$
+$$ \operatorname{PPL}=e^{\operatorname{NLL}} $$
 
 可以把 PPL 粗略理解成：模型在每一步面对多少个“同样有竞争力”的候选。它不是候选词的真实数量，但适合帮助理解尺度。
 

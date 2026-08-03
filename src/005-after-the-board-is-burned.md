@@ -60,9 +60,7 @@ Trinity 接住这个坐标，在自己的内部状态里增加一枚黑子。随
 
 这时，棋盘没有消失。它只是从一件可指认的外部物体，变成了两套必须持续同步的内部状态：
 
-\[
-H_{\text{Nio}}(t) \approx H_{\text{Trinity}}(t)
-\]
+\[ H_{\text{Nio}}(t) \approx H_{\text{Trinity}}(t) \]
 
 这里的 \(H(t)\) 表示第 \(t\) 步以后，参与者维护的完整棋形。
 
@@ -92,11 +90,7 @@ TreeHeap 的研究目标正在这里出现。
 
 它希望把状态写成：
 
-\[
-H_{\text{state}}
-=
-(\text{root},\ \text{details},\ \text{addresses})
-\]
+\[ H_{\text{state}} = (\text{root},\ \text{details},\ \text{addresses}) \]
 
 其中：
 

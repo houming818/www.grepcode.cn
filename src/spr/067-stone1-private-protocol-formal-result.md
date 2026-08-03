@@ -95,23 +95,15 @@ STONE-1 使用固定宽度为 64 的二叉 TreeHeap。句子的 token embedding 
 
 当左侧作为 anchor 时：
 
-\[
-d = R-P(L)
-\]
+\[ d = R-P(L) \]
 
-\[
-H_{parent}=L+U(d)
-\]
+\[ H_{parent}=L+U(d) \]
 
 这里的 `detail`，也就是 \(d\)，保存“右侧相对左侧还缺少什么”。UNFOLD 时执行：
 
-\[
-L=H_{parent}-U(d)
-\]
+\[ L=H_{parent}-U(d) \]
 
-\[
-R=d+P(L)
-\]
+\[ R=d+P(L) \]
 
 如果右侧作为 anchor，公式左右对换。一个二值 gate \(g\) 决定方向：
 
@@ -130,15 +122,11 @@ g = 0: right 是 anchor
 
 局部方向 kernel 的输入为：
 
-\[
-x=[L, R, L-R, L\odot R]
-\]
+\[ x=[L, R, L-R, L\odot R] \]
 
 其中 \(L\odot R\) 是逐元素乘积。kernel 是一个小型两层网络：
 
-\[
-p=\sigma(K_{\theta}(x)+b_{depth})
-\]
+\[ p=\sigma(K_{\theta}(x)+b_{depth}) \]
 
 \(p\) 是选择左 anchor 的概率。前向计算把它硬化成 0 或 1，反向传播使用 straight-through estimator，让梯度近似穿过这个离散选择。
 
@@ -196,9 +184,7 @@ p=\sigma(K_{\theta}(x)+b_{depth})
 
 假设正确 token 是 \(y_t\)，模型给它的概率是 \(p(y_t)\)，平均负对数似然为：
 
-\[
-\operatorname{NLL}=-\frac{1}{T}\sum_{t=1}^{T}\log p(y_t)
-\]
+\[ \operatorname{NLL}=-\frac{1}{T}\sum_{t=1}^{T}\log p(y_t) \]
 
 NLL 越小越好。它不是“错误百分比”，而是模型对正确答案分配概率的总体成本。
 
@@ -245,9 +231,7 @@ NLL 标准差       <= 0.05
 
 learned 相对 identity 的 NLL 差值是：
 
-\[
-4.2269-4.0719=+0.1550
-\]
+\[ 4.2269-4.0719=+0.1550 \]
 
 正数意味着 learned 更差。它相对 frozen random 也差 `+0.1059`。
 
