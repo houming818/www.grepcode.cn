@@ -28,7 +28,7 @@ $$P(Y\mid X)=D_\phi(H)$$
 
 训练只使用最终输出的交叉熵：
 
-$$L(\theta,\phi)=-\sum_t \log P_{\theta,\phi}(y_t\mid X,y_{<t})$$
+$$L(\theta,\phi)=-\sum_t \log P_{\theta,\phi}(y_t\mid X,y_{\lt t})$$
 
 梯度同时修改 $E_\theta$ 和 $D_\phi$。只要 encoder 写出的状态能被 decoder 正确读取，loss 就会下降。内部编码不需要像自然语言，也不需要让人类看懂。
 

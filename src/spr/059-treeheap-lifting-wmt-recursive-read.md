@@ -120,11 +120,11 @@ root             0.20
 
 这些节点的加权和形成当前 source context，再与中文 decoder state 一起计算下一个 token：
 
-$$ p(y_t\mid y_{<t},H_{src}). $$
+$$ p(y_t\mid y_{\lt t},H_{src}). $$
 
 训练时只有普通翻译损失：
 
-$$ L_{S2} = -\sum_t\log p(y_t\mid y_{<t},H_{src}). $$
+$$ L_{S2} = -\sum_t\log p(y_t\mid y_{\lt t},H_{src}). $$
 
 没有任何老师告诉 READ “这里应该停在 root”或“这里应该向左”。如果不同深度的读取规律形成，只能来自翻译 loss 的梯度。
 

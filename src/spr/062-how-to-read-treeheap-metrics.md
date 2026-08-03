@@ -94,15 +94,15 @@ ARA 所说的 Evidence 至少需要：
 
 我们希望正确答案概率越大越好。但直接连乘长句中所有正确 token 的概率，很快会变成接近零的小数：
 
-$$ P(y_1,y_2,\ldots,y_T\mid x) =\prod_{t=1}^{T}P(y_t\mid y_{<t},x). $$
+$$ P(y_1,y_2,\ldots,y_T\mid x) =\prod_{t=1}^{T}P(y_t\mid y_{\lt t},x). $$
 
 对数把乘法变成加法：
 
-$$ \log P(y\mid x) =\sum_{t=1}^{T}\log P(y_t\mid y_{<t},x). $$
+$$ \log P(y\mid x) =\sum_{t=1}^{T}\log P(y_t\mid y_{\lt t},x). $$
 
 因为概率不超过 1，其对数不大于 0。为了得到一个“越小越好”的正数，我们取负号，这就是负对数似然：
 
-$$ \operatorname{NLL} =-\frac{1}{T}\sum_{t=1}^{T}\log P(y_t\mid y_{<t},x). $$
+$$ \operatorname{NLL} =-\frac{1}{T}\sum_{t=1}^{T}\log P(y_t\mid y_{\lt t},x). $$
 
 其中 `NLL` 是 **Negative Log-Likelihood**，中文通常叫“负对数似然”。
 

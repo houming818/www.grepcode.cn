@@ -30,13 +30,13 @@ why is the window wet? because the sky cried
 
 训练使用 teacher forcing。预测第 $t$ 个中文 token 时，decoder 会收到正确的中文前缀：
 
-$$ p(y_t\mid y^{gold}_{<t},x) $$
+$$ p(y_t\mid y^{gold}_{\lt t},x) $$
 
-这里 $x$ 是英文 source，$y^{gold}_{<t}$ 是答案中已经给出的正确中文前缀。
+这里 $x$ 是英文 source，$y^{gold}_{\lt t}$ 是答案中已经给出的正确中文前缀。
 
 CLI 自由生成时没有答案可看，只能把自己刚刚生成的 token 喂回去：
 
-$$ p(y_t\mid y^{model}_{<t},x) $$
+$$ p(y_t\mid y^{model}_{\lt t},x) $$
 
 假设训练样本分别是“苹果很甜”和“地球是圆的”。即使模型完全忽略英文，只要训练时已经看到“苹果很”或“地球是”，也可能比较容易猜出下一个字。因此 NLL 仍会下降。
 

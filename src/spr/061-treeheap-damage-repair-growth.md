@@ -371,7 +371,7 @@ $$ L_{\text{damaged}}>L_{\text{clean}}. $$
 
 运行 repair kernel 后：
 
-$$ L_{\text{repaired}}<L_{\text{damaged}}. $$
+$$ L_{\text{repaired}}\lt L_{\text{damaged}}. $$
 
 并预注册最低修复率 $\rho$。
 

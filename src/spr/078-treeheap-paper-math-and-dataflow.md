@@ -181,7 +181,7 @@ $$ p(y_{t+1})=softmax(W_o[h_{t+1},c_t]) $$
 
 唯一语言目标是目标 token 的交叉熵：
 
-$$ \mathcal L=-\sum_t\log p_\theta(y_t\mid y_{<t},H_\theta(x)) $$
+$$ \mathcal L=-\sum_t\log p_\theta(y_t\mid y_{\lt t},H_\theta(x)) $$
 
 如果正确 token 的概率太低，loss 就升高。反向传播依次经过：
 
