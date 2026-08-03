@@ -35,6 +35,12 @@ https://github.com/houming818/sametime
 
 完整中文论文保存在 [SameTime 开放仓库](https://github.com/houming818/sametime/blob/main/ara/papers/treeheap_emergent_protocol.zh.md)。
 
+## 最新研究
+
+- [SPR-081：模型是不是换了一个角度画鸡蛋——TreeHeap 私有协议的视角漂移](/spr/081-treeheap-private-protocol-viewpoint-drift.html)
+
+  这是一项尚未得到结果的新推测：用典型双语语法探针和 Butterfly 中间态留出对齐，区分内部坐标旋转、合法改写与真实生成错误。
+
 ## 当前结论
 
 SPR 目前不能简单写成“路径即语义”。更准确的判断是：
