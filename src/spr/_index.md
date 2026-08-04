@@ -39,7 +39,7 @@ https://github.com/houming818/sametime
 
 - [SPR-081：模型是不是换了一个角度画鸡蛋——TreeHeap 私有协议的视角漂移](/spr/081-treeheap-private-protocol-viewpoint-drift.html)
 
-  这是一项尚未得到结果的新推测：用典型双语语法探针和 Butterfly 中间态留出对齐，区分内部坐标旋转、合法改写与真实生成错误。
+  文章现已追加正式视角比例实验：20% 原序投喂使跨视角 JS 大幅下降，但固定预算下 Native NLL 略有代价；下一步将保持 Butterfly 绝对剂量不变，用等算力对照区分比例效应与训练强度。
 
 ## 当前结论
 
