@@ -37,6 +37,10 @@ https://github.com/houming818/sametime
 
 ## 最新研究
 
+- [SPR-082：比例还是剂量——TreeHeap 视角协议的四臂因果实验](/spr/082-treeheap-canonical-view-dose.html)
+
+  四臂等剂量实验表明：额外 Identity 能以很小 Native 代价显著降低跨视角 JS，但只恢复了替换损失的 39.1%，未通过预注册的 50% 门槛；比例与绝对剂量都参与私有协议形成。
+
 - [SPR-081：模型是不是换了一个角度画鸡蛋——TreeHeap 私有协议的视角漂移](/spr/081-treeheap-private-protocol-viewpoint-drift.html)
 
   文章现已追加正式视角比例实验：20% 原序投喂使跨视角 JS 大幅下降，但固定预算下 Native NLL 略有代价；下一步将保持 Butterfly 绝对剂量不变，用等算力对照区分比例效应与训练强度。
