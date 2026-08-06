@@ -37,6 +37,10 @@ https://github.com/houming818/sametime
 
 ## 最新研究
 
+- [SPR-083：预训练少一点偏见，任务训练再选择视角](/spr/083-treeheap-stage-dependent-identity-dose.html)
+
+  提出阶段性 Identity 剂量假说：预训练可能需要较低 I 保留异构结构，具体任务训练才使用较高 I 形成目标坐标偏见；文章给出等总剂量的 Early-I / Late-I 可证伪实验。
+
 - [SPR-082：比例还是剂量——TreeHeap 视角协议的四臂因果实验](/spr/082-treeheap-canonical-view-dose.html)
 
   四臂等剂量实验表明：额外 Identity 能以很小 Native 代价显著降低跨视角 JS，但只恢复了替换损失的 39.1%，未通过预注册的 50% 门槛；比例与绝对剂量都参与私有协议形成。
