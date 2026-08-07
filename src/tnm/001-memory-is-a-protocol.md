@@ -46,9 +46,7 @@ GrepCode 协议按照词面、地址或索引找回原文；问答协议按照�
 
 最小的记忆协议可以写成：
 
-$$
-\mathcal{M}=(H,W,R,U)
-$$
+$$ \mathcal{M}=(H,W,R,U) $$
 
 其中：
 
@@ -69,15 +67,11 @@ $$
 
 在普通 Encoder--Decoder 系统中，Encoder 把输入变成内部状态：
 
-$$
-H_x=E_{\theta}(x)
-$$
+$$ H_x=E_{\theta}(x) $$
 
 Decoder 再解释这个状态：
 
-$$
-y=D_{\phi}(H_x)
-$$
+$$ y=D_{\phi}(H_x) $$
 
 只要两端一起训练，它们就可能形成一套人类看不懂、但彼此能够使用的内部编码。这就是我们在 TreeHeap 研究中反复讨论的**私有协议**。
 
@@ -93,9 +87,7 @@ Decoder 就学会怎样读
 
 在精确 Echo 任务中，Decoder 近似执行 Encoder 的逆：
 
-$$
-D_{\phi}(E_{\theta}(x))\approx x
-$$
+$$ D_{\phi}(E_{\theta}(x))\approx x $$
 
 但在翻译、问答和续写中，Decoder 并不是 Encoder 的数学逆函数。它读取同一个内部状态，却按照任务协议产生另一种输出。
 
@@ -117,15 +109,11 @@ Hx 被丢弃
 
 记忆系统不能在输出后丢掉全部状态。它必须把旧状态带到下一次：
 
-$$
-H_{t+1}=W_{\theta}(H_t,x_t)
-$$
+$$ H_{t+1}=W_{\theta}(H_t,x_t) $$
 
 以后再接受查询：
 
-$$
-y_t=R_{\phi}(H_t,q_t)
-$$
+$$ y_t=R_{\phi}(H_t,q_t) $$
 
 例如：
 
@@ -150,11 +138,7 @@ H2
 
 因此，两者的关系不是互相替代，而是包含关系：
 
-$$
-\text{Encoder--Decoder 私有协议}
-\subset
-\text{完整记忆协议}
-$$
+$$ \text{Encoder--Decoder 私有协议} \subset \text{完整记忆协议} $$
 
 私有编解码协议是记忆的读写语言；持续状态、冲突处理和遗忘机制构成它的时间部分。
 
@@ -162,37 +146,25 @@ $$
 
 TreeHeap 已经有一个明确的局部 FOLD：
 
-$$
-D=R-P_{\theta}(L)
-$$
+$$ D=R-P_{\theta}(L) $$
 
-$$
-U=L+A_{\theta}(D)
-$$
+$$ U=L+A_{\theta}(D) $$
 
 这里 \(L\) 和 \(R\) 是左右子状态，\(D\) 是 detail，\(U\) 是向上递归的 parent。给定 \(U,D\)，可以恢复：
 
-$$
-L=U-A_{\theta}(D)
-$$
+$$ L=U-A_{\theta}(D) $$
 
-$$
-R=D+P_{\theta}(L)
-$$
+$$ R=D+P_{\theta}(L) $$
 
 这说明 TreeHeap merge 已经拥有可逆 lifting transform 的数学基础。这里值得把推导完全公开，因为可逆性不是依靠“神经网络也许能学会”，而是由算子结构直接保证。
 
 先把 FOLD 拆成两个三角变换。第一步是 Predict：
 
-$$
-(L,R)\longmapsto\left(L,D=R-P_{\theta}(L)\right)
-$$
+$$ (L,R)\longmapsto\left(L,D=R-P_{\theta}(L)\right) $$
 
 第二步是 Update：
 
-$$
-(L,D)\longmapsto\left(U=L+A_{\theta}(D),D\right)
-$$
+$$ (L,D)\longmapsto\left(U=L+A_{\theta}(D),D\right) $$
 
 Predict 没有修改 \(L\)，所以知道 \(L,D\) 就能恢复 \(R\)。Update 没有修改 \(D\)，所以知道 \(U,D\) 就能恢复 \(L\)。把两步逆序执行，就得到前面的 UNFOLD 公式。
 
@@ -200,27 +172,13 @@ Predict 没有修改 \(L\)，所以知道 \(L,D\) 就能恢复 \(R\)。Update �
 
 如果 \(P\) 和 \(A\) 可微，两步的 Jacobian 分别具有分块三角结构：
 
-$$
-J_{\mathrm{predict}}=
-\begin{bmatrix}
-I&0\\
--J_P&I
-\end{bmatrix}
-$$
+$$ J_{\mathrm{predict}}= \begin{bmatrix} I&0\\ -J_P&I \end{bmatrix} $$
 
-$$
-J_{\mathrm{update}}=
-\begin{bmatrix}
-I&J_A\\
-0&I
-\end{bmatrix}
-$$
+$$ J_{\mathrm{update}}= \begin{bmatrix} I&J_A\\ 0&I \end{bmatrix} $$
 
 两个行列式都为 1，因此完整局部变换满足：
 
-$$
-\left|\det J_{\mathrm{FOLD}}\right|=1
-$$
+$$ \left|\det J_{\mathrm{FOLD}}\right|=1 $$
 
 这意味着在理想连续算术中，它是一个体积保持的双射。实际程序仍会受到浮点误差、mask、量化和参数版本不一致的影响，所以代码必须继续做数值闭合测试。
 
@@ -230,21 +188,15 @@ $$
 
 所有 detail 的数量是：
 
-$$
-\frac{N}{2}+\frac{N}{4}+\cdots+1=N-1
-$$
+$$ \frac{N}{2}+\frac{N}{4}+\cdots+1=N-1 $$
 
 加上一个 root，状态块总数仍然是：
 
-$$
-1+(N-1)=N
-$$
+$$ 1+(N-1)=N $$
 
 因此完整 TreeHeap 变换保持总自由度：
 
-$$
-Nd\longleftrightarrow d+(N-1)d=Nd
-$$
+$$ Nd\longleftrightarrow d+(N-1)d=Nd $$
 
 从 root 开始，只要按照深度逆序使用每层 detail，就能恢复全部 leaf。这个结论可以由深度归纳直接得到：深度 1 的局部 FOLD 可逆；若深度 \(h\) 的两棵子树可逆，再加一个可逆顶层 FOLD，深度 \(h+1\) 也可逆。
 
@@ -271,17 +223,11 @@ merge 目前回答的是：
 
 因此，先把长期状态明确记为 \(M\)，TreeHeap 中更完整的数据流应当是：
 
-$$
-z_t=E_{\theta}(x_t)
-$$
+$$ z_t=E_{\theta}(x_t) $$
 
-$$
-M_{t+1}=\operatorname{Merge}_{\theta}(M_t,z_t)
-$$
+$$ M_{t+1}=\operatorname{Merge}_{\theta}(M_t,z_t) $$
 
-$$
-R_t=K_{\phi}(q_t,M_{t+1})
-$$
+$$ R_t=K_{\phi}(q_t,M_{t+1}) $$
 
 其中：
 
@@ -296,21 +242,13 @@ merge 是协议的状态更新算子，不是协议的全部。
 
 到这里还缺少一个重要的工程边界。真正使用记忆时，当前问题首先形成现实状态 \(H_t\)，然后从长期记忆系统中提取一小块状态 \(R_t\)，再把它混入现实：
 
-$$
-q_t=E_q(H_t)
-$$
+$$ q_t=E_q(H_t) $$
 
-$$
-R_t=\operatorname{Retrieve}(M_t,q_t;B)
-$$
+$$ R_t=\operatorname{Retrieve}(M_t,q_t;B) $$
 
-$$
-H'_t=\operatorname{Mix}(H_t,R_t)
-$$
+$$ H'_t=\operatorname{Mix}(H_t,R_t) $$
 
-$$
-y_t=D(H'_t)
-$$
+$$ y_t=D(H'_t) $$
 
 这里必须区分四个对象：
 
@@ -360,9 +298,7 @@ TNM 希望测试另一种机制：
 
 假设长期记忆由 leaf 状态递归 FOLD 得到：
 
-$$
-M=\left(U_{\mathrm{root}},D_{\mathrm{root}},D_1,D_2,\ldots\right)
-$$
+$$ M=\left(U_{\mathrm{root}},D_{\mathrm{root}},D_1,D_2,\ldots\right) $$
 
 其中 root 是全局粗分辨率状态，各层 detail 保存继续提高分辨率所需的信息。
 
@@ -370,27 +306,19 @@ $$
 
 先把第 \(j\) 条经历 \(x_j\) 编成一个 leaf 状态：
 
-$$
-e_j=E_w(x_j)\in\mathbb{R}^d
-$$
+$$ e_j=E_w(x_j)\in\mathbb{R}^d $$
 
 固定容量为 \(N\) 时，当前 leaf 层记为：
 
-$$
-X=(e_1,e_2,\ldots,e_N)
-$$
+$$ X=(e_1,e_2,\ldots,e_N) $$
 
 空位置由显式 mask 标记，不能把 PAD 的数值大小误当成有效记忆。对整个 leaf 层执行递归 FOLD：
 
-$$
-M=\mathcal{T}_{\theta_f}(X)
-$$
+$$ M=\mathcal{T}_{\theta_f}(X) $$
 
 如果只替换一个 leaf，树外所有不在其祖先路径上的状态保持不变。需要重新计算的节点数至多等于树高：
 
-$$
-h=\log_2N
-$$
+$$ h=\log_2N $$
 
 所以固定地址下的一次局部更新可以在 \(O(\log N)\) 个 merge 中完成。这里的地址更新规则仍然是第一版待定项；这个复杂度结论只描述“已知写入位置以后”怎样维护 TreeHeap，不证明系统已经学会把新经历放到正确位置。
 
@@ -400,49 +328,25 @@ Partial UNFOLD 不把整棵树恢复成 leaf 数组。它维护一个 frontier�
 
 初始 frontier 只有 root：
 
-$$
-\mathcal{F}_0=\{\mathrm{root}\}
-$$
+$$ \mathcal{F}_0=\{\mathrm{root}\} $$
 
 如果选择展开节点 \(i\)，就用它的两个子节点替换它：
 
-$$
-\mathcal{F}_{t+1}
-=
-\left(\mathcal{F}_t\setminus\{i\}\right)
-\cup
-\{\operatorname{left}(i),\operatorname{right}(i)\}
-$$
+$$ \mathcal{F}_{t+1} = \left(\mathcal{F}_t\setminus\{i\}\right) \cup \{\operatorname{left}(i),\operatorname{right}(i)\} $$
 
 设 \(\operatorname{Leaves}(i)\) 表示节点 \(i\) 覆盖的原始 leaf 地址。每次替换都满足：
 
-$$
-\operatorname{Leaves}(i)
-=
-\operatorname{Leaves}(\operatorname{left}(i))
-\mathbin{\dot\cup}
-\operatorname{Leaves}(\operatorname{right}(i))
-$$
+$$ \operatorname{Leaves}(i) = \operatorname{Leaves}(\operatorname{left}(i)) \mathbin{\dot\cup} \operatorname{Leaves}(\operatorname{right}(i)) $$
 
 符号 \(\dot\cup\) 表示不相交并集。因此任意时刻都有两个不变量：
 
-$$
-\bigcup_{i\in\mathcal{F}_t}\operatorname{Leaves}(i)
-=
-\operatorname{Leaves}(\mathrm{root})
-$$
+$$ \bigcup_{i\in\mathcal{F}_t}\operatorname{Leaves}(i) = \operatorname{Leaves}(\mathrm{root}) $$
 
-$$
-i\neq j
-\Longrightarrow
-\operatorname{Leaves}(i)\cap\operatorname{Leaves}(j)=\varnothing
-$$
+$$ i\neq j \Longrightarrow \operatorname{Leaves}(i)\cap\operatorname{Leaves}(j)=\varnothing $$
 
 也就是说，frontier 始终无遗漏、无重复地覆盖完整记忆，只是不同区域采用不同分辨率。展开 \(B\) 次以后：
 
-$$
-|\mathcal{F}_B|=B+1
-$$
+$$ |\mathcal{F}_B|=B+1 $$
 
 这个不变量是 Partial UNFOLD 与“随便取几个节点”之间的数学区别。
 
@@ -450,15 +354,11 @@ $$
 
 读取从 root 开始，每到一个 frontier 节点，kernel 接收：
 
-$$
-(q,U_i,D_i,\operatorname{path}_i,\operatorname{depth}_i)
-$$
+$$ (q,U_i,D_i,\operatorname{path}_i,\operatorname{depth}_i) $$
 
 然后产生一个局部概率桶：
 
-$$
-\pi_i=P(\mathrm{stop},\mathrm{left},\mathrm{right},\mathrm{both})
-$$
+$$ \pi_i=P(\mathrm{stop},\mathrm{left},\mathrm{right},\mathrm{both}) $$
 
 四个动作分别表示：
 
@@ -469,30 +369,17 @@ $$
 
 一旦展开，就直接使用 TreeHeap 已有的 UNFOLD：
 
-$$
-L_i=U_i-A_{\theta}(D_i)
-$$
+$$ L_i=U_i-A_{\theta}(D_i) $$
 
-$$
-R_i=D_i+P_{\theta}(L_i)
-$$
+$$ R_i=D_i+P_{\theta}(L_i) $$
 
 在预算耗尽或全部选择 `stop` 后，系统得到的不是某条原始记录，而是一棵混合分辨率的小 TreeHeap：有的区域已经展开到细节，有的区域仍然保留粗轮廓。
 
-$$
-R_t=\operatorname{PartialUnfold}_{\theta_r}(M_t,q_t;B)
-$$
+$$ R_t=\operatorname{PartialUnfold}_{\theta_r}(M_t,q_t;B) $$
 
 更具体地说，\(R_t\) 不是简单求和后的单向量，而是带地址、深度和 query 权重的 frontier：
 
-$$
-R_t=
-\left\{
-(i,U_i,\operatorname{path}_i,\operatorname{depth}_i,w_i)
-\;\middle|\;
-i\in\mathcal{F}_B
-\right\}
-$$
+$$ R_t= \left\{ (i,U_i,\operatorname{path}_i,\operatorname{depth}_i,w_i) \;\middle|\; i\in\mathcal{F}_B \right\} $$
 
 其中 \(w_i\) 由读取 kernel 产生。保留 path 和 depth 是为了不把 mixed-resolution TreeHeap 再次压平为无序 word bag。
 
@@ -538,33 +425,23 @@ return 带地址和深度的 frontier 作为 R
 
 每展开一个节点，只读取该节点附近的 parent/detail，并恢复两个子状态。设：
 
-$$
-C_U=C_P+C_A+O(d)
-$$
+$$ C_U=C_P+C_A+O(d) $$
 
 其中 \(C_P\) 和 \(C_A\) 分别是一次 predictor 与 update 的成本，\(C_U\) 是一次 UNFOLD 的成本；再设一次读取 kernel 的成本为 \(C_K\)。
 
 如果节点分数只依赖 \((q,U_i,D_i,\operatorname{path}_i,\operatorname{depth}_i)\)，新节点暴露时计算一次分数，并用优先队列维护候选，那么展开 \(B\) 次的成本是：
 
-$$
-T_{\mathrm{read}}
-=
-O\!\left(B(C_U+C_K)+B\log B\right)
-$$
+$$ T_{\mathrm{read}} = O\!\left(B(C_U+C_K)+B\log B\right) $$
 
 若忽略固定维度 kernel 和优先队列常数，才可以简写为近似 \(O(B)\)。如果实现每一步都重新扫描整个 frontier，累计成本会退化为 \(O(B^2)\)；如果为了打分先读取全部 \(N\) 个节点，则直接退化为 \(O(N)\)。这些实现不能被包装成快速 Partial UNFOLD。
 
 如果只沿一条路径走到深层：
 
-$$
-B\approx\log_2N
-$$
+$$ B\approx\log_2N $$
 
 如果问题需要多个区域：
 
-$$
-\log_2N<B\ll N
-$$
+$$ \log_2N<B\ll N $$
 
 最坏情况下仍然可能展开整棵树。TreeHeap 不会因为长得像树就自动获得快速查询。它真正需要验证的 claim 是：
 
@@ -583,21 +460,15 @@ $$
 
 完整建立一个 \(N\)-leaf TreeHeap 需要 \(N-1\) 次局部 FOLD：
 
-$$
-T_{\mathrm{build}}=O\!\left(N(C_P+C_A)\right)
-$$
+$$ T_{\mathrm{build}}=O\!\left(N(C_P+C_A)\right) $$
 
 已知写入地址后，修改一个 leaf 只重算祖先路径：
 
-$$
-T_{\mathrm{update}}=O\!\left((C_P+C_A)\log N\right)
-$$
+$$ T_{\mathrm{update}}=O\!\left((C_P+C_A)\log N\right) $$
 
 完整可逆存储仍然需要 \(N\) 个 \(d\)-维状态块：
 
-$$
-S_{\mathrm{exact}}=O(Nd)
-$$
+$$ S_{\mathrm{exact}}=O(Nd) $$
 
 所以 TNM 当前可争取的是读取带宽和在线计算收益，不应把它提前写成无条件的存储空间收益。
 
@@ -605,63 +476,39 @@ $$
 
 这个逻辑原型包含三组可训练协议：
 
-$$
-\theta_f:\quad\text{信息怎样形成 parent/detail}
-$$
+$$ \theta_f:\quad\text{信息怎样形成 parent/detail} $$
 
-$$
-\theta_r:\quad\text{query 怎样决定 stop 或展开}
-$$
+$$ \theta_r:\quad\text{query 怎样决定 stop 或展开} $$
 
-$$
-\theta_m:\quad\text{取回的 R 怎样混入现实 H}
-$$
+$$ \theta_m:\quad\text{取回的 R 怎样混入现实 H} $$
 
 完整流程是：
 
-$$
-M=\operatorname{FOLD}_{\theta_f}(X)
-$$
+$$ M=\operatorname{FOLD}_{\theta_f}(X) $$
 
-$$
-R=\operatorname{PartialUnfold}_{\theta_r}(M,q;B)
-$$
+$$ R=\operatorname{PartialUnfold}_{\theta_r}(M,q;B) $$
 
-$$
-H'=\operatorname{Mix}_{\theta_m}(H,R)
-$$
+$$ H'=\operatorname{Mix}_{\theta_m}(H,R) $$
 
-$$
-y=D(H')
-$$
+$$ y=D(H') $$
 
 第一版不设计“智能判断什么值得记住”，也不把未来读取成本硬塞进 loss。预算 \(B\) 直接作为架构限制；训练目标只评价在这个限制下任务是否完成：
 
-$$
-\mathcal{L}=\operatorname{CE}(y,y^*)
-$$
+$$ \mathcal{L}=\operatorname{CE}(y,y^*) $$
 
 ### 9.1 R 怎样混入现实 H
 
 为了不把取回结果退化成向量拼接，最直接的 TreeHeap-native Mix 是再执行一次 lifting merge。把现实 TreeHeap 和取回 TreeHeap 的 root 状态分别记为 \(U_H,U_R\)：
 
-$$
-D_{\mathrm{mix}}=U_R-P_m(U_H)
-$$
+$$ D_{\mathrm{mix}}=U_R-P_m(U_H) $$
 
-$$
-U_{H'}=U_H+A_m(D_{\mathrm{mix}})
-$$
+$$ U_{H'}=U_H+A_m(D_{\mathrm{mix}}) $$
 
 新的 \(H'\) 保留 \(H\)、mixed-resolution \(R\) 和 \(D_{\mathrm{mix}}\) 的结构引用，而不是只留下 \(U_{H'}\) 一个向量。对应逆变换仍然是：
 
-$$
-U_H=U_{H'}-A_m(D_{\mathrm{mix}})
-$$
+$$ U_H=U_{H'}-A_m(D_{\mathrm{mix}}) $$
 
-$$
-U_R=D_{\mathrm{mix}}+P_m(U_H)
-$$
+$$ U_R=D_{\mathrm{mix}}+P_m(U_H) $$
 
 这给出了一个明确、可逆的候选 Mix，但不保证 Decoder 会使用 \(R\) 的细节。如果训练后 Decoder 只读 \(U_{H'}\)，或者清零 \(R\) 不造成损伤，记忆协议仍然失败。
 
@@ -671,23 +518,15 @@ $$
 
 读取 kernel 可以先产生连续概率：
 
-$$
-\pi_i=\operatorname{softmax}(K_{\theta_r}(q,U_i,D_i,p_i,h_i))
-$$
+$$ \pi_i=\operatorname{softmax}(K_{\theta_r}(q,U_i,D_i,p_i,h_i)) $$
 
 候选训练方法之一是 straight-through 估计。前向传播使用硬动作：
 
-$$
-a_{\mathrm{hard}}=\operatorname{onehot}(\arg\max\pi_i)
-$$
+$$ a_{\mathrm{hard}}=\operatorname{onehot}(\arg\max\pi_i) $$
 
 反向传播使用：
 
-$$
-a_{\mathrm{ST}}
-=
-a_{\mathrm{hard}}+\pi_i-\operatorname{stopgrad}(\pi_i)
-$$
+$$ a_{\mathrm{ST}} = a_{\mathrm{hard}}+\pi_i-\operatorname{stopgrad}(\pi_i) $$
 
 这样前向过程严格遵守 \(B\) 次展开预算，反向过程给概率 kernel 近似梯度。但 straight-through 梯度有偏，不能视为数学定理。
 
@@ -702,39 +541,23 @@ $$
 
 对一个训练 episode：
 
-$$
-(x_1,x_2,\ldots,x_T,q,y^*)
-$$
+$$ (x_1,x_2,\ldots,x_T,q,y^*) $$
 
 前向过程依次执行：
 
-$$
-e_t=E_w(x_t)
-$$
+$$ e_t=E_w(x_t) $$
 
-$$
-M=\mathcal{T}_{\theta_f}(e_1,\ldots,e_T)
-$$
+$$ M=\mathcal{T}_{\theta_f}(e_1,\ldots,e_T) $$
 
-$$
-R=\operatorname{PartialUnfold}_{\theta_r}(M,q;B)
-$$
+$$ R=\operatorname{PartialUnfold}_{\theta_r}(M,q;B) $$
 
-$$
-H'=\operatorname{Mix}_{\theta_m}(H_q,R)
-$$
+$$ H'=\operatorname{Mix}_{\theta_m}(H_q,R) $$
 
-$$
-\mathcal{L}=\operatorname{CE}(D(H'),y^*)
-$$
+$$ \mathcal{L}=\operatorname{CE}(D(H'),y^*) $$
 
 若计算图连通，链式法则会产生三类梯度：
 
-$$
-\frac{\partial\mathcal{L}}{\partial\theta_m},\qquad
-\frac{\partial\mathcal{L}}{\partial\theta_r},\qquad
-\frac{\partial\mathcal{L}}{\partial\theta_f}
-$$
+$$ \frac{\partial\mathcal{L}}{\partial\theta_m},\qquad \frac{\partial\mathcal{L}}{\partial\theta_r},\qquad \frac{\partial\mathcal{L}}{\partial\theta_f} $$
 
 它们分别训练“怎样融合”“展开哪里”和“怎样折叠”。这仍不保证能找到好协议，只说明学习信号有一条明确路径进入三组参数。协议是否形成，最终必须由预算曲线和因果干预判断，而不是由公式命名。
 
@@ -742,13 +565,9 @@ $$
 
 同一个长期状态 \(M\) 可以面对不同读取协议：
 
-$$
-R_{\mathrm{grep}}(M,q)\rightarrow\text{原文}
-$$
+$$ R_{\mathrm{grep}}(M,q)\rightarrow\text{原文} $$
 
-$$
-R_{\mathrm{QA}}(M,q)\rightarrow\text{回答}
-$$
+$$ R_{\mathrm{QA}}(M,q)\rightarrow\text{回答} $$
 
 GrepCode 协议可能需要展开到较细分辨率；问答协议可能在较粗状态就已足够。两者没有高低之分，只是在相同容量和延迟约束下完成不同目标。
 
