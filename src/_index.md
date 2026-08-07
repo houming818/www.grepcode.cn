@@ -16,6 +16,7 @@ description: "GrepCode.cn: 代码是机器的诗，诗是灵魂的代码"
 ## 研究档案
 
 - [ARA 研究档案](/ara/)：SameTime / TreeHeap / SPR 的 claim、predict、experiment、evidence、decision 和 next step 手机阅读版。
+- [TNM 原生记忆协议](/tnm/)：研究 TreeHeap 如何把私有编解码协议扩展为跨时间持续状态。
 
 ---
 
