@@ -180,7 +180,84 @@ L=U-A_{\theta}(D)
 R=D+P_{\theta}(L)
 \]
 
-这说明 TreeHeap merge 已经拥有可逆 lifting transform 的数学基础。只要 root 和所有 detail 都保留，FOLD/UNFOLD 可以闭合。
+这说明 TreeHeap merge 已经拥有可逆 lifting transform 的数学基础。这里值得把推导完全公开，因为可逆性不是依靠“神经网络也许能学会”，而是由算子结构直接保证。
+
+先把 FOLD 拆成两个三角变换。第一步是 Predict：
+
+\[
+(L,R)\longmapsto\left(L,D=R-P_{\theta}(L)\right)
+\]
+
+第二步是 Update：
+
+\[
+(L,D)\longmapsto\left(U=L+A_{\theta}(D),D\right)
+\]
+
+Predict 没有修改 \(L\)，所以知道 \(L,D\) 就能恢复 \(R\)。Update 没有修改 \(D\)，所以知道 \(U,D\) 就能恢复 \(L\)。把两步逆序执行，就得到前面的 UNFOLD 公式。
+
+这一结论不要求 \(P_{\theta}\) 或 \(A_{\theta}\) 是线性函数，也不要求单独求它们的逆。只要 FOLD 和 UNFOLD 调用同一组确定参数，显式逆就成立。
+
+如果 \(P\) 和 \(A\) 可微，两步的 Jacobian 分别具有分块三角结构：
+
+\[
+J_{\mathrm{predict}}=
+\begin{bmatrix}
+I&0\\
+-J_P&I
+\end{bmatrix}
+\]
+
+\[
+J_{\mathrm{update}}=
+\begin{bmatrix}
+I&J_A\\
+0&I
+\end{bmatrix}
+\]
+
+两个行列式都为 1，因此完整局部变换满足：
+
+\[
+\left|\det J_{\mathrm{FOLD}}\right|=1
+\]
+
+这意味着在理想连续算术中，它是一个体积保持的双射。实际程序仍会受到浮点误差、mask、量化和参数版本不一致的影响，所以代码必须继续做数值闭合测试。
+
+### 4.1 整棵树为什么也能闭合
+
+设有 \(N=2^h\) 个 leaf，每个状态维度为 \(d\)。第一层产生 \(N/2\) 个 parent 和 \(N/2\) 个 detail；第二层继续产生 \(N/4\) 个 parent 和 \(N/4\) 个 detail，直到只剩 root。
+
+所有 detail 的数量是：
+
+\[
+\frac{N}{2}+\frac{N}{4}+\cdots+1=N-1
+\]
+
+加上一个 root，状态块总数仍然是：
+
+\[
+1+(N-1)=N
+\]
+
+因此完整 TreeHeap 变换保持总自由度：
+
+\[
+Nd\longleftrightarrow d+(N-1)d=Nd
+\]
+
+从 root 开始，只要按照深度逆序使用每层 detail，就能恢复全部 leaf。这个结论可以由深度归纳直接得到：深度 1 的局部 FOLD 可逆；若深度 \(h\) 的两棵子树可逆，再加一个可逆顶层 FOLD，深度 \(h+1\) 也可逆。
+
+### 4.2 “压缩”到底发生在哪里
+
+完整保留 root 和全部 detail 时，TreeHeap 完成的是**可逆坐标变换**，不是减少字节数。真正的有损压缩发生在：
+
+1. 只读取 root 或较浅 frontier；
+2. 对较深 detail 进行低精度量化；
+3. 删除、稀疏化或熵编码低价值 detail；
+4. 在固定读取预算下，不把全部 detail 搬入现实 \(H\)。
+
+因此 TNM 当前首先利用的是**访问压缩和分辨率压缩**。它是否还能获得存储压缩，必须由后续 rate--distortion 实验回答，不能从 lifting 公式直接推出。
 
 但是，这还不是记忆协议。
 
@@ -287,7 +364,91 @@ TNM 希望测试另一种机制：
 M=\left(U_{\mathrm{root}},D_{\mathrm{root}},D_1,D_2,\ldots\right)
 \]
 
-其中 root 是全局粗分辨率状态，各层 detail 保存继续提高分辨率所需的信息。读取从 root 开始，每到一个节点，kernel 接收：
+其中 root 是全局粗分辨率状态，各层 detail 保存继续提高分辨率所需的信息。
+
+### 7.1 记忆怎样写成 M
+
+先把第 \(j\) 条经历 \(x_j\) 编成一个 leaf 状态：
+
+\[
+e_j=E_w(x_j)\in\mathbb{R}^d
+\]
+
+固定容量为 \(N\) 时，当前 leaf 层记为：
+
+\[
+X=(e_1,e_2,\ldots,e_N)
+\]
+
+空位置由显式 mask 标记，不能把 PAD 的数值大小误当成有效记忆。对整个 leaf 层执行递归 FOLD：
+
+\[
+M=\mathcal{T}_{\theta_f}(X)
+\]
+
+如果只替换一个 leaf，树外所有不在其祖先路径上的状态保持不变。需要重新计算的节点数至多等于树高：
+
+\[
+h=\log_2N
+\]
+
+所以固定地址下的一次局部更新可以在 \(O(\log N)\) 个 merge 中完成。这里的地址更新规则仍然是第一版待定项；这个复杂度结论只描述“已知写入位置以后”怎样维护 TreeHeap，不证明系统已经学会把新经历放到正确位置。
+
+### 7.2 mixed-resolution frontier
+
+Partial UNFOLD 不把整棵树恢复成 leaf 数组。它维护一个 frontier，即当前已经足以代表整棵记忆的、不重叠的节点集合。
+
+初始 frontier 只有 root：
+
+\[
+\mathcal{F}_0=\{\mathrm{root}\}
+\]
+
+如果选择展开节点 \(i\)，就用它的两个子节点替换它：
+
+\[
+\mathcal{F}_{t+1}
+=
+\left(\mathcal{F}_t\setminus\{i\}\right)
+\cup
+\{\operatorname{left}(i),\operatorname{right}(i)\}
+\]
+
+设 \(\operatorname{Leaves}(i)\) 表示节点 \(i\) 覆盖的原始 leaf 地址。每次替换都满足：
+
+\[
+\operatorname{Leaves}(i)
+=
+\operatorname{Leaves}(\operatorname{left}(i))
+\mathbin{\dot\cup}
+\operatorname{Leaves}(\operatorname{right}(i))
+\]
+
+符号 \(\dot\cup\) 表示不相交并集。因此任意时刻都有两个不变量：
+
+\[
+\bigcup_{i\in\mathcal{F}_t}\operatorname{Leaves}(i)
+=
+\operatorname{Leaves}(\mathrm{root})
+\]
+
+\[
+i\neq j
+\Longrightarrow
+\operatorname{Leaves}(i)\cap\operatorname{Leaves}(j)=\varnothing
+\]
+
+也就是说，frontier 始终无遗漏、无重复地覆盖完整记忆，只是不同区域采用不同分辨率。展开 \(B\) 次以后：
+
+\[
+|\mathcal{F}_B|=B+1
+\]
+
+这个不变量是 Partial UNFOLD 与“随便取几个节点”之间的数学区别。
+
+### 7.3 query 怎样控制展开
+
+读取从 root 开始，每到一个 frontier 节点，kernel 接收：
 
 \[
 (q,U_i,D_i,\operatorname{path}_i,\operatorname{depth}_i)
@@ -302,9 +463,9 @@ M=\left(U_{\mathrm{root}},D_{\mathrm{root}},D_1,D_2,\ldots\right)
 四个动作分别表示：
 
 - `stop`：当前分辨率已经足够；
-- `left`：只展开左侧状态；
-- `right`：只展开右侧状态；
-- `both`：两侧都需要更高分辨率。
+- `left`：展开当前节点后，优先继续细化左侧；右侧仍作为粗节点保留在 frontier；
+- `right`：展开当前节点后，优先继续细化右侧；左侧仍作为粗节点保留；
+- `both`：两个子节点都进入后续可展开集合。
 
 一旦展开，就直接使用 TreeHeap 已有的 UNFOLD：
 
@@ -321,6 +482,42 @@ R_i=D_i+P_{\theta}(L_i)
 \[
 R_t=\operatorname{PartialUnfold}_{\theta_r}(M_t,q_t;B)
 \]
+
+更具体地说，\(R_t\) 不是简单求和后的单向量，而是带地址、深度和 query 权重的 frontier：
+
+\[
+R_t=
+\left\{
+(i,U_i,\operatorname{path}_i,\operatorname{depth}_i,w_i)
+\;\middle|\;
+i\in\mathcal{F}_B
+\right\}
+\]
+
+其中 \(w_i\) 由读取 kernel 产生。保留 path 和 depth 是为了不把 mixed-resolution TreeHeap 再次压平为无序 word bag。
+
+### 7.4 可执行伪代码
+
+```text
+frontier = {root}
+expandable = {root}
+
+repeat at most B times:
+    对 expandable 中已暴露的节点计算 kernel(q, U, D, path, depth)
+    选择一个允许展开的节点 i
+    如果所有节点都选择 stop:
+        break
+
+    (left, right) = UNFOLD(U_i, D_i)
+    frontier 删除 i
+    frontier 加入 left 和 right
+
+    根据 left/right/both 动作更新 expandable
+
+return 带地址和深度的 frontier 作为 R
+```
+
+这个算法只读取已经暴露节点的局部 detail，不需要先扫描全部 leaf。若实现为了算所有节点分数而预先读取整棵树，就已经破坏了预算定义。
 
 同一个 \(M\) 面对不同问题，可以合成不同的 \(R\)：
 
@@ -339,11 +536,23 @@ R_t=\operatorname{PartialUnfold}_{\theta_r}(M_t,q_t;B)
 
 ## 8. 时间复杂度从展开预算产生
 
-每展开一个节点，只读取该节点附近的 parent/detail，并恢复两个子状态。如果最多展开 \(B\) 个节点，则计算量近似为：
+每展开一个节点，只读取该节点附近的 parent/detail，并恢复两个子状态。设：
 
 \[
-T_{\mathrm{read}}=O(B)
+C_U=C_P+C_A+O(d)
 \]
+
+其中 \(C_P\) 和 \(C_A\) 分别是一次 predictor 与 update 的成本，\(C_U\) 是一次 UNFOLD 的成本；再设一次读取 kernel 的成本为 \(C_K\)。
+
+如果节点分数只依赖 \((q,U_i,D_i,\operatorname{path}_i,\operatorname{depth}_i)\)，新节点暴露时计算一次分数，并用优先队列维护候选，那么展开 \(B\) 次的成本是：
+
+\[
+T_{\mathrm{read}}
+=
+O\!\left(B(C_U+C_K)+B\log B\right)
+\]
+
+若忽略固定维度 kernel 和优先队列常数，才可以简写为近似 \(O(B)\)。如果实现每一步都重新扫描整个 frontier，累计成本会退化为 \(O(B^2)\)；如果为了打分先读取全部 \(N\) 个节点，则直接退化为 \(O(N)\)。这些实现不能被包装成快速 Partial UNFOLD。
 
 如果只沿一条路径走到深层：
 
@@ -371,6 +580,26 @@ B\approx\log_2N
 ```
 
 如果少量展开已经接近完整展开，TreeHeap 压缩结构才提供了可测量的读取收益。如果必须扫描全部节点，它就没有获得预期优势。
+
+完整建立一个 \(N\)-leaf TreeHeap 需要 \(N-1\) 次局部 FOLD：
+
+\[
+T_{\mathrm{build}}=O\!\left(N(C_P+C_A)\right)
+\]
+
+已知写入地址后，修改一个 leaf 只重算祖先路径：
+
+\[
+T_{\mathrm{update}}=O\!\left((C_P+C_A)\log N\right)
+\]
+
+完整可逆存储仍然需要 \(N\) 个 \(d\)-维状态块：
+
+\[
+S_{\mathrm{exact}}=O(Nd)
+\]
+
+所以 TNM 当前可争取的是读取带宽和在线计算收益，不应把它提前写成无条件的存储空间收益。
 
 ## 9. 哪些部分允许训练
 
@@ -412,7 +641,102 @@ y=D(H')
 \mathcal{L}=\operatorname{CE}(y,y^*)
 \]
 
-梯度通过回答误差反向进入 Mix、Partial UNFOLD 和 FOLD 参数。协议是否形成，由结果与干预实验判断，而不是由我们提前命名内部语义。
+### 9.1 R 怎样混入现实 H
+
+为了不把取回结果退化成向量拼接，最直接的 TreeHeap-native Mix 是再执行一次 lifting merge。把现实 TreeHeap 和取回 TreeHeap 的 root 状态分别记为 \(U_H,U_R\)：
+
+\[
+D_{\mathrm{mix}}=U_R-P_m(U_H)
+\]
+
+\[
+U_{H'}=U_H+A_m(D_{\mathrm{mix}})
+\]
+
+新的 \(H'\) 保留 \(H\)、mixed-resolution \(R\) 和 \(D_{\mathrm{mix}}\) 的结构引用，而不是只留下 \(U_{H'}\) 一个向量。对应逆变换仍然是：
+
+\[
+U_H=U_{H'}-A_m(D_{\mathrm{mix}})
+\]
+
+\[
+U_R=D_{\mathrm{mix}}+P_m(U_H)
+\]
+
+这给出了一个明确、可逆的候选 Mix，但不保证 Decoder 会使用 \(R\) 的细节。如果训练后 Decoder 只读 \(U_{H'}\)，或者清零 \(R\) 不造成损伤，记忆协议仍然失败。
+
+### 9.2 离散路由怎样获得梯度
+
+`stop/left/right/both` 是离散动作，而梯度下降要求连续计算图。这是当前理论原型里尚未解决、不能藏起来的部分。
+
+读取 kernel 可以先产生连续概率：
+
+\[
+\pi_i=\operatorname{softmax}(K_{\theta_r}(q,U_i,D_i,p_i,h_i))
+\]
+
+候选训练方法之一是 straight-through 估计。前向传播使用硬动作：
+
+\[
+a_{\mathrm{hard}}=\operatorname{onehot}(\arg\max\pi_i)
+\]
+
+反向传播使用：
+
+\[
+a_{\mathrm{ST}}
+=
+a_{\mathrm{hard}}+\pi_i-\operatorname{stopgrad}(\pi_i)
+\]
+
+这样前向过程严格遵守 \(B\) 次展开预算，反向过程给概率 kernel 近似梯度。但 straight-through 梯度有偏，不能视为数学定理。
+
+另外两种公开备选是：
+
+1. 小规模 proof 中对全部动作做 soft mixture，梯度稳定，但训练成本可能达到 \(O(N)\)；
+2. 用 policy gradient/REINFORCE 优化硬动作，理论上不需要连续化，但方差较大。
+
+第一轮实验必须把所选估计器、训练时访问节点数和推理时访问节点数分别记录，防止“训练时全树扫描、推理时宣称有限预算”的口径混淆。
+
+### 9.3 梯度到底更新什么
+
+对一个训练 episode：
+
+\[
+(x_1,x_2,\ldots,x_T,q,y^*)
+\]
+
+前向过程依次执行：
+
+\[
+e_t=E_w(x_t)
+\]
+
+\[
+M=\mathcal{T}_{\theta_f}(e_1,\ldots,e_T)
+\]
+
+\[
+R=\operatorname{PartialUnfold}_{\theta_r}(M,q;B)
+\]
+
+\[
+H'=\operatorname{Mix}_{\theta_m}(H_q,R)
+\]
+
+\[
+\mathcal{L}=\operatorname{CE}(D(H'),y^*)
+\]
+
+若计算图连通，链式法则会产生三类梯度：
+
+\[
+\frac{\partial\mathcal{L}}{\partial\theta_m},\qquad
+\frac{\partial\mathcal{L}}{\partial\theta_r},\qquad
+\frac{\partial\mathcal{L}}{\partial\theta_f}
+\]
+
+它们分别训练“怎样融合”“展开哪里”和“怎样折叠”。这仍不保证能找到好协议，只说明学习信号有一条明确路径进入三组参数。协议是否形成，最终必须由预算曲线和因果干预判断，而不是由公式命名。
 
 ## 10. 同一份状态可以有多个记忆协议
 
@@ -481,6 +805,15 @@ TNM 现在只有逻辑原型，还没有长期记忆 proof。已有基础与缺�
 | 私有协议能否训练 | Echo、翻译和生成已有部分证据 | 记忆读取协议证据 |
 | R 能否有限预算合成 | 本文给出 Partial UNFOLD 原型 | 代码与质量--预算曲线 |
 | R 能否改变现实 H | 有 Mix 接口定义 | 因果干预 proof |
+
+为了避免把公式、设计和实验结论混成一件事，本文最后按证据等级重新列一次：
+
+| 类型 | 当前内容 |
+|---|---|
+| 由公式直接成立 | 局部 lifting 的显式逆；完整 root+details 保持总自由度；frontier 展开保持全叶覆盖且互不重叠；展开 \(B\) 次得到 \(B+1\) 个 frontier 节点 |
+| 在指定实现条件下成立 | 已知写入地址时局部更新经过 \(O(\log N)\) 个祖先；缓存局部分数并使用优先队列时，预算读取成本为 \(O(B(C_U+C_K)+B\log B)\) |
+| 候选算法，尚未证明 | query-conditioned stop/left/right/both kernel；straight-through 路由训练；TreeHeap-native Mix |
+| 必须由实验回答 | 是否能形成有用私有协议；少量展开是否接近全树质量；长期写入是否干扰旧记忆；是否获得实际存储压缩 |
 
 下一步不应该立即实现智能遗忘，也不应该先造一个大规模外部索引。更合理的是在固定容量 TreeHeap 上实现一次 Query-Conditioned Partial UNFOLD，验证它是否能在受限节点预算下，从临时事实中合成可用的 \(R\)。
 
