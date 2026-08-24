@@ -19,8 +19,12 @@ grep -q '085-treeheap-fold-energy-and-gradient-pressure.html' "$site_dir/sitemap
   fail "latest SPR article is absent from sitemap.xml"
 grep -q '085-treeheap-fold-energy-and-gradient-pressure.html' "$site_dir/llms.txt" ||
   fail "latest SPR article is absent from llms.txt"
+grep -q 'treeheap-paper/index.html' "$site_dir/llms.txt" ||
+  fail "TreeHeap paper reading path is absent from llms.txt"
 grep -q '<title>.*TreeHeap.*</title>' "$site_dir/index.html" ||
   fail "home page title does not describe the TreeHeap research series"
+grep -q '077-treeheap-paper-origin-and-evolution.html' "$site_dir/treeheap-paper/index.html" ||
+  fail "TreeHeap paper landing page does not link to the first chapter"
 
 pages=$(mktemp)
 issues=$(mktemp)

@@ -30,9 +30,9 @@ https://github.com/houming818/sametime
 
 这套研究现在按 ARA（Architecture / Reasoning / Artifact）方式整理：每个结论都要有证据，每个强 claim 都要有反证标准。
 
-## 第一次阅读：四篇建立完整地图
+## 两条阅读路线
 
-如果你第一次接触 TreeHeap，建议先读下面四篇，而不是从 SPR-001 顺序翻完整实验史：
+如果你第一次接触 TreeHeap，请先进入独立的 [TreeHeap 论文专题](/treeheap-paper/)。那里把当前理论压缩为四篇连续章节：
 
 1. [SPR-077：TreeHeap 为什么不是把数组画成一棵树](/spr/077-treeheap-paper-origin-and-evolution.html)
 2. [SPR-078：一个句子怎样进入 TreeHeap](/spr/078-treeheap-paper-math-and-dataflow.html)
@@ -40,6 +40,8 @@ https://github.com/houming818/sametime
 4. [SPR-080：Claim 边界、否证条件与复现入口](/spr/080-treeheap-paper-boundaries-and-reproduction.html)
 
 完整中文论文保存在 [SameTime 开放仓库](https://github.com/houming818/sametime/blob/main/ara/papers/treeheap_emergent_protocol.zh.md)。
+
+如果你要 review TreeHeap 是怎样一步步形成的，请留在本页，从 SPR-001 开始按编号阅读。数字序列保留了错误路线、负结果、审计异议和结论撤回；SPR-077 至 SPR-080 也是论文四篇在研究时间线中的原始位置。
 
 ## 最新研究
 

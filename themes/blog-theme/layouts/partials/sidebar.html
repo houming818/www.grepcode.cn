@@ -7,6 +7,7 @@
   <li>
     <details class="tree-folder" open>
       <summary class="tree-label">{{ .Title }}</summary>
+      <a href="{{ .RelPermalink }}" class="tree-item{{ if eq $current.RelPermalink .RelPermalink }} active{{ end }}">专题首页</a>
       {{- range .Pages.ByTitle }}
         <a href="{{ .RelPermalink }}" class="tree-item{{ if eq $current.RelPermalink .RelPermalink }} active{{ end }}">{{ .Title }}</a>
       {{- end }}

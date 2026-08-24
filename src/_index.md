@@ -17,7 +17,7 @@ description: "GrepCode 公开 TreeHeap 递归树堆 AI 架构的数学定义、F
 
 - [TreeHeap / SPR 研究系列](/spr/)：从数学底座、Kernel 卷积、FOLD/UNFOLD，到真实语料训练、结构消融与 checkpoint 审计。
 - [ARA 研究档案](/ara/)：SameTime / TreeHeap / SPR 的 claim、predict、experiment、evidence、decision 和 next step 手机阅读版。
-- [TreeHeap 中文论文](/spr/077-treeheap-paper-origin-and-evolution.html)：从研究起源开始阅读四篇论文特别篇。
+- [TreeHeap 中文论文](/treeheap-paper/)：四篇连续章节，适合第一次接触 TreeHeap 的研究者。
 - [TNM 原生记忆协议](/tnm/)：暂停中的远期专题；在基础 seq2seq 与私有协议能力成立后再继续。
 
 ## 当前入口

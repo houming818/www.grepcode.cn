@@ -2,10 +2,9 @@
 {{- define "llms_print_section" -}}
 {{- $section := .section -}}
 {{- $depth := .depth -}}
-{{- if or (gt (len $section.RegularPages) 0) (gt (len $section.Sections) 0) -}}
 {{- $hashes := strings.Repeat (add $depth 1) "#" }}
 
-{{ printf "%s %s" $hashes $section.Title }}
+{{ printf "%s [%s](%s)" $hashes $section.Title $section.Permalink }}
 
 {{- /* Pages in this section */ -}}
 {{- range $p := $section.RegularPages }}
@@ -17,7 +16,6 @@
 {{- /* Recurse into subsections */ -}}
 {{- range $s := $section.Sections -}}
 {{- template "llms_print_section" (dict "section" $s "depth" (add $depth 1)) -}}
-{{- end -}}
 {{- end -}}
 {{- end -}}
 
