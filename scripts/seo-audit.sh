@@ -20,17 +20,34 @@ grep -q '085-treeheap-fold-energy-and-gradient-pressure.html' "$site_dir/sitemap
 grep -q '085-treeheap-fold-energy-and-gradient-pressure.html' "$site_dir/llms.txt" ||
   fail "latest SPR article is absent from llms.txt"
 
-bad_lang=$(find "$site_dir" -type f -name '*.html' -exec grep -L '<html lang="zh-cn"' {} + || true)
-test -z "$bad_lang" || fail "HTML language is not zh-cn:\n$bad_lang"
+pages=$(mktemp)
+issues=$(mktemp)
+trap 'rm -f "$pages" "$issues"' EXIT
+find "$site_dir" -type f -name '*.html' >"$pages"
 
-noindex=$(find "$site_dir" -type f -name '*.html' -exec grep -l 'name="robots" content="noindex' {} + || true)
-test -z "$noindex" || fail "production pages contain noindex:\n$noindex"
+while IFS= read -r page; do
+  # Hugo alias pages are immediate redirect stubs, not indexable content pages.
+  if grep -qi 'http-equiv="refresh"' "$page"; then
+    continue
+  fi
 
-missing_description=$(find "$site_dir/spr" -type f -name '*.html' -exec grep -L '<meta name="description"' {} + || true)
-test -z "$missing_description" || fail "SPR pages missing descriptions:\n$missing_description"
+  grep -q '<html lang="zh-cn"' "$page" || printf 'wrong language: %s\n' "$page" >>"$issues"
+  if grep -q 'name="robots" content="noindex' "$page"; then
+    printf 'unexpected noindex: %s\n' "$page" >>"$issues"
+  fi
 
-missing_canonical=$(find "$site_dir/spr" -type f -name '*.html' -exec grep -L 'rel="canonical"' {} + || true)
-test -z "$missing_canonical" || fail "SPR pages missing canonical URLs:\n$missing_canonical"
+  case "$page" in
+    "$site_dir"/spr/*.html)
+      grep -q '<meta name="description"' "$page" || printf 'missing description: %s\n' "$page" >>"$issues"
+      grep -q 'rel="canonical"' "$page" || printf 'missing canonical: %s\n' "$page" >>"$issues"
+      ;;
+  esac
+done <"$pages"
+
+if test -s "$issues"; then
+  cat "$issues" >&2
+  fail "one or more generated HTML pages violate the SEO contract"
+fi
 
 latest="$site_dir/spr/085-treeheap-fold-energy-and-gradient-pressure.html"
 grep -q 'property="og:image"' "$latest" || fail "latest SPR article has no Open Graph image"
