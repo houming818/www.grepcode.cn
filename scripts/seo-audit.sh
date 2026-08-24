@@ -21,6 +21,8 @@ grep -q '085-treeheap-fold-energy-and-gradient-pressure.html' "$site_dir/llms.tx
   fail "latest SPR article is absent from llms.txt"
 grep -Eq 'treeheap-paper(\.html|/index\.html)' "$site_dir/llms.txt" ||
   fail "TreeHeap paper reading path is absent from llms.txt"
+grep -q 'treeheap-paper/001-treeheap-emergent-protocol.html' "$site_dir/llms.txt" ||
+  fail "TreeHeap full paper is absent from llms.txt"
 grep -q '<title>.*TreeHeap.*</title>' "$site_dir/index.html" ||
   fail "home page title does not describe the TreeHeap research series"
 
@@ -31,6 +33,15 @@ fi
 test -f "$paper_landing" || fail "TreeHeap paper landing page was not generated"
 grep -q '077-treeheap-paper-origin-and-evolution.html' "$paper_landing" ||
   fail "TreeHeap paper landing page does not link to the first chapter"
+grep -q '001-treeheap-emergent-protocol.html' "$paper_landing" ||
+  fail "TreeHeap paper landing page does not link to the full paper"
+
+full_paper="$site_dir/treeheap-paper/001-treeheap-emergent-protocol.html"
+test -f "$full_paper" || fail "TreeHeap full paper was not generated"
+grep -q '<meta name="description"' "$full_paper" ||
+  fail "TreeHeap full paper has no meta description"
+grep -q 'property="og:image"' "$full_paper" ||
+  fail "TreeHeap full paper has no Open Graph image"
 
 pages=$(mktemp)
 issues=$(mktemp)
