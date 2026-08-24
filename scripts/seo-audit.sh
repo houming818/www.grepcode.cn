@@ -19,6 +19,8 @@ grep -q '085-treeheap-fold-energy-and-gradient-pressure.html' "$site_dir/sitemap
   fail "latest SPR article is absent from sitemap.xml"
 grep -q '085-treeheap-fold-energy-and-gradient-pressure.html' "$site_dir/llms.txt" ||
   fail "latest SPR article is absent from llms.txt"
+grep -q '<title>.*TreeHeap.*</title>' "$site_dir/index.html" ||
+  fail "home page title does not describe the TreeHeap research series"
 
 pages=$(mktemp)
 issues=$(mktemp)
