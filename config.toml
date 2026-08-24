@@ -4,12 +4,23 @@
 baseURL = "https://www.grepcode.cn/"
 uglyURLs = true
 disableKinds = ["taxonomy", "term"]
+defaultContentLanguage = "zh-cn"
 languageCode = "zh-CN"
 title = "GrepCode"
 theme = ["blog-theme", "PaperMod"]
 contentDir = "src"
 publishDir = "dist"
 themesDir = "themes"
+enableRobotsTXT = true
+
+[outputFormats.LLMS]
+mediaType = "text/plain"
+baseName = "llms"
+isPlainText = true
+notAlternative = true
+
+[outputs]
+home = ["HTML", "RSS", "LLMS"]
 
 [markup.goldmark.extensions.passthrough]
 enable = true
@@ -22,6 +33,9 @@ unsafe = true
 
 [params]
 defaultTheme = "dark"
+description = "TreeHeap 是一种以递归树堆、FOLD/UNFOLD、多分辨率退火和可证伪实验为核心的开放 AI 架构研究。GrepCode 公开 SPR 研究日志、数学定义、代码、失败记录与实验结果。"
+keywords = ["TreeHeap", "SPR", "递归树堆", "人工智能架构", "FOLD", "UNFOLD", "多分辨率", "私有协议", "ARA", "可证伪实验"]
+images = ["/img/treeheap-research-series.png"]
 ShowReadingTime = false
 ShowShareButtons = false
 ShowPostNavLinks = true
@@ -35,6 +49,13 @@ mainSections = [""]
 [author]
 name = "Houming818 (nio) & opencode (AI)"
 email = "houming818@qq.com"
+
+[params.schema]
+publisherType = "Organization"
+sameAs = [
+    "https://github.com/houming818",
+    "https://www.grepcode.cn/spr/index.html"
+]
 
 [params.homeInfoParams]
 Title = "GrepCode"

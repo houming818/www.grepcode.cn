@@ -1,11 +1,17 @@
 {{ define "main" }}
   <h1>{{ .Title }}</h1>
   {{ .Content }}
+  {{- if eq .Section "spr" }}
+  <h2>全部 SPR 文章（最新优先）</h2>
+  {{- end }}
   <ul class="dynamic-list">
-    {{ range .Pages.ByTitle }}
+    {{ $pages := .Pages.ByTitle }}
+    {{ if eq .Section "spr" }}{{ $pages = .Pages.ByDate.Reverse }}{{ end }}
+    {{ range $pages }}
     <li>
       <a href="{{ .RelPermalink }}">
         {{ .Title }}
+        {{ if eq $.Section "spr" }}<br/><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>{{ end }}
         {{ with .Params.description }}<br/><small>{{ . }}</small>{{ end }}
       </a>
     </li>

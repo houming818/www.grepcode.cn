@@ -22,6 +22,50 @@ window.MathJax = {
 </script>
 <script defer src="/js/tex-svg.js?v=3.2.2-full-1"></script>
 
+<link rel="alternate" type="text/plain" href="{{ "llms.txt" | absURL }}" title="{{ site.Title }} research index for language models">
+<meta name="robots" content="max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+{{- if .IsHome }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": {{ printf "%s#website" site.Home.Permalink | jsonify }},
+  "url": {{ site.Home.Permalink | jsonify }},
+  "name": {{ site.Title | jsonify }},
+  "description": {{ site.Params.description | jsonify }},
+  "inLanguage": {{ site.Language.LanguageCode | jsonify }},
+  "publisher": {
+    "@type": "Organization",
+    "name": {{ site.Title | jsonify }},
+    "url": {{ site.Home.Permalink | jsonify }}
+  }
+}
+</script>
+{{- else if and .IsSection (eq .Section "spr") }}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "@id": {{ printf "%s#collection" .Permalink | jsonify }},
+  "url": {{ .Permalink | jsonify }},
+  "name": {{ .Title | jsonify }},
+  "description": {{ .Description | jsonify }},
+  "inLanguage": {{ site.Language.LanguageCode | jsonify }},
+  "isPartOf": { "@id": {{ printf "%s#website" site.Home.Permalink | jsonify }} },
+  "about": [
+    { "@type": "Thing", "name": "TreeHeap" },
+    { "@type": "Thing", "name": "Recursive neural architecture" },
+    { "@type": "Thing", "name": "FOLD and UNFOLD" }
+  ],
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": {{ len .RegularPages }}
+  }
+}
+</script>
+{{- end }}
+
 <style>
 /* ── Block-level line numbers (paragraphs, headings, lists, blockquotes) ── */
 .post-content { counter-reset: block-num; }

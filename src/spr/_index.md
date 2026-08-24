@@ -1,16 +1,22 @@
 ---
-title: "SPR：语义前缀路由研究档案"
+title: "TreeHeap / SPR：递归树堆 AI 架构研究档案"
 date: 2026-06-16
+lastmod: 2026-08-24
 author: nio (Houming818) & Codex Review
-description: "SPR 的 ARA 风格研究档案：问题、证据、反证、proof、架构决策和下一轮实验。"
+description: "TreeHeap 与 SPR 的开放研究档案：递归树堆、卷积 Kernel、FOLD/UNFOLD、多分辨率退火、私有编解码协议，以及可复现、可证伪的 AI 实验。"
+keywords: [TreeHeap, SPR, 递归树堆, AI架构, FOLD, UNFOLD, 卷积Kernel, 多分辨率退火, 私有协议, ARA]
 tags: [SPR, ARA, SemanticRouting, Falsification, Architecture]
 ---
 
 ## 这是什么
 
-SPR（Semantic Prefix Routing，语义前缀路由）是一组研究实验，目标是回答一个问题：
+**TreeHeap** 是一种正在公开验证的递归树堆 AI 架构。它把状态写在 root、internal node 与 leaf 共同组成的多分辨率结构中，再通过可组合的卷积 Kernel、FOLD、UNFOLD、mirror 和递归 READ 完成写入、压缩、变换与生成。
+
+SPR（Semantic Prefix Routing）是 TreeHeap 的连续研究日志。它不只保存成功结果，也公开数学定义、代码、负结果、审计异议和下一轮实验。核心问题已经从早期的“路径能否替代部分稠密搜索”，发展为：
 
 > 能不能用“路径”替代 Transformer 里的一部分稠密矩阵搜索？
+
+> TreeHeap 能否依靠自身的递归结构形成可训练的 encoder/decoder 私有协议，并在有限算力下获得可测量的语言能力？
 
 开放实验记录在 GitHub：
 
@@ -24,7 +30,7 @@ https://github.com/houming818/sametime
 
 这套研究现在按 ARA（Architecture / Reasoning / Artifact）方式整理：每个结论都要有证据，每个强 claim 都要有反证标准。
 
-## TreeHeap 论文特别篇
+## 第一次阅读：四篇建立完整地图
 
 如果你第一次接触 TreeHeap，建议先读下面四篇，而不是从 SPR-001 顺序翻完整实验史：
 
@@ -37,6 +43,14 @@ https://github.com/houming818/sametime
 
 ## 最新研究
 
+- [SPR-085：能量守恒不等于学习压力守恒](/spr/085-treeheap-fold-energy-and-gradient-pressure.html)
+
+  区分 FOLD/UNFOLD 闭包误差与 root-to-leaf 梯度条件数；人工抵消 toy 暴露梯度爆炸，但真实 checkpoint 表明当前逐层归一化还承担着隐式梯度补偿，因此能量载体候选暂不进入训练。
+
+- [SPR-084：C10 预训练、STOP 坍缩与结构审计](/spr/084-treeheap-c10-pretrain-stop-audit.html)
+
+  回到真实 checkpoint 审查多分辨率路径，区分训练损失下降、生成质量与 TreeHeap 结构是否真正参与计算。
+
 - [SPR-083：预训练少一点偏见，任务训练再选择视角](/spr/083-treeheap-stage-dependent-identity-dose.html)
 
   提出阶段性 Identity 剂量假说：预训练可能需要较低 I 保留异构结构，具体任务训练才使用较高 I 形成目标坐标偏见；文章给出等总剂量的 Early-I / Late-I 可证伪实验。
@@ -48,6 +62,34 @@ https://github.com/houming818/sametime
 - [SPR-081：模型是不是换了一个角度画鸡蛋——TreeHeap 私有协议的视角漂移](/spr/081-treeheap-private-protocol-viewpoint-drift.html)
 
   文章现已追加正式视角比例实验：20% 原序投喂使跨视角 JS 大幅下降，但固定预算下 Native NLL 略有代价；下一步将保持 Butterfly 绝对剂量不变，用等算力对照区分比例效应与训练强度。
+
+## 按问题阅读
+
+### 数学底座与 TreeHeap 算子
+
+- [SPR-022：TreeHeap 的 BCK Hopf 代数与 Operad 数学定位](/spr/022-treeheap-math-foundation.html)
+- [SPR-023：从卷积 Kernel 构造 TreeHeap 操作](/spr/023-treeheap-kernel-convolution-ops.html)
+- [SPR-027：TreeHeap 差分、距离与梯度参考系](/spr/027-treeheap-diff-algebra.html)
+- [SPR-033：代数 Decoder 与内部状态读出](/spr/033-algebraic-decoders.html)
+- [SPR-040：mirror 手性翻转的代数与学习实验](/spr/040-mirror-kernel-symmetry.html)
+
+### Encoder、Decoder 与私有协议
+
+- [SPR-047：为什么 route 的瓶颈最终回到 encoder](/spr/047-treeheap-encoder-world-observer.html)
+- [SPR-048：多头参数森林与私有编码协议](/spr/048-treeheap-private-codec-forest.html)
+- [SPR-053：TreeHeap 代数算子编解码](/spr/053-treeheap-algebraic-operator-codec.html)
+- [SPR-060：递归退火与缩句式压缩协议](/spr/060-treeheap-annealed-contraction-protocol.html)
+- [SPR-075：H-state、UNFOLD 与 Decoder](/spr/075-treeheap-hstate-unfold-decoder.html)
+
+### 训练、工程证据与失败记录
+
+- [SPR-064：TreeHeap 私有协议之战](/spr/064-treeheap-private-protocol-battle.html)
+- [SPR-065：数据剂量与平台规模问题](/spr/065-treeheap-data-dose-platform.html)
+- [SPR-067：STONE-1 正式结果](/spr/067-stone1-private-protocol-formal-result.html)
+- [SPR-068：容量、码率与失真](/spr/068-treeheap-capacity-rate-distortion.html)
+- [SPR-074：C10 条件坍缩与结论撤回](/spr/074-c10-loss-collapse-retraction.html)
+- [SPR-084：预训练和 STOP 机制审计](/spr/084-treeheap-c10-pretrain-stop-audit.html)
+- [SPR-085：FOLD 能量与梯度压力审计](/spr/085-treeheap-fold-energy-and-gradient-pressure.html)
 
 ## 当前结论
 
