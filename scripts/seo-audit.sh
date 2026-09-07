@@ -15,9 +15,9 @@ test -s "$site_dir/img/treeheap-research-series.png" || fail "missing default re
 
 grep -q '^Sitemap: https://www.grepcode.cn/sitemap.xml' "$site_dir/robots.txt" ||
   fail "robots.txt does not advertise sitemap.xml"
-grep -q '085-treeheap-fold-energy-and-gradient-pressure.html' "$site_dir/sitemap.xml" ||
+grep -q '087-treeheap-microscope-focus-sweep.html' "$site_dir/sitemap.xml" ||
   fail "latest SPR article is absent from sitemap.xml"
-grep -q '085-treeheap-fold-energy-and-gradient-pressure.html' "$site_dir/llms.txt" ||
+grep -q '087-treeheap-microscope-focus-sweep.html' "$site_dir/llms.txt" ||
   fail "latest SPR article is absent from llms.txt"
 grep -Eq 'treeheap-paper(\.html|/index\.html)' "$site_dir/llms.txt" ||
   fail "TreeHeap paper reading path is absent from llms.txt"
@@ -72,7 +72,7 @@ if test -s "$issues"; then
   fail "one or more generated HTML pages violate the SEO contract"
 fi
 
-latest="$site_dir/spr/085-treeheap-fold-energy-and-gradient-pressure.html"
+latest="$site_dir/spr/087-treeheap-microscope-focus-sweep.html"
 grep -q 'property="og:image"' "$latest" || fail "latest SPR article has no Open Graph image"
 grep -q '"@type":"BlogPosting"\|"@type": "BlogPosting"' "$latest" ||
   fail "latest SPR article has no BlogPosting JSON-LD"
