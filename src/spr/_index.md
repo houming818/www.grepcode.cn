@@ -32,6 +32,10 @@ https://github.com/houming818/sametime
 
 ## 两条阅读路线
 
+第一次进入项目、对 `FOLD`、`READ`、`概率路由` 或 `ARA` 不熟悉的读者，可以先看
+[TreeHeap 开放术语表](/treeheap-glossary.html)。它明确区分标准数学概念、项目术语和实验编号；
+每篇正文仍有责任就地解释，术语表不是把理解成本转嫁给读者的借口。
+
 如果你第一次接触 TreeHeap，请先进入独立的 [TreeHeap 论文专题](/treeheap-paper/)。那里把当前理论压缩为四篇连续章节：
 
 1. [SPR-077：TreeHeap 为什么不是把数组画成一棵树](/spr/077-treeheap-paper-origin-and-evolution.html)
