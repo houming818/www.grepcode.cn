@@ -1,7 +1,7 @@
 ---
 title: "TreeHeap / SPR：递归树堆 AI 架构研究档案"
 date: 2026-06-16
-lastmod: 2026-08-24
+lastmod: 2026-09-20
 author: nio (Houming818) & Codex Review
 description: "TreeHeap 与 SPR 的开放研究档案：递归树堆、卷积 Kernel、FOLD/UNFOLD、多分辨率退火、私有编解码协议，以及可复现、可证伪的 AI 实验。"
 keywords: [TreeHeap, SPR, 递归树堆, AI架构, FOLD, UNFOLD, 卷积Kernel, 多分辨率退火, 私有协议, ARA]
@@ -45,25 +45,7 @@ https://github.com/houming818/sametime
 
 ## 最新研究
 
-- [SPR-085：能量守恒不等于学习压力守恒](/spr/085-treeheap-fold-energy-and-gradient-pressure.html)
-
-  区分 FOLD/UNFOLD 闭包误差与 root-to-leaf 梯度条件数；人工抵消 toy 暴露梯度爆炸，但真实 checkpoint 表明当前逐层归一化还承担着隐式梯度补偿，因此能量载体候选暂不进入训练。
-
-- [SPR-084：C10 预训练、STOP 坍缩与结构审计](/spr/084-treeheap-c10-pretrain-stop-audit.html)
-
-  回到真实 checkpoint 审查多分辨率路径，区分训练损失下降、生成质量与 TreeHeap 结构是否真正参与计算。
-
-- [SPR-083：预训练少一点偏见，任务训练再选择视角](/spr/083-treeheap-stage-dependent-identity-dose.html)
-
-  提出阶段性 Identity 剂量假说：预训练可能需要较低 I 保留异构结构，具体任务训练才使用较高 I 形成目标坐标偏见；文章给出等总剂量的 Early-I / Late-I 可证伪实验。
-
-- [SPR-082：比例还是剂量——TreeHeap 视角协议的四臂因果实验](/spr/082-treeheap-canonical-view-dose.html)
-
-  四臂等剂量实验表明：额外 Identity 能以很小 Native 代价显著降低跨视角 JS，但只恢复了替换损失的 39.1%，未通过预注册的 50% 门槛；比例与绝对剂量都参与私有协议形成。
-
-- [SPR-081：模型是不是换了一个角度画鸡蛋——TreeHeap 私有协议的视角漂移](/spr/081-treeheap-private-protocol-viewpoint-drift.html)
-
-  文章现已追加正式视角比例实验：20% 原序投喂使跨视角 JS 大幅下降，但固定预算下 Native NLL 略有代价；下一步将保持 Butterfly 绝对剂量不变，用等算力对照区分比例效应与训练强度。
+{{< latest-spr limit="6" >}}
 
 ## 按问题阅读
 

@@ -1,0 +1,6 @@
+[spr]
+strict_from = 89
+default_author = "Houming818 & Trinity (Codex)"
+required_fields = ["title", "date", "lastmod", "weight", "author", "description", "keywords", "tags"]
+description_min = 24
+description_max = 220

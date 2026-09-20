@@ -1,0 +1,52 @@
+.research-latest {
+  margin: 1rem 0 2rem;
+  padding-left: 1.4rem;
+}
+
+.research-latest li {
+  margin-bottom: 1rem;
+}
+
+.research-latest p {
+  margin: 0.25rem 0 0;
+  color: var(--secondary);
+  font-size: 0.92rem;
+}
+
+.research-block {
+  margin: 1.25rem 0;
+  padding: 0.85rem 1rem;
+  border-left: 4px solid var(--primary);
+  background: var(--code-bg);
+}
+
+.research-block header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.92rem;
+}
+
+.research-block header span {
+  color: var(--secondary);
+  font-family: monospace;
+}
+
+.research-block div > :first-child {
+  margin-top: 0;
+}
+
+.research-block div > :last-child {
+  margin-bottom: 0;
+}
+
+.research-evidence {
+  border-left-color: #2a9d6f;
+}
+
+.research-claim[data-status="rejected"],
+.research-claim[data-status="falsified"] {
+  border-left-color: #c84b4b;
+}
+

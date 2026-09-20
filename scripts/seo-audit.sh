@@ -2,6 +2,7 @@
 set -eu
 
 site_dir="${1:-dist}"
+source_dir="${2:-src/spr}"
 
 fail() {
   printf 'SEO audit failed: %s\n' "$1" >&2
@@ -15,10 +16,21 @@ test -s "$site_dir/img/treeheap-research-series.png" || fail "missing default re
 
 grep -q '^Sitemap: https://www.grepcode.cn/sitemap.xml' "$site_dir/robots.txt" ||
   fail "robots.txt does not advertise sitemap.xml"
-grep -q '088-treeheap-trainable-focus.html' "$site_dir/sitemap.xml" ||
-  fail "latest SPR article is absent from sitemap.xml"
-grep -q '088-treeheap-trainable-focus.html' "$site_dir/llms.txt" ||
-  fail "latest SPR article is absent from llms.txt"
+latest_slug="${LATEST_SPR_SLUG:-}"
+if test -z "$latest_slug"; then
+  latest_slug=$(
+    find "$source_dir" -maxdepth 1 -type f -name '[0-9][0-9][0-9]-*.md' -printf '%f\n' |
+      LC_ALL=C sort |
+      tail -n 1 |
+      sed 's/\.md$//'
+  )
+fi
+test -n "$latest_slug" || fail "cannot determine the latest SPR article"
+
+grep -q "$latest_slug.html" "$site_dir/sitemap.xml" ||
+  fail "latest SPR article ($latest_slug) is absent from sitemap.xml"
+grep -q "$latest_slug.html" "$site_dir/llms.txt" ||
+  fail "latest SPR article ($latest_slug) is absent from llms.txt"
 grep -Eq 'treeheap-paper(\.html|/index\.html)' "$site_dir/llms.txt" ||
   fail "TreeHeap paper reading path is absent from llms.txt"
 grep -q 'treeheap-paper/001-treeheap-emergent-protocol.html' "$site_dir/llms.txt" ||
@@ -72,9 +84,10 @@ if test -s "$issues"; then
   fail "one or more generated HTML pages violate the SEO contract"
 fi
 
-latest="$site_dir/spr/088-treeheap-trainable-focus.html"
+latest="$site_dir/spr/$latest_slug.html"
+test -f "$latest" || fail "latest SPR article was not generated: $latest"
 grep -q 'property="og:image"' "$latest" || fail "latest SPR article has no Open Graph image"
 grep -q '"@type":"BlogPosting"\|"@type": "BlogPosting"' "$latest" ||
   fail "latest SPR article has no BlogPosting JSON-LD"
 
-printf 'SEO audit passed: language, crawl files, metadata, image and latest SPR discovery are valid.\n'
+printf 'SEO audit passed: %s and all indexed pages satisfy the publishing contract.\n' "$latest_slug"

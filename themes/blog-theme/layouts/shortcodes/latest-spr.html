@@ -1,0 +1,12 @@
+{{- $limit := int (.Get "limit" | default 5) -}}
+{{- $section := .Site.GetPage "section" "spr" -}}
+{{- if $section -}}
+<ol class="research-latest">
+  {{- range first $limit (sort $section.RegularPages "File.BaseFileName" "desc") }}
+  <li>
+    <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+    {{- with .Description }}<p>{{ . }}</p>{{ end }}
+  </li>
+  {{- end }}
+</ol>
+{{- end -}}

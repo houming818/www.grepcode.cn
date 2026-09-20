@@ -1,0 +1,7 @@
+{{- $grade := .Get "grade" | default "E0" -}}
+{{- $source := .Get "source" | default "unspecified" -}}
+<aside class="research-block research-evidence">
+  <header><strong>Evidence {{ $grade }}</strong><span>{{ $source }}</span></header>
+  <div>{{ .Inner | markdownify }}</div>
+</aside>
+

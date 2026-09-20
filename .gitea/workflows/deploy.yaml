@@ -18,13 +18,7 @@ jobs:
 
       - name: Build
         run: |
-          rm -rf dist
-          hugo --buildFuture
-          echo "Built: $(find dist -name '*.html' | wc -l) pages"
-
-      - name: SEO audit
-        run: |
-          sh scripts/seo-audit.sh dist
+          sh scripts/build-site.sh
 
       - name: Deploy to COS
         env:

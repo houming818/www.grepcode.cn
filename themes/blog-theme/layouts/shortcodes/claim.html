@@ -1,0 +1,7 @@
+{{- $id := .Get "id" | default "unnumbered" -}}
+{{- $status := .Get "status" | default "hypothesis" -}}
+<aside class="research-block research-claim" data-status="{{ $status }}">
+  <header><strong>Claim {{ $id }}</strong><span>{{ $status }}</span></header>
+  <div>{{ .Inner | markdownify }}</div>
+</aside>
+
