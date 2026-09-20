@@ -19,7 +19,9 @@ grep -q '^Sitemap: https://www.grepcode.cn/sitemap.xml' "$site_dir/robots.txt" |
 latest_slug="${LATEST_SPR_SLUG:-}"
 if test -z "$latest_slug"; then
   latest_slug=$(
-    find "$source_dir" -maxdepth 1 -type f -name '[0-9][0-9][0-9]-*.md' -printf '%f\n' |
+    for article in "$source_dir"/[0-9][0-9][0-9]-*.md; do
+      test -f "$article" && basename "$article"
+    done |
       LC_ALL=C sort |
       tail -n 1 |
       sed 's/\.md$//'
