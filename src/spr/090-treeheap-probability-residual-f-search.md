@@ -138,10 +138,7 @@ $$
 经过平滑和归一化，得到条件概率：
 
 $$
-p_t(j)=P(c_j\mid t)
-=
-\frac{C_{tj}+\alpha}
-{\sum_k C_{tk}+\alpha K}
+p_t(j)=P(c_j\mid t)=\frac{C_{tj}+\alpha}{\sum_k C_{tk}+\alpha K}
 $$
 
 因此每个 token 都对应一个概率向量：
@@ -231,13 +228,7 @@ $$
 沿 root 到 leaf 的路径累加：
 
 $$
-\mu_{\text{leaf}}
-=
-\mu_{\text{root}}
-+\Delta\mu_{n_1}
-+\Delta\mu_{n_2}
-+\cdots
-+\Delta\mu_{n_d}
+\mu_{\text{leaf}}=\mu_{\text{root}}+\Delta\mu_{n_1}+\Delta\mu_{n_2}+\cdots+\Delta\mu_{n_d}
 $$
 
 中间项会望远镜式抵消，所以这个等式应当达到浮点误差级闭合。
