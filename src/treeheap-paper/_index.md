@@ -20,6 +20,10 @@ tags: [TreeHeap, Paper, Architecture, Mathematics, Evidence, Reproducibility]
 
 ## 辅助阅读
 
+### 当前理论状态
+
+[TreeHeap 当前理论状态与目标](/treeheap-theory.html) 是持续更新的非编号页面，集中维护当前采用的 Embedding/UNFOLD、多分辨率概率、统一状态、FOLD、READ 与 Decoder 理论。本文是版本快照；数字 SPR 保存研究过程；当前理论页回答“项目今天认为 TreeHeap 应当是什么”。
+
 ### 按章节拆分
 
 需要分段阅读时，可以使用下面四篇短页面：
