@@ -4,7 +4,7 @@ date: 2026-08-02
 lastmod: 2026-09-28
 weight: 1
 author: Houming818 & Trinity (Codex)
-description: "TreeHeap 当前完整理论：从语料背景场构造概率 Embedding，经局部主轴、蒙特卡洛与可微搜索形成多分辨率状态，再定义保序 FOLD、READ、Decoder 与私有协议的目标架构、证据边界和研发路线。"
+description: "TreeHeap 当前完整理论与可计算教程：从概率背景场和 token 下坠出发，用 toy、LaTeX 定义和有限证明解释局部主轴、Monte Carlo、FOLD、READ、Decoder、私有协议、证据边界与研发路线。"
 keywords: [TreeHeap完整论文, 概率Embedding, 下坠模型, Monte Carlo, F函数, FOLD, UNFOLD, READ, 多分辨率状态, 私有协议, 消费级AI]
 tags: [TreeHeap, Paper, Architecture, Probability, Embedding, Mathematics, Evidence, Reproducibility]
 ShowToc: true
@@ -13,7 +13,7 @@ TocOpen: true
 
 **English title:** *TreeHeap: Probabilistic Falling, Multiresolution States, and a Trainable Generative Protocol*
 
-**状态：** 当前理论整合稿 v0.6，2026-09-28
+**状态：** 当前理论整合稿 v0.7，2026-09-28
 
 **作者：** Houming818（Independent Researcher）
 
@@ -34,6 +34,354 @@ TreeHeap 研究一种不同于“先随机放置 token 向量，再交给多层�
 现有证据支持一个有限结论：概率背景场可以在 TreeHeap 中形成非随机、可重载、含有预测信息的多分辨率划分；局部路由既可以由 Monte Carlo 搜索，也可以由梯度更新；更深状态在登记实验中保留了更多背景预测信息。现有证据不支持：已经找到唯一 F、已经完成保序序列 Encoder、已经形成完整 Encoder/Decoder 私有协议，或已经获得优于 Transformer 的产品质量和计算优势。
 
 因此，TreeHeap 当前不是完成品，也不是只有类比的设想。它已经收敛为一个可逐项实现和反驳的架构任务：以概率下坠建立表示，以闭合且保序的 FOLD 建立句子状态，以分辨率感知 READ 连接 Decoder，并在消费级 GPU 上完成可恢复的端到端训练。
+
+## 0. 先用一个最小 toy 看懂全链路
+
+这一节先不讨论大模型。我们只使用 4 个 token、4 个上下文维度和一棵深度为 2 的二叉树。它的目的不是证明 TreeHeap 已经理解语言，而是让后文每个符号都有一个可以手算的对象。
+
+### 0.1 Toy 语料与概率背景
+
+假设词表中只有：
+
+```text
+苹果 apple    梨 pear    汽车 car    公交车 bus
+```
+
+我们只观察四类上下文：
+
+```text
+甜 sweet    吃 eat    行驶 drive    道路 road
+```
+
+计数并归一化后，得到条件概率表：
+
+| token | sweet | eat | drive | road |
+|---|---:|---:|---:|---:|
+| apple | 0.50 | 0.40 | 0.05 | 0.05 |
+| pear  | 0.45 | 0.45 | 0.05 | 0.05 |
+| car   | 0.05 | 0.05 | 0.50 | 0.40 |
+| bus   | 0.05 | 0.05 | 0.40 | 0.50 |
+
+于是 apple 的背景状态是：
+
+$$
+p_{\text{apple}}=(0.50,\,0.40,\,0.05,\,0.05),
+\qquad \sum_{k=1}^{4}p_{\text{apple},k}=1.
+$$
+
+这里的坐标不是“apple 本身的全部意义”，而是语料给出的四个条件概率。pear 与 apple 接近，car 与 bus 接近，这是语料统计产生的，不是我们先写进 token ID 的。
+
+为了在概率分布之间使用具有统计含义的欧氏几何，令：
+
+$$
+x_t=\sqrt{p_t}
+=\left(\sqrt{p_{t,1}},\ldots,\sqrt{p_{t,K}}\right).
+$$
+
+两个 token 的 Hellinger 距离为：
+
+$$
+H(p,q)=\frac{1}{\sqrt 2}\lVert \sqrt p-\sqrt q\rVert_2.
+$$
+
+因此，在平方根坐标中做欧氏距离计算，并不是随意选择一种向量技巧；它等价于比较两个离散概率分布的 Hellinger 距离。
+
+### 0.2 Toy Tree：每个节点问一个局部问题
+
+设 root 的观察轴为：
+
+$$
+w_0=(1,1,-1,-1), \qquad b_0=0.
+$$
+
+它大致在问：“这个 token 更像食物上下文，还是交通上下文？”节点分数和右路由概率定义为：
+
+$$
+z_0(t)=x_t^{\mathsf T}w_0-b_0,
+\qquad
+g_0(t)=\sigma\!\left(\frac{z_0(t)}{\tau_0}\right),
+$$
+
+其中：
+
+$$
+\sigma(u)=\frac{1}{1+e^{-u}}.
+$$
+
+`g=0.5` 表示节点暂时不能区分两侧，`g` 接近 0 或 1 表示路由更确定。它不是 token 的最终输出概率，只是这个节点的局部分支概率。
+
+第二层使用不同的观察轴。例如，左子树可以比较 `sweet` 与 `eat`，右子树可以比较 `drive` 与 `road`：
+
+$$
+w_L=(1,-1,0,0),
+\qquad
+w_R=(0,0,1,-1).
+$$
+
+这就是“局部主轴”的最小含义：不同节点面对的候选集合不同，因此允许提出不同的分类问题。若所有节点共享完全相同的轴，深树可能只会反复回答同一个问题。
+
+### 0.3 一次软下坠怎样得到 4 个 leaf
+
+为了便于手算，假设某个 token 在 root 的右路由概率是 `0.8`；到左子节点时右路由概率是 `0.25`；到右子节点时右路由概率是 `0.75`。从 root 的单位质量开始：
+
+$$
+m_{\varnothing}(t)=1.
+$$
+
+每经过一个节点，质量按概率分裂：
+
+$$
+m_{vL}(t)=m_v(t)\bigl(1-g_v(t)\bigr),
+\qquad
+m_{vR}(t)=m_v(t)g_v(t).
+$$
+
+深度 2 的四个 leaf 质量为：
+
+$$
+\begin{aligned}
+m_{LL}&=(1-0.8)(1-0.25)=0.15,\\
+m_{LR}&=(1-0.8)(0.25)=0.05,\\
+m_{RL}&=(0.8)(1-0.75)=0.20,\\
+m_{RR}&=(0.8)(0.75)=0.60.
+\end{aligned}
+$$
+
+因此 token 的 soft leaf Embedding 是：
+
+$$
+e_t=(0.15,\,0.05,\,0.20,\,0.60)\in\Delta^3.
+$$
+
+它不是“选中一个地址就结束”。它保留了 token 对全部 leaf 的概率质量。hard routing 则取最大路径，在本例中落到 `RR`；soft routing 保留了“主要在 RR，但仍有其他可能”的状态。
+
+### 0.4 命题一：下坠质量守恒
+
+**命题。** 若 root 质量为 1，且每个节点都按 `g` 与 `1-g` 分配质量，其中 $g\in[0,1]$，则任意深度 $d$ 的全部节点质量之和均为 1。
+
+**证明。** 深度 0 时只有 root，因此总质量为 1。假设深度 $d$ 的总质量为：
+
+$$
+\sum_{v\in V_d}m_v=1.
+$$
+
+每个 $v$ 在下一层产生两个 child，且：
+
+$$
+m_{vL}+m_{vR}
+=m_v(1-g_v)+m_vg_v
+=m_v.
+$$
+
+于是：
+
+$$
+\sum_{u\in V_{d+1}}m_u
+=\sum_{v\in V_d}(m_{vL}+m_{vR})
+=\sum_{v\in V_d}m_v
+=1.
+$$
+
+由数学归纳法，对任意有限深度成立。$\square$
+
+这个证明只说明数值质量不会凭空增加或消失。它**没有证明语义守恒**，也没有证明这种路由优于其他 Embedding。
+
+### 0.5 多分辨率状态到底是什么
+
+深度 0 只有一个 root 质量：
+
+$$
+m^{(0)}=(1).
+$$
+
+深度 1 有两个 coarse 区域：
+
+$$
+m^{(1)}=(0.20,\,0.80).
+$$
+
+深度 2 有四个 fine 区域：
+
+$$
+m^{(2)}=(0.15,\,0.05,\,0.20,\,0.60).
+$$
+
+这里“多分辨率”不是把一个 float 放大或缩小。它是同一单位质量在不同分区粒度上的边缘分布，并满足：
+
+$$
+m_v=m_{vL}+m_{vR}.
+$$
+
+所以 coarse 可以由 fine 精确求和得到；但只知道 coarse 的 `0.20`，不能唯一恢复它原来是 `(0.15,0.05)`、`(0.10,0.10)`，还是其他组合。低分辨率到高分辨率天然是一对多问题。
+
+### 0.6 命题二：概率 parent 仍在同一个单纯形
+
+设两个 child 的背景概率分别为 $p_L,p_R\in\Delta^{K-1}$，质量为 $m_L,m_R\ge 0$。定义 parent prototype：
+
+$$
+p_P=\frac{m_Lp_L+m_Rp_R}{m_L+m_R},
+\qquad m_L+m_R>0.
+$$
+
+**命题。** $p_P\in\Delta^{K-1}$。
+
+**证明。** 因为 $p_L,p_R$ 各维非负，$p_P$ 各维也非负；并且：
+
+$$
+\sum_{k=1}^{K}p_{P,k}
+=\frac{m_L\sum_kp_{L,k}+m_R\sum_kp_{R,k}}{m_L+m_R}
+=\frac{m_L+m_R}{m_L+m_R}=1.
+$$
+
+因此 parent 与 child 仍是同一种概率数据类型。$\square$
+
+这就是当前“量纲自洽”的最低数学地基。它仍未解决顺序，也不能保证 parent 对生成任务足够。
+
+### 0.7 残差能恢复什么，不能恢复什么
+
+定义：
+
+$$
+r_L=p_L-p_P,
+\qquad
+r_R=p_R-p_P.
+$$
+
+只要保存 $p_P,r_L,r_R$，就有：
+
+$$
+p_L=p_P+r_L,
+\qquad
+p_R=p_P+r_R.
+$$
+
+这是代数上的精确恢复。然而，如果只保留 $p_P$ 而丢弃残差，就不能恢复两个 child。更重要的是，`可恢复 child 概率` 不等于 `可以生成原句`：原句还包含顺序、位置、上下文角色和 Decoder 协议。
+
+### 0.8 命题三：对称平均不可能表达词序
+
+若序列 FOLD 仅使用对称加权平均：
+
+$$
+F(a,b)=\frac{m_ap_a+m_bp_b}{m_a+m_b},
+$$
+
+则交换输入后：
+
+$$
+F(b,a)=\frac{m_bp_b+m_ap_a}{m_b+m_a}=F(a,b).
+$$
+
+因此它不能区分 `AB` 与 `BA`。这不是训练不够，而是函数本身具有交换性。若任务要求区分“狗咬人”和“人咬狗”，FOLD 至少必须引入位置、角色、非交换算子或有方向的残差。
+
+这个结论解释了为什么“概率 Embedding 已经形成”并不等于“序列 Encoder 已经完成”。
+
+### 0.9 Monte Carlo 在搜索什么
+
+令整棵树参数为：
+
+$$
+\Theta=\{w_v,b_v,\tau_v\}_{v\in\mathcal V}.
+$$
+
+给定一个可计算目标 $J(\Theta)$，例如邻域保持、负载均衡、masked context 预测和复杂度惩罚的组合：
+
+$$
+J(\Theta)
+=\lambda_1J_{\text{neighbor}}
++\lambda_2J_{\text{balance}}
++\lambda_3J_{\text{masked}}
++\lambda_4J_{\text{complexity}}.
+$$
+
+一次 Monte Carlo 提议可以只扰动一个节点：
+
+$$
+\Theta'=\Theta+\varepsilon,
+\qquad
+\varepsilon_v\sim\mathcal N(0,\sigma^2I).
+$$
+
+模拟退火式接受概率为：
+
+$$
+P(\Theta\rightarrow\Theta')
+=\min\left(1,
+\exp\left[-\frac{J(\Theta')-J(\Theta)}{T}\right]
+\right).
+$$
+
+若新参数更好，必然接受；若更差，仍可能以随温度 $T$ 降低的概率接受，从而避免立即困在局部极值。这里得到的是**搜索算法**，不是 TreeHeap 正确性的证明。它只能回答：“在给定状态、算子集合和目标函数下，能否找到通过门禁的参数？”
+
+### 0.10 Toy READ 与 Decoder 怎样接上
+
+假设一句话经过 Encoder/FOLD 后，在三个分辨率得到状态：
+
+$$
+h^{(0)}\in\mathbb R^d,
+\qquad
+h^{(1)}\in\mathbb R^d,
+\qquad
+h^{(2)}\in\mathbb R^d.
+$$
+
+Decoder 在第 $j$ 个生成位置持有 query $q_j$。一个最小的分辨率 READ 可以先计算：
+
+$$
+a_{j,d}
+=\frac{\exp\!\left(q_j^{\mathsf T}W_Rh^{(d)}\right)}
+{\sum_{r=0}^{D}\exp\!\left(q_j^{\mathsf T}W_Rh^{(r)}\right)},
+$$
+
+再读出：
+
+$$
+r_j=\sum_{d=0}^{D}a_{j,d}h^{(d)}.
+$$
+
+若当前正在决定句子主题，模型可能给 coarse 层更大权重；若正在决定具体名词或词尾，可能给 fine 层更大权重。这是待训练和审计的行为，不是人工规定的语言规律。
+
+Decoder 把读出状态映射到词表 logits：
+
+$$
+\ell_j=W_Dr_j+b_D,
+\qquad
+P(y_j=k\mid y_{<j},x)
+=\frac{e^{\ell_{j,k}}}{\sum_{u\in\mathcal V}e^{\ell_{j,u}}}.
+$$
+
+如果目标 token 为 $y_j^*$，交叉熵为：
+
+$$
+\mathcal L_j=-\log P(y_j^*\mid y_{<j},x).
+$$
+
+只要路由、FOLD、READ 和 Decoder 都处在同一个可微计算图中，链式法则给出：
+
+$$
+\frac{\partial\mathcal L_j}{\partial\theta_v}
+=\frac{\partial\mathcal L_j}{\partial\ell_j}
+\frac{\partial\ell_j}{\partial r_j}
+\frac{\partial r_j}{\partial h^{(d)}}
+\frac{\partial h^{(d)}}{\partial\theta_v}.
+$$
+
+这说明“不共享参数”不等于“不能形成协议”。READ 参数与 Encoder 参数可以不同，但同一个 loss 会同时约束双方。是否真的形成了私有协议，还必须用输入置乱、层级消融、旁路检查和 checkpoint 重载来验证。
+
+### 0.11 从 toy 到真实系统，还缺哪三步
+
+这个 toy 已经解释了：
+
+1. 语料怎样形成概率背景坐标；
+2. 节点怎样把单位质量逐层下坠；
+3. parent 怎样保持概率类型，残差怎样保留 detail。
+
+它还没有解释：
+
+1. 同一个 `bank` 在不同句中怎样得到不同 occurrence state；
+2. `AB` 怎样在不丢失必要顺序的条件下 FOLD；
+3. Decoder 怎样从 coarse/fine 状态生成多个连续 token。
+
+后文的架构正是为了逐项补上这三处断点。读到任何公式时，都可以回到这个 toy，确认它在处理的是背景概率、路由质量、序列状态，还是输出分布。
 
 ## 1. 研究问题
 
