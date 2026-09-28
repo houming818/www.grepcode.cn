@@ -13,7 +13,7 @@ TocOpen: true
 
 **English title:** *TreeHeap: Probabilistic Falling, Multiresolution States, and a Trainable Generative Protocol*
 
-**状态：** 当前理论整合稿 v0.7，2026-09-28
+**状态：** 当前理论整合稿 v0.8，2026-09-28\
 
 **作者：** Houming818（Independent Researcher）
 
@@ -453,17 +453,17 @@ token ID 是词表索引。编号 100 与 101 相邻，不代表两个 token 在
 
 从语料统计 token `t` 周围 context `c` 的出现次数，经平滑和归一化得到：
 
-```text
-p_t(c) = P(context=c | token=t)
-```
+$$
+p_t(c)=P(\mathrm{context}=c\mid \mathrm{token}=t).
+$$
 
 因此一个 token 的基础观测不是整数，而是一行概率：
 
-```text
-p_t = [P(c1|t), P(c2|t), ..., P(cK|t)]
-p_t[k] >= 0
-sum_k p_t[k] = 1
-```
+$$
+p_t=\left[P(c_1\mid t),P(c_2\mid t),\ldots,P(c_K\mid t)\right],
+\qquad p_t[k]\ge 0,
+\qquad \sum_{k=1}^{K}p_t[k]=1.
+$$
 
 所有 token 行位于同一个概率单纯形中，具有相同维度和单位。它描述的是分布式上下文，不是完整语义，也不是句子 hidden state。
 
@@ -471,9 +471,9 @@ sum_k p_t[k] = 1
 
 路由使用：
 
-```text
-x_t = sqrt(p_t)
-```
+$$
+x_t=\sqrt{p_t}.
+$$
 
 逐维开平方后，欧氏距离与 Hellinger 距离相容。这样，两个条件分布之间的几何距离有明确概率含义，避免直接在 token ID 或任意随机坐标上寻找主轴。
 
@@ -489,55 +489,58 @@ x_t = sqrt(p_t)
 
 TreeHeap 的每个内部节点 `v` 拥有局部参数：
 
-```text
-theta_v = {w_v, b_v, tau_v}
-```
+$$
+\theta_v=\{w_v,b_v,\tau_v\}.
+$$
 
 其中 `w_v` 是局部观察轴，`b_v` 是阈值，`tau_v` 是温度。节点先计算：
 
-```text
-z_v(t) = dot(x_t, w_v) - b_v
-```
+$$
+z_v(t)=x_t^{\mathsf T}w_v-b_v.
+$$
 
 硬路由为：
 
-```text
-z_v(t) <= 0 -> left
-z_v(t) >  0 -> right
-```
+$$
+z_v(t)\le 0\Rightarrow \mathrm{left},
+\qquad
+z_v(t)>0\Rightarrow \mathrm{right}.
+$$
 
 软路由保留两侧概率：
 
-```text
-g_v(t) = P(right | t,v) = sigmoid(z_v(t) / tau_v)
-```
+$$
+g_v(t)=P(\mathrm{right}\mid t,v)
+=\sigma\!\left(\frac{z_v(t)}{\tau_v}\right).
+$$
 
 ### 3.2 质量下坠
 
 token 从 root 携带单位质量开始：
 
-```text
-m_root(t) = 1
-```
+$$
+m_{\mathrm{root}}(t)=1.
+$$
 
 在节点 `v`：
 
-```text
-m_left(t)  = m_v(t) * (1 - g_v(t))
-m_right(t) = m_v(t) * g_v(t)
-```
+$$
+m_{vL}(t)=m_v(t)\bigl(1-g_v(t)\bigr),
+\qquad
+m_{vR}(t)=m_v(t)g_v(t).
+$$
 
 递归到全部 leaf 后，质量仍满足：
 
-```text
-sum_leaf m_leaf(t) = 1
-```
+$$
+\sum_{\ell\in\mathrm{Leaves}}m_\ell(t)=1.
+$$
 
 于是 token 的 leaf Embedding 为：
 
-```text
-e_t = [m_leaf_1(t), ..., m_leaf_L(t)]
-```
+$$
+e_t=\left[m_{\ell_1}(t),\ldots,m_{\ell_L}(t)\right].
+$$
 
 它既是一行概率，也是一组局部条件决策的乘积。对任意深度，把后代 leaf 质量相加，就得到该深度的节点概率。因此，一次下坠同时产生 leaf 坐标、路径坐标和多分辨率坐标。
 
@@ -586,25 +589,25 @@ e_t = [m_leaf_1(t), ..., m_leaf_L(t)]
 
 **节点函数：**
 
-```text
-f_v(x; theta_v)
-```
+$$
+f_v(x;\theta_v).
+$$
 
 它在一个节点上计算局部路由或状态变换。
 
 **整树函数：**
 
-```text
-F_Theta = compose(all node functions under the tree topology)
-```
+$$
+F_\Theta=\mathop{\mathrm{Compose}}_{v\in\mathcal V(G)}f_v(\,\cdot\,;\theta_v).
+$$
 
 它把输入映射为路径、leaf 坐标和多层状态，`Theta` 是全部节点参数。
 
 **学习算法：**
 
-```text
-A(D, F_Theta) -> Theta'
-```
+$$
+\mathcal A(D,F_\Theta)\longrightarrow\Theta'.
+$$
 
 它根据数据 `D` 搜索或训练参数。Monte Carlo、梯度下降和拓扑搜索属于 `A`，不属于 `F_Theta` 本身。
 
@@ -623,16 +626,19 @@ A(D, F_Theta) -> Theta'
 
 设新旧目标差为：
 
-```text
-delta = loss_new - loss_old
-```
+$$
+\Delta J=J_{\mathrm{new}}-J_{\mathrm{old}}.
+$$
 
 一个典型接受规则是：
 
-```text
-accept if delta <= 0
-otherwise accept with probability exp(-delta / T)
-```
+$$
+P(\mathrm{accept})=
+\begin{cases}
+1, & \Delta J\le 0,\\
+\exp(-\Delta J/T), & \Delta J>0.
+\end{cases}
+$$
 
 温度 `T` 随搜索降低。该方法的优点是路径、节点与概率守恒都能直接审计；缺点是高维提案效率较低，离散重路由也不能直接利用梯度方向。
 
@@ -648,10 +654,13 @@ otherwise accept with probability exp(-delta / T)
 
 节点参数是连续变量，父子连接和组合顺序是离散变量。若同时搜索二者，问题成为混合优化：
 
-```text
-min over topology G and parameters Theta:
-    task_loss(F_{G,Theta}) + structural_cost(G,Theta)
-```
+$$
+\min_{G,\Theta}
+\left[
+\mathcal L_{\mathrm{task}}(F_{G,\Theta})
++\lambda\,C_{\mathrm{structure}}(G,\Theta)
+\right].
+$$
 
 人工比较 balanced、left-deep、right-deep 能说明拓扑影响结果，却不能证明模型能自己找到拓扑。动态拓扑不是当前第一优先级；统一状态和 READ 合同未固定前，搜索更大拓扑只会扩大不稳定目标。
 
@@ -661,11 +670,11 @@ min over topology G and parameters Theta:
 
 设节点 `v` 下 token 的质量为 `a_t,v`，其 context 概率行为 `p_t`。节点总质量与原型为：
 
-```text
-M_v = sum_t a_t,v
-
-mu_v = sum_t a_t,v * p_t / M_v
-```
+$$
+M_v=\sum_t a_{t,v},
+\qquad
+\mu_v=\frac{\sum_t a_{t,v}p_t}{M_v}.
+$$
 
 `mu_v` 与 token 背景行具有同一维度、同一概率单位。root 表示全局混合背景；向下进入更小子群后，prototype 增加区分信息。
 
@@ -673,20 +682,17 @@ mu_v = sum_t a_t,v * p_t / M_v
 
 对左右 child：
 
-```text
-M_parent = M_left + M_right
-
-mu_parent =
-    (M_left * mu_left + M_right * mu_right)
-    / M_parent
-```
+$$
+M_P=M_L+M_R,
+\qquad
+\mu_P=\frac{M_L\mu_L+M_R\mu_R}{M_P}.
+$$
 
 它满足质量守恒：
 
-```text
-M_parent * mu_parent
-  = M_left * mu_left + M_right * mu_right
-```
+$$
+M_P\mu_P=M_L\mu_L+M_R\mu_R.
+$$
 
 parent 仍位于同一概率单纯形，因此该 FOLD 在数据类型和量纲上闭合。
 
@@ -694,21 +700,22 @@ parent 仍位于同一概率单纯形，因此该 FOLD 在数据类型和量纲�
 
 child 相对 parent 的残差为：
 
-```text
-delta_child = mu_child - mu_parent
-```
+$$
+\delta_C=\mu_C-\mu_P.
+$$
 
 沿 root-to-node 路径累加：
 
-```text
-mu_depth = mu_root + sum_path delta_child
-```
+$$
+\mu_v=\mu_{\mathrm{root}}+
+\sum_{C\in\mathrm{path}(\mathrm{root}\to v)}\delta_C.
+$$
 
 可以精确恢复已存储的节点 prototype。对单 token 还可保存：
 
-```text
-delta_token = p_token - mu_leaf
-```
+$$
+\delta_t=p_t-\mu_{\ell(t)}.
+$$
 
 这能恢复完整 token 背景行，也能测量 TreeHeap 量化丢失的信息。
 
@@ -718,10 +725,12 @@ delta_token = p_token - mu_leaf
 
 当前采用的概念是：
 
-```text
-coarse state = larger support + shared constraints
-fine state   = smaller support + additional distinctions
-```
+$$
+\begin{aligned}
+\mathrm{coarse\ state}&=\mathrm{larger\ support}+\mathrm{shared\ constraints},\\
+\mathrm{fine\ state}&=\mathrm{smaller\ support}+\mathrm{additional\ distinctions}.
+\end{aligned}
+$$
 
 coarse 不等于数值更小，fine 不等于向量更长。分辨率由状态能排除多少候选、能区分多少结构以及覆盖哪些 occurrence 决定。
 
@@ -729,9 +738,10 @@ coarse 不等于数值更小，fine 不等于向量更长。分辨率由状态�
 
 当前待验证假设是：coarse 路由可以较集中、较稳定，而 fine 路由保留多个可能分支。对 token `x` 在深度 `d` 的节点分布：
 
-```text
-p_d(v | x) = sum_{leaf below v} e_x(leaf)
-```
+$$
+p_d(v\mid x)=
+\sum_{\ell\in\mathrm{Leaves}(v)}e_x(\ell).
+$$
 
 需要逐层测量：
 
@@ -778,10 +788,11 @@ TreeState {
 
 对状态族 `S`：
 
-```text
-left in S, right in S
-FOLD(left, right) -> parent in S
-```
+$$
+s_L,s_R\in\mathcal S
+\quad\Longrightarrow\quad
+\operatorname{FOLD}(s_L,s_R)\in\mathcal S.
+$$
 
 若发生类型变化，必须显式命名新的空间和转换，而不能继续称为同一种 TreeState。
 
@@ -793,9 +804,9 @@ FOLD(left, right) -> parent in S
 
 质量加权平均满足：
 
-```text
-FOLD(a,b) = FOLD(b,a)
-```
+$$
+\operatorname{FOLD}(a,b)=\operatorname{FOLD}(b,a).
+$$
 
 它可以描述两个 token 共同覆盖的背景，却无法区分 `dog bites man` 与 `man bites dog`。因此它是概率状态基线，不是完整序列 Encoder。
 
@@ -803,14 +814,11 @@ FOLD(a,b) = FOLD(b,a)
 
 序列 Encoder 的输入不能只有静态 type Embedding。需要由当前句子构造 posterior occurrence：
 
-```text
-s_i = WRITE(
-    type_embedding(token_i),
-    position_i,
-    local_context_i,
-    task_or_direction
-)
-```
+$$
+s_i=\operatorname{WRITE}\!\left(
+e_{t_i},\operatorname{pos}_i,c_i,d_{\mathrm{task}}
+\right).
+$$
 
 同一个 token 在不同句子中可以得到不同 `s_i`，同时保留与 type 背景场的可追踪关系。
 
@@ -818,13 +826,13 @@ s_i = WRITE(
 
 完整候选至少应具有：
 
-```text
-parent = Normalize(
-    common(left, right)
-  + ordered_interaction(left, right)
-  + retained_detail(left, right)
-)
-```
+$$
+s_P=\operatorname{Normalize}\!\left(
+C(s_L,s_R)+O(s_L,s_R)+D(s_L,s_R)
+\right),
+$$
+
+其中 $C$ 表示公共成分，$O$ 表示有序交互，$D$ 表示保留的 detail。
 
 它必须满足：
 
@@ -843,9 +851,10 @@ parent = Normalize(
 
 生成任务更核心的条件是：
 
-```text
-p(Y | X) approximately equals p(Y | P)
-```
+$$
+p(Y\mid X)\approx p(Y\mid P),
+\qquad P=\operatorname{FOLD}(X).
+$$
 
 其中 `P=FOLD(X)`。parent 可以是有损的，只要它保留目标 `Y` 所需的条件分布；反之，精确可逆也可能只是把无关输入搬进 detail。
 
@@ -863,9 +872,9 @@ XOR-Butterfly 能让远距离 leaf 在对数阶段建立通信路径，历史 WM
 
 READ 接收 Decoder 当前 query，从 root、internal、leaf 与 detail 中选择或混合状态：
 
-```text
-read_context_t = READ(query_t, tree_states)
-```
+$$
+r_t=\operatorname{READ}(q_t,\mathcal S_{\mathrm{tree}}).
+$$
 
 理想 READ 可以先使用 coarse 状态，再只展开当前 query 需要的 fine 分支。它不是机械走到 leaf，也不要求每层贡献相同。
 
@@ -881,10 +890,11 @@ read_context_t = READ(query_t, tree_states)
 
 自回归 Decoder 的基本合同是：
 
-```text
-logits_t = Decoder(prefix_<t, read_context_t)
-P(y_t) = softmax(logits_t)
-```
+$$
+\ell_t=\operatorname{Decoder}(y_{\lt t},r_t),
+\qquad
+P(y_t)=\operatorname{softmax}(\ell_t).
+$$
 
 Decoder 不需要恢复一个人类命名的“主视角”，也不需要与 Encoder 共享参数。它需要能够读取 TreeState，并通过最终任务 loss 对上游状态形成方向信息。
 

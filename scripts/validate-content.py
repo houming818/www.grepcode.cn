@@ -13,6 +13,12 @@ from pathlib import Path
 ARTICLE_RE = re.compile(r"^(\d{3})-(.+)\.md$")
 TITLE_RE = re.compile(r'^\[SPR-(\d{3})\]')
 FIELD_RE = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*):\s*(.*)$")
+TEXT_FENCE_RE = re.compile(r"```text\s*\n(.*?)\n```", re.DOTALL)
+MATH_IN_TEXT_RE = re.compile(
+    r"(?:sum_|sqrt\(|sigmoid\(|softmax\(|theta_|mu_|delta_|"
+    r"P\([^\n]*\|[^\n]*\)|FOLD\([^\n]*\)\s*=)",
+    re.IGNORECASE,
+)
 
 
 def parse_front_matter(path: Path) -> dict[str, str]:
@@ -89,6 +95,22 @@ def validate(repo: Path) -> list[str]:
 
     if not articles:
         errors.append("no SPR articles found")
+
+    math_contract_paths = [
+        repo / "src" / "treeheap-paper" / "001-treeheap-emergent-protocol.md"
+    ]
+    for path in math_contract_paths:
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8-sig")
+        for block in TEXT_FENCE_RE.finditer(text):
+            match = MATH_IN_TEXT_RE.search(block.group(1))
+            if match:
+                line = text.count("\n", 0, block.start()) + 1
+                errors.append(
+                    f"{path.relative_to(repo)}:{line}: math-like expression "
+                    f"'{match.group(0)}' is inside a text code fence; use LaTeX delimiters"
+                )
     return errors
 
 
