@@ -1,22 +1,22 @@
 ---
-title: "TreeHeap 论文：架构、数学、证据与复现"
+title: "TreeHeap 论文：概率下坠、多分辨率状态与生成协议"
 date: 2026-08-02
-lastmod: 2026-08-24
-author: Houming818 & Codex Review
-description: "TreeHeap 中文论文全文入口：在一个网页中连续阅读设计演化、数学与数据流、WMT 实验证据、Claim 边界与复现方法。"
-keywords: [TreeHeap论文, TreeHeap架构, 递归树堆, FOLD, UNFOLD, WMT, 私有协议, AI新架构, 可复现实验]
-tags: [TreeHeap, Paper, Architecture, Mathematics, Evidence, Reproducibility]
+lastmod: 2026-09-28
+author: Houming818 & Trinity (Codex)
+description: "TreeHeap 当前完整理论入口：连续阅读背景概率场、概率下坠 Embedding、Monte Carlo 与可微路由、统一 TreeState、保序 FOLD、READ/Decoder、证据边界和发布目标。"
+keywords: [TreeHeap论文, 概率Embedding, 下坠模型, Monte Carlo, F函数, FOLD, UNFOLD, READ, 私有协议, 消费级AI]
+tags: [TreeHeap, Paper, Architecture, Probability, Mathematics, Evidence, Reproducibility]
 ---
 
 # TreeHeap 论文
 
-这篇论文面向第一次接触 TreeHeap 的研究者。它不是 85 篇实验日志的摘要拼接，而是把当前仍然成立的架构、数学、证据和边界整理成一篇可以连续阅读的完整论文。
+这篇论文面向第一次接触 TreeHeap 的研究者。它不按实验时间线复述研究，而是把 2026-09-28 当前采用的理论、算法、证据边界和下一阶段目标整理成一篇可以连续阅读的完整论文。
 
 ## 直接阅读全文
 
-[TreeHeap：可逆多分辨率树状态、稀疏通信与双语序列协议](/treeheap-paper/001-treeheap-emergent-protocol.html)
+[TreeHeap：概率下坠、多分辨率状态与可训练生成协议](/treeheap-paper/001-treeheap-emergent-protocol.html)
 
-全文从摘要、研究问题和设计演化开始，依次给出形式化定义、数据流、实验设计、结果、Claim 边界、复现方法与符号表。页面自带目录，手机上打开一个地址即可从头读到尾。
+全文从语料背景场开始，依次说明概率下坠、局部主轴、Monte Carlo 与梯度搜索、概率 FOLD、统一状态、保序序列 FOLD、READ/Decoder、当前证据、架构断点、Release 分级与反证条件。页面自带目录，手机上打开一个地址即可从头读到尾。
 
 ## 辅助阅读
 
