@@ -35,6 +35,8 @@ TreeHeap 研究一种不同于“先随机放置 token 向量，再交给多层�
 
 因此，TreeHeap 当前不是完成品，也不是只有类比的设想。它已经收敛为一个可逐项实现和反驳的架构任务：以概率下坠建立表示，以闭合且保序的 FOLD 建立句子状态，以分辨率感知 READ 连接 Decoder，并在消费级 GPU 上完成可恢复的端到端训练。
 
+![TreeHeap 当前端到端架构：绿色是已有有限证据，橙色是核心算法缺口，蓝色是待接通模块](/images/treeheap-paper/end-to-end-map.svg)
+
 ## 0. 先用一个最小 toy 看懂全链路
 
 这一节先不讨论大模型。我们只使用 4 个 token、4 个上下文维度和一棵深度为 2 的二叉树。它的目的不是证明 TreeHeap 已经理解语言，而是让后文每个符号都有一个可以手算的对象。
@@ -155,6 +157,8 @@ $$
 
 它不是“选中一个地址就结束”。它保留了 token 对全部 leaf 的概率质量。hard routing 则取最大路径，在本例中落到 `RR`；soft routing 保留了“主要在 RR，但仍有其他可能”的状态。
 
+![深度二概率下坠 toy：单位质量按局部条件概率分裂为四个 leaf](/images/treeheap-paper/toy-probability-fall.svg)
+
 ### 0.4 命题一：下坠质量守恒
 
 **命题。** 若 root 质量为 1，且每个节点都按 `g` 与 `1-g` 分配质量，其中 $g\in[0,1]$，则任意深度 $d$ 的全部节点质量之和均为 1。
@@ -213,6 +217,8 @@ m_v=m_{vL}+m_{vR}.
 $$
 
 所以 coarse 可以由 fine 精确求和得到；但只知道 coarse 的 `0.20`，不能唯一恢复它原来是 `(0.15,0.05)`、`(0.10,0.10)`，还是其他组合。低分辨率到高分辨率天然是一对多问题。
+
+![同一状态在 root、coarse 与 fine 层的概率表示，以及 query 条件 READ](/images/treeheap-paper/coarse-fine-read.svg)
 
 ### 0.6 命题二：概率 parent 仍在同一个单纯形
 
@@ -345,14 +351,14 @@ Decoder 把读出状态映射到词表 logits：
 $$
 \ell_j=W_Dr_j+b_D,
 \qquad
-P(y_j=k\mid y_{<j},x)
+P(y_j=k\mid y_{\lt j},x)
 =\frac{e^{\ell_{j,k}}}{\sum_{u\in\mathcal V}e^{\ell_{j,u}}}.
 $$
 
 如果目标 token 为 $y_j^*$，交叉熵为：
 
 $$
-\mathcal L_j=-\log P(y_j^*\mid y_{<j},x).
+\mathcal L_j=-\log P(y_j^*\mid y_{\lt j},x).
 $$
 
 只要路由、FOLD、READ 和 Decoder 都处在同一个可微计算图中，链式法则给出：

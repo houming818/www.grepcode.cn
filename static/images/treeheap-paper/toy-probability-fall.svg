@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">TreeHeap 深度二概率下坠 toy</title>
+  <desc id="desc">单位质量从 root 按局部路由概率分裂，最终形成四个 leaf 概率。</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8fafc}.edge{fill:none;stroke:#64748b;stroke-width:3}.node{fill:#fff;stroke:#0f766e;stroke-width:3}.leaf{fill:#ecfdf5;stroke:#15803d;stroke-width:3}.label{font:24px system-ui,"Microsoft YaHei",sans-serif;fill:#172033}.small{font:20px system-ui,"Microsoft YaHei",sans-serif;fill:#475569}.mass{font:700 25px system-ui,"Microsoft YaHei",sans-serif;fill:#0f766e}.formula{font:21px ui-monospace,Consolas,monospace;fill:#1e3a5f}.note{fill:#fff7ed;stroke:#c2410c;stroke-width:2}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1200" height="720"/>
+  <text x="60" y="58" class="label" font-weight="700">Toy：单位质量如何下坠成 leaf Embedding</text>
+  <text x="60" y="93" class="small">每条边只做一次局部条件决策；路径概率等于沿途分支概率的乘积。</text>
+
+  <path class="edge" marker-end="url(#arrow)" d="M600 190 L350 285"/>
+  <path class="edge" marker-end="url(#arrow)" d="M600 190 L850 285"/>
+  <path class="edge" marker-end="url(#arrow)" d="M350 365 L185 500"/>
+  <path class="edge" marker-end="url(#arrow)" d="M350 365 L470 500"/>
+  <path class="edge" marker-end="url(#arrow)" d="M850 365 L730 500"/>
+  <path class="edge" marker-end="url(#arrow)" d="M850 365 L1015 500"/>
+
+  <rect class="node" x="485" y="125" width="230" height="75" rx="6"/>
+  <text x="600" y="157" text-anchor="middle" class="label">root</text>
+  <text x="600" y="186" text-anchor="middle" class="mass">m = 1.00</text>
+
+  <rect class="node" x="235" y="290" width="230" height="75" rx="6"/>
+  <text x="350" y="322" text-anchor="middle" class="label">coarse L</text>
+  <text x="350" y="351" text-anchor="middle" class="mass">m = 0.20</text>
+  <rect class="node" x="735" y="290" width="230" height="75" rx="6"/>
+  <text x="850" y="322" text-anchor="middle" class="label">coarse R</text>
+  <text x="850" y="351" text-anchor="middle" class="mass">m = 0.80</text>
+
+  <text x="445" y="235" class="formula">1-g0 = 0.20</text>
+  <text x="715" y="235" class="formula">g0 = 0.80</text>
+  <text x="165" y="430" class="formula">0.20 x 0.75</text>
+  <text x="435" y="430" class="formula">0.20 x 0.25</text>
+  <text x="700" y="430" class="formula">0.80 x 0.25</text>
+  <text x="970" y="430" class="formula">0.80 x 0.75</text>
+
+  <rect class="leaf" x="75" y="505" width="220" height="90" rx="6"/>
+  <text x="185" y="540" text-anchor="middle" class="label">leaf LL</text>
+  <text x="185" y="575" text-anchor="middle" class="mass">0.15</text>
+  <rect class="leaf" x="360" y="505" width="220" height="90" rx="6"/>
+  <text x="470" y="540" text-anchor="middle" class="label">leaf LR</text>
+  <text x="470" y="575" text-anchor="middle" class="mass">0.05</text>
+  <rect class="leaf" x="620" y="505" width="220" height="90" rx="6"/>
+  <text x="730" y="540" text-anchor="middle" class="label">leaf RL</text>
+  <text x="730" y="575" text-anchor="middle" class="mass">0.20</text>
+  <rect class="leaf" x="905" y="505" width="220" height="90" rx="6"/>
+  <text x="1015" y="540" text-anchor="middle" class="label">leaf RR</text>
+  <text x="1015" y="575" text-anchor="middle" class="mass">0.60</text>
+
+  <rect class="note" x="245" y="635" width="710" height="58" rx="6"/>
+  <text x="600" y="672" text-anchor="middle" class="label">e(t) = (0.15, 0.05, 0.20, 0.60)，总质量仍为 1</text>
+</svg>
