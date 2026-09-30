@@ -20,7 +20,8 @@ window.MathJax = {
   svg: { fontCache: 'global' }
 };
 </script>
-<script id="MathJax-script" async src="/js/tex-svg.js?v=3.2.2-full-2"></script>
+<link rel="preload" href="/js/tex-svg.js?v=3.2.2-full-2" as="script">
+<script id="MathJax-script" defer src="/js/tex-svg.js?v=3.2.2-full-2"></script>
 
 <link rel="alternate" type="text/plain" href="{{ "llms.txt" | absURL }}" title="{{ site.Title }} research index for language models">
 <meta name="robots" content="max-image-preview:large, max-snippet:-1, max-video-preview:-1">
