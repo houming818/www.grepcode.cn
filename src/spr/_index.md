@@ -1,7 +1,7 @@
 ---
 title: "TreeHeap / SPR：递归树堆 AI 架构研究档案"
 date: 2026-06-16
-lastmod: 2026-09-20
+lastmod: 2026-10-01
 author: nio (Houming818) & Codex Review
 description: "TreeHeap 与 SPR 的开放研究档案：递归树堆、卷积 Kernel、FOLD/UNFOLD、多分辨率退火、私有编解码协议，以及可复现、可证伪的 AI 实验。"
 keywords: [TreeHeap, SPR, 递归树堆, AI架构, FOLD, UNFOLD, 卷积Kernel, 多分辨率退火, 私有协议, ARA]
