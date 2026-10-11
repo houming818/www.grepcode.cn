@@ -383,7 +383,127 @@ $$
 但链路还没有接到可训练的句子 FOLD、分辨率感知 READ 与 autoregressive Decoder。因此它是接口
 前的可行性证据，不是端到端模型的完成声明。
 
-# 下一篇要解决什么
+# 后续更新：概率场里真的有金字塔吗
+
+在完成 T1 后，我们增加了 M1“多尺度概率场显微镜”。它专门回答一个比 NLL 更结构化的问题：
+
+> 各尺度之间是否存在类似 Fourier 级数或图像金字塔的递归规律？
+
+这里必须先区分两种金字塔。
+
+## T0：质量金字塔
+
+对任意 parent，左右 child 质量满足：
+
+$$
+m_n=m_L+m_R.
+$$
+
+再定义局部分叉概率：
+
+$$
+a_n=\frac{m_L}{m_L+m_R}.
+$$
+
+则：
+
+$$
+m_L=m_na_n,
+\qquad
+m_R=m_n(1-a_n).
+$$
+
+因此 16-leaf 概率场可以精确改写成 15 个内部节点分叉概率。parent 保存粗质量，局部分叉参数
+保存合并时丢失的细节。这类似树上的 Haar 小波，但它首先是一个数学恒等式，不能单独算作发现
+了语言规律。
+
+## T1：后验修正金字塔
+
+T1 的各尺度后验都定义在相同的 token 候选集合上，所以它们不是简单的 parent 求和。尺度从
+`K` 变为 `2K` 时，细后验等于粗后验加入局部分叉证据后重新归一化：
+
+$$
+\Delta_{K\to2K}(t;c_{1:m})
+=\sum_{r=1}^{m}
+\log\frac{p_{2K}(b_r^{2K}\mid t)}
+{p_K(b_r^K\mid t)},
+$$
+
+$$
+\log q_{2K}(t\mid c)
+=\log q_K(t\mid c)
++\Delta_{K\to2K}(t;c)-\log Z.
+$$
+
+在 200K 语料、50,000 个正式 masked-token 事件上，这个递推式的最大绝对数值闭合误差为：
+
+$$
+1.144409\times10^{-5}.
+$$
+
+所以 T1 确实具有一种“粗后验 + 局部细节”的精确递归表示。
+
+## 真正观察到的结构：有效信息前置
+
+四上下文时，从 `K=1` 到 `K=16`，learned topology 对正确词产生的平均总对数概率增益为：
+
+$$
+0.522812.
+$$
+
+其中到 `K=4` 已经获得的比例为：
+
+| topology | 到 K=4 已获得的总增益比例 |
+|---|---:|
+| learned tree | **0.607451** |
+| random tree mean | 0.263590 |
+| learned-leaf permutation mean | 0.378829 |
+
+也就是说，learned tree 不只是最终 16-leaf 概率场有效；它把较多有助于正确词判断的信息安排在了
+较粗的前两次分裂中。打乱同一组 leaf 的排列以后，最终 `K=16` 表示没有丢失，但这种粗尺度
+前置显著减弱。这才是当前可以支持的“内部金字塔”证据。
+
+{{< claim id="S1-MS-MICROSCOPE-M1-C03" status="smoke-informed-formal-supported" >}}
+该门在 20K smoke 后注册，并在新的 200K/50K formal 预算上通过。它支持 learned topology 的
+粗尺度信息前置，不是原始 smoke 前预注册的结论，也不证明所有语料和 seed 都具有同一比例。
+{{< /claim >}}
+
+## 没有观察到简单的级数衰减
+
+learned tree 四个深度的 Haar 式细节能量为：
+
+```text
+0.321586 / 0.158577 / 0.312618 / 0.299835
+```
+
+held-out cross-entropy 的逐层贡献为：
+
+```text
+0.518268 / 0.608847 / 0.522474 / 0.531875
+```
+
+它们都没有随深度单调下降。因此不能把当前概率场描述成“低阶项最大，越高阶越小”的简单
+Fourier 式级数。更准确的说法是：**粗层优先组织了一部分有判别力的信息，但细层仍保存大量
+不可忽略的修正。**
+
+另外两个探索门失败了：
+
+- 保留四个最大细节参数时，learned JS 重建误差为 `0.028009`，随机树反而只有 `0.008186`。
+  随机混合会产生更平滑、更容易近似的场，因此“容易压缩”不能单独代表结构更好；
+- 二次 parent-to-child 回归的 held-out R-squared 为 `0.124078`，高于随机树的 `0.038021`，
+  但低于 leaf permutation 的 `0.216238`。所以当前没有证据宣布一个统一低阶多项式就是 F。
+
+M1 最终留下的结构认识是：
+
+```text
+T0: parent mass + local split detail -> exact leaf field
+T1: coarse posterior + local log-evidence residual -> exact fine posterior
+learned topology: useful evidence is statistically front-loaded toward coarse scales
+```
+
+它比“所有系数逐层缩小”弱，但比“只有 16 个无关 float”强。
+
+# 后续还要解决什么
 
 T1 暴露的下一问不是“再增加几个上下文”，而是：
 
