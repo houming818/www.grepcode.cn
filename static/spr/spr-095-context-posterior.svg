@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">T1 multiscale context posterior NLL curves</title>
+  <desc id="desc">Learned TreeHeap NLL decreases as resolution and context count increase, while matched random trees remain worse.</desc>
+  <rect width="1200" height="680" fill="#f8fafc"/>
+  <text x="80" y="62" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#172033">T1: context evidence in a multiscale probability field</text>
+  <text x="80" y="96" font-family="Arial, sans-serif" font-size="18" fill="#526071">Held-out masked-token NLL, lower is better</text>
+  <line x1="120" y1="560" x2="1110" y2="560" stroke="#7d8795" stroke-width="2"/>
+  <line x1="120" y1="140" x2="120" y2="560" stroke="#7d8795" stroke-width="2"/>
+  <g font-family="Arial, sans-serif" font-size="16" fill="#526071">
+    <text x="74" y="566">6.7</text><text x="74" y="461">6.9</text><text x="74" y="356">7.1</text><text x="74" y="251">7.3</text>
+    <text x="205" y="595">K=1</text><text x="405" y="595">K=2</text><text x="605" y="595">K=4</text><text x="805" y="595">K=8</text><text x="994" y="595">K=16</text>
+    <text x="455" y="640" font-size="18">Visible probability regions</text>
+  </g>
+  <g stroke="#d7dde6" stroke-width="1">
+    <line x1="120" y1="560" x2="1110" y2="560"/><line x1="120" y1="455" x2="1110" y2="455"/>
+    <line x1="120" y1="350" x2="1110" y2="350"/><line x1="120" y1="245" x2="1110" y2="245"/>
+  </g>
+  <polyline points="220,229 420,306 620,340 820,372 1020,401" fill="none" stroke="#3468c0" stroke-width="5"/>
+  <polyline points="220,229 420,346 620,402 820,453 1020,501" fill="none" stroke="#16836d" stroke-width="5"/>
+  <polyline points="220,229 420,336 620,396 820,454 1020,505" fill="none" stroke="#d25b38" stroke-width="5"/>
+  <polyline points="220,229 420,241 620,262 820,297 1020,353" fill="none" stroke="#7b8491" stroke-width="4" stroke-dasharray="10 8"/>
+  <g fill="#3468c0"><circle cx="220" cy="229" r="7"/><circle cx="420" cy="306" r="7"/><circle cx="620" cy="340" r="7"/><circle cx="820" cy="372" r="7"/><circle cx="1020" cy="401" r="7"/></g>
+  <g fill="#16836d"><circle cx="220" cy="229" r="7"/><circle cx="420" cy="346" r="7"/><circle cx="620" cy="402" r="7"/><circle cx="820" cy="453" r="7"/><circle cx="1020" cy="501" r="7"/></g>
+  <g fill="#d25b38"><circle cx="220" cy="229" r="7"/><circle cx="420" cy="336" r="7"/><circle cx="620" cy="396" r="7"/><circle cx="820" cy="454" r="7"/><circle cx="1020" cy="505" r="7"/></g>
+  <g font-family="Arial, sans-serif" font-size="17" fill="#172033">
+    <line x1="740" y1="135" x2="790" y2="135" stroke="#3468c0" stroke-width="5"/><text x="805" y="141">Tree, 1 context</text>
+    <line x1="740" y1="170" x2="790" y2="170" stroke="#16836d" stroke-width="5"/><text x="805" y="176">Tree, 2 contexts</text>
+    <line x1="740" y1="205" x2="790" y2="205" stroke="#d25b38" stroke-width="5"/><text x="805" y="211">Tree, 4 contexts</text>
+    <line x1="740" y1="240" x2="790" y2="240" stroke="#7b8491" stroke-width="4" stroke-dasharray="10 8"/><text x="805" y="246">Random mean, 4 contexts</text>
+  </g>
+  <rect x="665" y="525" width="400" height="62" rx="4" fill="#fff4e8" stroke="#e2a65f"/>
+  <text x="685" y="551" font-family="Arial, sans-serif" font-size="16" fill="#633e17">At K=16: random - learned = 0.287383 nat</text>
+  <text x="685" y="576" font-family="Arial, sans-serif" font-size="16" fill="#633e17">Paired bootstrap 95% CI: [0.276356, 0.298175]</text>
+</svg>
