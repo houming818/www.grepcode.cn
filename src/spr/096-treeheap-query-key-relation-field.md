@@ -559,6 +559,257 @@ SPR-096：QK 怎样在树上计算关系并选择路径
 
 096 不再把 R 写成另一个编解码器。它只研究关系计算与路由。
 
+## 7.4 路径 QK 的真实语料机制实验
+
+2026-10-17，我们按照第六章的控制要求实现了第一轮真实语料实验。实验固定 WMT
+中英语料切片、tokenizer、seed、FOLD、Value/READ、Decoder、优化器和训练轮数，只改变
+关系路由方式：
+
+| 实验臂 | 关系路由 |
+|---|---|
+| uniform | 对所有有效 child 使用均匀概率 |
+| qk_no_path | 只用 Query 与 child Key 计算 R |
+| qk_fixed_path | 在 QK 中加入固定 heap 路径编码 |
+| qk_learned_path | 在 QK 中加入从零开始学习的路径编码 |
+
+在 6,000 条训练语料、1,000 条验证语料和 1,000 条测试语料上，结果为：
+
+| 实验臂 | Test NLL | BLEU-4 | 重复 token 比例 | 有效 leaf 数 |
+|---|---:|---:|---:|---:|
+| uniform | 7.465374 | 0.9202 | 0.7616 | 21.57 |
+| qk_no_path | 7.484448 | 1.1686 | 0.6903 | 10.74 |
+| qk_fixed_path | 7.473946 | 0.7649 | 0.6724 | 11.91 |
+| qk_learned_path | 7.468156 | 1.1111 | 0.6358 | 11.68 |
+
+原始质量排序还不能说明 QK 优于均匀路由：这一档训练中，uniform 的 Test NLL 仍然最低。
+但干预实验说明 QK 和路径并不是装饰参数。
+
+对 `qk_no_path`：
+
+- 打乱 Query 后，NLL 增加 0.010207；
+- 打乱 Key 后，NLL 增加 0.213982；
+- 交换左右关系分数后，NLL 增加 0.909093。
+
+对 `qk_learned_path`：
+
+- 清零路径编码后，NLL 增加 0.014340，路由 JSD 为 0.016110；
+- 打乱同层路径编码后，NLL 增加 0.051478，路由 JSD 为 0.046671。
+
+所以目前可以说：树上 QK 能在真实语料上接受梯度，形成非均匀路径后验，并且学到会被模型
+实际使用的路径编码。还不能说：它已经比均匀 READ 产生更好的语言模型。
+
+{{< evidence grade="E1" source="SameTime ARA S3-TREE-QK-PATH-C01, WMT 6K/1K/1K, seed 20261017" >}}
+真实语料机制实验支持 QK 与路径编码进入因果计算链；Test NLL 尚不支持路径 QK 优于均匀
+路由，生成质量也不足以形成翻译能力结论。
+{{< /evidence >}}
+
+# 第八章：实验代码怎样实现
+
+这一章不再只讲公式，而是把公式落到实际训练器的数据流中。
+
+## 8.1 两个入口文件
+
+机制档与全量档分开实现：
+
+~~~text
+ara/s3-generation/src/s3_tree_qk_path_encoding_smoke.py
+ara/s3-generation/src/s3_tree_qk_path_full_corpus.py
+~~~
+
+第一个文件负责四臂机制实验和完整干预矩阵。第二个文件复用相同模型，把训练改成可恢复的
+全量流式扫描。模型定义不因数据规模改变。
+
+## 8.2 FOLD 如何建立树
+
+输入 token 先变成 leaf hidden state。相邻两个 child 通过共享 FOLD 合成 parent：
+
+$$
+h_p=\operatorname{LayerNorm}
+\left(
+\operatorname{MLP}[h_l\Vert h_r]
+\right).
+$$
+
+若一侧是 padding，parent 直接继承有效 child。32 个 leaf 依次生成 16、8、4、2、1 个节点，
+并保留全部层级：
+
+~~~text
+levels = [root, depth-1, ..., leaf]
+~~~
+
+保留这些层级不是为了让 R 携带内容，而是为了让每一步 QK 都有对应的 parent 和候选 child。
+
+## 8.3 QK 如何沿树递归
+
+Decoder 在第 \(t\) 个生成位置持有状态 \(s_t\)。当前层的 Query 为：
+
+$$
+q_{t,d}=
+W_{Q,s}s_t+W_{Q,p}h_{p_d}+W_{Q,z}z_d.
+$$
+
+左右 child 的 Key 为：
+
+$$
+k_{d,c}=W_{K,h}h_{d,c}+W_{K,z}z_{d\rightarrow c}.
+$$
+
+代码对左右 child 计算缩放点积：
+
+$$
+R_{t,d,c}=\frac{q_{t,d}^{\mathsf T}k_{d,c}}{\sqrt{d_k}},
+$$
+
+再在当前 parent 的两个 child 之间做局部 softmax。设 parent 概率为
+\(P_t(p_d)\)，child 概率就是：
+
+$$
+P_t(c)=P_t(p_d)P_t(c\mid p_d,q_{t,d}).
+$$
+
+因此，程序不是在最后一次性对 32 个 leaf 做 flat attention，而是逐层乘起局部条件概率。
+所有 leaf 概率之和在每层之后重新归一化为 1。
+
+## 8.4 READ 与 R 在代码中仍然分开
+
+递归 QK 最终得到 leaf 概率 \(P_t(i)\)。READ 才对 leaf Value 求加权和：
+
+$$
+c_t=\sum_{i=1}^{32}P_t(i)W_Vh_i.
+$$
+
+然后 GRU Decoder 使用前一个目标 token 和 \(c_t\) 更新状态：
+
+$$
+s_{t+1}=\operatorname{GRU}
+\left([E(y_t)\Vert c_t],s_t\right),
+$$
+
+最后生成词表 logits：
+
+$$
+\ell_{t+1}=W_O[s_{t+1}\Vert c_t]+b_O.
+$$
+
+所以代码中的计算边界是：
+
+~~~text
+TreeEncoder/FOLD -> levels
+Decoder state + levels + path -> QK/R -> leaf probability
+leaf probability + Value -> READ context
+READ context + decoder state -> token logits
+~~~
+
+## 8.5 为什么全量实验只保留三臂
+
+6K 实验已经表明，固定路径的路径干预响应弱于可学习路径。全量实验因此保留：
+
+1. `uniform`：判断复杂关系路由是否真的必要；
+2. `qk_no_path`：判断内容 QK 本身是否有效；
+3. `qk_learned_path`：判断路径信息是否在内容 QK 之上增加收益。
+
+三个模型在同一个进程中初始化。除 learned path table 外，它们的共享参数初始 SHA-256 必须
+一致；`qk_no_path` 与零初始化的 `qk_learned_path` 在 step 0 的 NLL 必须完全相同。
+
+训练时，程序只顺序读取一次语料。每个 batch 被同一套 tokenizer 和 collate 处理一次，再依次
+送给三个模型更新：
+
+~~~python
+for batch in nioclean_stream:
+    source, length, target = collate(batch)
+    for arm in (uniform, qk_no_path, qk_learned_path):
+        logits = arm.teacher(source, length, target)
+        loss = cross_entropy(logits, target)
+        loss.backward()
+        optimizer.step()
+~~~
+
+这里的三个模型不是共享训练参数，而是共享数据、顺序和训练预算。这样才能把结果差异归因到
+关系路由方式。
+
+## 8.6 全量语料合同
+
+全量档使用已经登记的不可变发布集：
+
+~~~text
+NioClean-ZHEN-S098-7M-v2
+rows:   7,304,358
+bytes:  1,535,169,936
+sha256: 299134867398720cc6d407eadd6de4fb237812319d113fbe12071758e79d92c8
+~~~
+
+训练方向固定为 English 到 Chinese。source 最多保留 31 个内容 piece，再加 EOS 放入 32-leaf
+heap；target 最多保留 63 个内容 piece，再加 EOS。这里是容量合同，不把被截断部分伪装成完整
+句子。
+
+评测集复用 6K 实验的确定性 WMT 选择过程，其 8,000 行总哈希必须仍为：
+
+~~~text
+5271a5fb90633eedff5b8746147c38c768c0f2bd9a0480ca94c3f4ac36c3a3e9
+~~~
+
+第 6,001 至 7,000 行固定为 valid，第 7,001 至 8,000 行固定为 test。全部 8,000 个编码后的
+pair 都进入排除集合；全量训练流遇到精确相同 pair 时跳过，避免直接把盲测样本写回训练集。
+
+## 8.7 学习率与断点恢复
+
+全量单遍约 11.4 万个 batch。学习率先在 1,000 step 内线性升到 \(3\times10^{-4}\)，再按
+cosine 衰减到 \(3\times10^{-5}\)。该调度只控制优化稳定性，不作为 TreeHeap 理论结论。
+
+每 5,000 step 写一次 wake 和原子 checkpoint，checkpoint 保存：
+
+- 三个模型的 state dict；
+- 三个 AdamW optimizer state；
+- 文件行 cursor 与 byte offset；
+- 已处理 example/token 数；
+- 数据、tokenizer、评测集和初始状态合同。
+
+若 io 重启，程序从最后一个 byte offset 继续。恢复前必须重新核对数据与评测哈希，避免把另一份
+语料接到旧 optimizer 上。
+
+## 8.8 代码要回答什么
+
+全量任务不以“训练更久必然更好”为前提。它要观察五件事：
+
+1. content QK 能否在完整语料暴露后超过 uniform；
+2. learned path 能否超过 content-only QK；
+3. Query、Key 和 path 干预是否仍然造成独立损伤；
+4. 有效 leaf 数是否保持分布式选择，而不是坍缩为 1；
+5. 重复率下降时，NLL 与 BLEU 是否同步改善。
+
+质量曲线允许非单调，不能用一次 wake 恶化提前停止。只有 OOM、CUDA/Xid、NaN/Inf、hash
+不符、checkpoint 损坏或 cursor 不前进才停止任务。
+
+## 8.9 公式怎样对应源码和证据
+
+下面这张表用于代码 review。它不是模块命名说明，而是理论量到可执行对象的逐项对应：
+
+| 理论对象 | 源码位置 | 可审计输出 |
+|---|---|---|
+| leaf 到 root 的 FOLD 层级 | `TreeEncoder.forward()` | 每层节点数量、mask 和模型参数哈希 |
+| 固定或可学习路径编码 \(z_d\) | `TreeQKDecoder.path_codes()` | `path_zero`、`path_shuffle` 干预损伤 |
+| 局部关系分数 \(R_{t,d,c}\) | `TreeQKDecoder.route()` | 各深度熵、leaf 后验和路由 JSD |
+| leaf READ \(c_t\) | `TreeQKDecoder.route()` 末段 | `key_shuffle`、`left_right_swap` 后的 NLL 变化 |
+| 自回归状态与词表 logits | `TreeQKDecoder.step()` | Test NLL、PPL、BLEU、重复率和生成样例 |
+| 固定评测集与训练排除集 | `build_evaluation()` | 8,000 行选择哈希及 valid/test 行数 |
+| 全量流式读取 | `iter_full_batches()` | 行 cursor、byte offset、截断数和排除数 |
+| 同批三臂训练 | `main()` 的 arm 循环 | 同数据顺序、同 step、同学习率的 wake 曲线 |
+| 原子恢复 | `save_checkpoint()` | 模型、optimizer、cursor、offset 与合同哈希 |
+
+机制档最终写出 `summary.json`、`examples.json` 和 `trace.jsonl`。全量档增加
+`contract.json`、`wakes.jsonl`、`wake_latest.json` 与可恢复 checkpoint。可携带 evidence 的
+`SHA256SUMS` 不包含大型 checkpoint；checkpoint 保留在训练主机，只用于断点恢复和 reload
+审计。这一分离避免把“文件太大没有拉回”误写成“模型不可重载”。
+
+96 维、32-leaf、64 batch 的代表性合同 smoke 已完成 4,096 行扫描：cursor 到达 4,096，
+无无效行、NaN、OOM 或 CUDA 错误，且三臂均完成最终评测。这个结果只确认全量代码路径可运行，
+不用于判断关系路由质量；4,096 行不足以训练出可解释的 QK 差异。
+
+当前实现仍会计算所有层的全部有效节点，再形成完整 leaf 后验。它验证的是“树上逐边 QK 能否
+学到有效关系”，不是稀疏执行器，也没有证明访问量、显存或功耗收益。只有关系门禁通过后，才应
+把同一组 QK 参数接到 top-k 或硬路由执行器，并把 child-Key 目录、实际访问节点数和峰值显存纳入
+新的配对实验。
+
 # 当前结论
 
 SPR-096 现在固定以下边界：
@@ -585,11 +836,15 @@ $$
 
 三条式子分别对应：计算关系、得到路由概率、读取内容。
 
-下一轮实验要回答：
+6K 机制实验已经回答：树上 QK 和路径编码可以被训练，也会因干预而改变关系场与预测结果。
+但它尚未回答质量优势。正在执行的 NioClean 全量单遍实验继续回答：
 
 1. 树上 QK 能否从真实语料学到输入相关的关系场？
 2. 局部 QK 概率能否组成稳定的多层路径后验？
-3. 紧凑 child Key 目录能否减少访问量，同时维持任务质量？
-4. 在同参数、同数据和同训练预算下，它能否优于 uniform、random 与 shuffled-Key 对照？
+3. learned path 是否在 content-only QK 之上增加任务收益，而不只是增加干预响应？
+4. 在同参数、同数据和同训练预算下，它能否优于 uniform，并对 shuffled-Query、Key 与 path
+   保持可测的因果响应？
 
-这些问题通过之前，TreeHeap 只有树结构和关系假设，还没有得到有效树上 QK 协议的正式证据。
+因此，TreeHeap 当前已经有“关系机制存在”的真实语料证据，但还没有“关系协议有效优于均匀
+路由”的证据，也没有稀疏执行收益证据。机制成立、架构胜出与工程节能是三个不同层级的 Claim，
+不能合并书写。
