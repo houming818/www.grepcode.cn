@@ -18,8 +18,7 @@ tags: [SPR, TreeHeap, Relation, QueryKey, READ, ARA]
 在 TreeHeap 中，parent \(p\) 与 child \(c\) 之间的关系写成：
 
 $$
-R_{p,c}(q,z_p)
-=
+R_{p,c}(q,z_p) =
 Q(q,h_p,z_p)^{\mathsf T}
 K(h_c,e_{p,c},z_{p\rightarrow c}).
 $$
@@ -68,16 +67,14 @@ $$
 它们的关系分数是：
 
 $$
-R_{ij}
-=
+R_{ij} =
 \frac{q_i^{\mathsf T}k_j}{\sqrt{d_k}}.
 $$
 
 把所有 \(R_{ij}\) 排在一起，就得到关系矩阵：
 
 $$
-R
-=
+R =
 \frac{QK^{\mathsf T}}{\sqrt{d_k}}.
 $$
 
@@ -88,20 +85,17 @@ $$
 TreeHeap 不必让一个 Query 同时比较所有 token。它可以在当前 parent 只比较两个候选 child：
 
 $$
-R_{p,l}
-=
+R_{p,l} =
 \frac{q_p^{\mathsf T}k_l}{\sqrt{d_k}},
 \qquad
-R_{p,r}
-=
+R_{p,r} =
 \frac{q_p^{\mathsf T}k_r}{\sqrt{d_k}}.
 $$
 
 然后计算左右路由概率：
 
 $$
-\alpha_{p,l},\alpha_{p,r}
-=
+\alpha_{p,l},\alpha_{p,r} =
 \operatorname{softmax}
 \left(R_{p,l},R_{p,r}\right).
 $$
@@ -149,8 +143,7 @@ child 状态。
 关系分数经过归一化：
 
 $$
-P(c\mid p,q)
-=
+P(c\mid p,q) =
 \frac{\exp R_{p,c}}
 {\exp R_{p,l}+\exp R_{p,r}}.
 $$
@@ -176,8 +169,7 @@ $$
 则一次软 READ 可以写成：
 
 $$
-o_p
-=
+o_p =
 \alpha_{p,l}v_l
 +
 \alpha_{p,r}v_r.
@@ -196,8 +188,7 @@ $$
 READ 得到查询结果后，Decoder 再生成词表分布：
 
 $$
-\operatorname{logits}
-=
+\operatorname{logits} =
 W_{dec}h_{read}+b_{dec}.
 $$
 
@@ -240,8 +231,7 @@ $$
 对当前 parent \(p_d\)，把查询内容、当前节点和路径前缀一起投影为 Query：
 
 $$
-q_d
-=
+q_d =
 W_Q
 \left[
 h_q\,\Vert\,h_{p_d}\,\Vert\,z_d
@@ -251,16 +241,14 @@ $$
 对候选 child \(c\in\{l,r\}\)，先把该边追加到路径前缀：
 
 $$
-z_{d\rightarrow c}
-=
+z_{d\rightarrow c} =
 E_{path}(d+1,2a_d+b_c),
 $$
 
 再构造候选 Key：
 
 $$
-k_{d,c}
-=
+k_{d,c} =
 W_K
 \left[
 g_{p_d,c}\,\Vert\,e_c\,\Vert\,z_{d\rightarrow c}
@@ -270,8 +258,7 @@ $$
 于是当前边的关系仍然是 QK：
 
 $$
-R_{p_d,c}
-=
+R_{p_d,c} =
 \frac{q_d^{\mathsf T}k_{d,c}}{\sqrt{d_k}}.
 $$
 
@@ -291,8 +278,7 @@ $$
 每一层都有一个条件路由概率：
 
 $$
-P(p_{d+1}\mid p_d,q_d)
-=
+P(p_{d+1}\mid p_d,q_d) =
 \operatorname{softmax}
 \left(R_{p_d,l},R_{p_d,r}\right)_{p_{d+1}}.
 $$
@@ -300,8 +286,7 @@ $$
 整条路径的概率为：
 
 $$
-P(\pi\mid q)
-=
+P(\pi\mid q) =
 \prod_{d=0}^{D-1}
 P(p_{d+1}\mid p_d,q_d).
 $$
@@ -309,8 +294,7 @@ $$
 在 log 空间中：
 
 $$
-\log P(\pi\mid q)
-=
+\log P(\pi\mid q) =
 \sum_{d=0}^{D-1}
 \log P(p_{d+1}\mid p_d,q_d).
 $$
@@ -322,8 +306,7 @@ $$
 对一棵树的所有边计算 R：
 
 $$
-\mathcal R(q)
-=
+\mathcal R(q) =
 \left\{
 R_{p,c}(q)
 \mid
@@ -372,8 +355,7 @@ $$
 R 定义 Query 怎样比较 parent 下的候选：
 
 $$
-R_{p,c}
-=
+R_{p,c} =
 Q(q,h_p,z_p)^{\mathsf T}
 K(h_c,e_{p,c},z_{p\rightarrow c}).
 $$
@@ -407,8 +389,7 @@ Query 先与这个目录计算 R，选中分支后才访问 child 内容：
 parent 的成本不能只算 \(h_p\)，还应计入：
 
 $$
-B_p
-=
+B_p =
 B(h_p)
 +B(D_p)
 +B(\operatorname{residual}_p).
@@ -436,8 +417,7 @@ $$
 共享参数是 \(W_Q,W_K\)，不是共享当前关系值。当前 R 仍然由输入决定：
 
 $$
-R_{p,c}(q,z_p)
-=
+R_{p,c}(q,z_p) =
 \frac{q_{p,c}^{\mathsf T}k_{p,c}}{\sqrt{d_k}}.
 $$
 
@@ -456,8 +436,7 @@ $$
 第 \(m\) 个头计算：
 
 $$
-R_{p,c}^{(m)}
-=
+R_{p,c}^{(m)} =
 \frac{
 (W_Q^{(m)}q)^{\mathsf T}
 (W_K^{(m)}k_{p,c})
@@ -589,20 +568,17 @@ $$
 $$
 
 $$
-R_{p,c}
-=
+R_{p,c} =
 \frac{q_p^{\mathsf T}k_c}{\sqrt{d_k}}.
 $$
 
 $$
-P(c\mid p,q)
-=
+P(c\mid p,q) =
 \operatorname{softmax}_{c\in\{l,r\}}R_{p,c}.
 $$
 
 $$
-h_{read}
-=
+h_{read} =
 \operatorname{READ}
 \left(P(c\mid p,q),V_c\right).
 $$
